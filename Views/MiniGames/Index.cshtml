@@ -1,0 +1,50 @@
+
+<div class="admin-page-center">
+    <div class="game-mode-card" style="flex-direction:column; padding:16px; height:auto;">
+
+        <div style="margin-bottom:10px;">
+            <div>Mode: <strong><span id="miniGameModeText">-</span></strong></div>
+            <div>Date: <strong><span id="miniGameDateText">-</span></strong></div>
+        </div>
+
+        <pre id="gameResult"
+             style="color:white; white-space:pre-wrap; font-size:13px; margin-top:10px;">
+Select mode and day...
+        </pre>
+
+    </div>
+</div>
+
+<script>
+(function () {
+    let lastKey = "";
+
+    setInterval(() => {
+        const mode = window.selectedGameMode;
+        const date = window.selectedDay;
+
+        if (!mode || !date) return;
+
+        const key = mode + "|" + date;
+        if (key === lastKey) return;
+        lastKey = key;
+
+        document.getElementById("miniGameModeText").textContent = mode;
+        document.getElementById("miniGameDateText").textContent = date;
+
+        fetch(`/MiniGames/GetDailyGame?mode=${encodeURIComponent(mode)}&date=${encodeURIComponent(date)}`)
+            .then(r => {
+                if (!r.ok) throw "Not found";
+                return r.json();
+            })
+            .then(data => {
+                document.getElementById("gameResult").textContent =
+                    JSON.stringify(data, null, 2);
+            })
+            .catch(() => {
+                document.getElementById("gameResult").textContent =
+                    "Game not found.";
+            });
+    }, 500);
+})();
+</script>

@@ -1,0 +1,174 @@
+﻿@using RevUpIQ.Admin.Models.MiniGames
+
+<div class="trivia-game">
+
+    <form class="trivia-edit"
+          method="post"
+          action="/MiniGames/CreateRaceWord"
+          id="raceWordCreateForm">
+
+        <input type="hidden" name="DivisionId" value="@ViewData["DivisionId"]" />
+        <input type="hidden" name="Date" value="@ViewData["Date"]" />
+        <input type="hidden" name="TargetWord" id="TargetWordInput" />
+
+        <!-- WORD LENGTH -->
+        <select name="WordLength" class="admin-select" id="wordLengthSelect">
+            <option value="4">4 letters</option>
+            <option value="5" selected>5 letters</option>
+            <option value="6">6 letters</option>
+        </select>
+
+        <div class="wordle-board">
+            <div class="wordle-row" id="wordleRow">
+                <input class="wordle-cell" type="text" maxlength="1" />
+                <input class="wordle-cell" type="text" maxlength="1" />
+                <input class="wordle-cell" type="text" maxlength="1" />
+                <input class="wordle-cell" type="text" maxlength="1" />
+                <input class="wordle-cell" type="text" maxlength="1" />
+            </div>
+        </div>
+
+        <button type="submit"
+                class="admin-button save-btn"
+                disabled>
+            Create RaceWord
+        </button>
+
+    </form>
+</div>
+
+
+<style>
+.wordle-board {
+    margin-top: 20px;
+}
+
+.wordle-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.wordle-cell {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    border: 3px solid var(--bright-blue);
+    background: var(--dark-blue);
+    color: var(--white);
+    font-size: 28px;
+    font-weight: 800;
+    text-align: center;
+    outline: none;
+}
+.wordle-cell:focus {
+    box-shadow: 0 0 0 2px var(--light-blue);
+}
+</style>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("raceWordCreateForm");
+    const saveBtn = form.querySelector(".save-btn");
+    const targetInput = document.getElementById("TargetWordInput");
+    const select = document.getElementById("wordLengthSelect");
+    const row = document.getElementById("wordleRow");
+
+    function getCells() {
+        return Array.from(form.querySelectorAll(".wordle-cell"));
+    }
+
+    function expectedLength() {
+        return parseInt(select.value, 10);
+    }
+
+    function rebuildCells(length) {
+        row.innerHTML = "";
+        for (let i = 0; i < length; i++) {
+            const input = document.createElement("input");
+            input.className = "wordle-cell";
+            input.type = "text";
+            input.maxLength = 1;
+            row.appendChild(input);
+        }
+    }
+
+    function validateForm() {
+        const cells = getCells();
+        const lenOk = cells.length === expectedLength();
+        const filledOk = cells.every(c => c.value.trim().length === 1);
+        const isValid = lenOk && filledOk;
+
+        saveBtn.disabled = !isValid;
+        saveBtn.style.opacity = isValid ? "1" : "0.5";
+        saveBtn.style.cursor = isValid ? "pointer" : "not-allowed";
+    }
+
+    function attachWordleInputBehavior() {
+        const cells = getCells();
+
+        cells.forEach((cell, index) => {
+            cell.oninput = function () {
+                cell.value = cell.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 1);
+                if (cell.value && cells[index + 1]) cells[index + 1].focus();
+                validateForm();
+            };
+
+            cell.onkeydown = function (e) {
+                if (e.key === "Backspace") {
+                    if (!cell.value && cells[index - 1]) cells[index - 1].focus();
+                    validateForm();
+                }
+            };
+        });
+
+        validateForm();
+    }
+
+    function setupBoard() {
+        rebuildCells(expectedLength());
+        attachWordleInputBehavior();
+        const cells = getCells();
+        if (cells[0]) cells[0].focus();
+    }
+
+    setupBoard();
+
+    select.addEventListener("change", function () {
+        setupBoard();
+    });
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        validateForm();
+        if (saveBtn.disabled) return;
+
+        const cells = getCells();
+        let word = "";
+        cells.forEach(c => word += (c.value || "").toUpperCase());
+
+        if (word.length !== expectedLength()) {
+            alert("Word length does not match selected length.");
+            return;
+        }
+
+        targetInput.value = word;
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: "POST",
+            body: formData
+        })
+        .then(res => {
+            if (res.ok) window.history.back();
+            else alert("Error creating RaceWord.");
+        })
+        .catch(() => alert("Error creating RaceWord."));
+    });
+
+});
+</script>

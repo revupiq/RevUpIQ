@@ -1,0 +1,109 @@
+.scx-container {
+    max-width: 520px;
+    margin: 0 auto 24px auto;
+}
+
+.scx-label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.scx-wrap {
+    position: relative;
+}
+
+.scx-button {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+.scx-arrow {
+    font-size: 12px;
+}
+
+.scx-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    background: #0b3a66;
+    border-radius: 14px;
+    overflow: hidden;
+    display: none;
+    z-index: 50;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+.scx-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.scx-pick {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+}
+
+.scx-delete {
+    background: #b42323;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.scx-add {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    align-items: center;
+}
+
+/* ========================= */
+/* SUPPORT WARNING STYLES */
+/* ========================= */
+
+.support-notice-editor {
+    max-width: 720px; /* wider than category */
+    margin: 0 auto 32px auto;
+}
+
+.support-notice-editor .admin-label {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.support-notice-editor .admin-hint {
+    display: block;
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+.support-notice-editor-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.support-notice-editor-row .admin-input {
+    flex: 1;
+}
+
+.support-notice-editor-row .admin-button {
+    padding: 12px 18px;
+    border-radius: 12px;
+    white-space: nowrap;
+}

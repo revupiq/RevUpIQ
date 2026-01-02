@@ -1,0 +1,55 @@
+/* CALENDAR WRAPPER */
+.calendar-wrapper {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* GRID */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+/* DAY CELL */
+.calendar-day {
+    background-color: var(--dark-blue);
+    border-radius: 8px;
+    padding: 10px;
+    color: var(--white);
+    text-align: center;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+}
+
+/* SELECTED DAY */
+.calendar-day.selected {
+    background-color: var(--bright-blue) !important;
+}
+
+/* LABELS */
+.calendar-week {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.calendar-number {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+.calendar-month {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+.calendar-today {
+    font-size: 10px;
+    margin-top: 4px;
+    font-weight: 600;
+}

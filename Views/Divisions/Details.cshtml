@@ -1,0 +1,26 @@
+﻿@model RevUpIQ.Admin.Models.Division.DivisionDto
+
+
+@{
+    ViewData["Title"] = Model?.Name ?? "Division";
+}
+
+@await Html.PartialAsync("_EditDivisionModal", Model)
+
+
+<div class="full-width-divider"></div>
+
+<div id="daily-game-filter-container">[waiting]</div>
+
+<script>
+    fetch('/MiniGames/DailyGameFilter?id=@Model.Id')
+        .then(r => {
+            console.log("Controller response:", r.status, r.statusText);
+            return r.text();
+        })
+        .then(html => {
+            document.getElementById("daily-game-filter-container").innerHTML = html;
+        });
+</script>
+
+

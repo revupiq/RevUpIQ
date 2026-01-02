@@ -1,0 +1,80 @@
+@using YourApp.Models.Support
+@using RevUpIQ.Admin.Models.Users
+@model SupportTicketsIndexViewModel
+
+<link rel="stylesheet" href="~/css/support-tickets.css" />
+
+<h1>Support</h1>
+
+<div id="support-categories-container">[waiting]</div>
+
+@if (Model.Tickets == null || !Model.Tickets.Any())
+{
+    <p>No active tickets.</p>
+}
+else
+{
+    <div class="admin-card-small support-tickets">
+        @foreach (var t in Model.Tickets)
+        {
+            Model.Users.TryGetValue(t.UserId, out var user);
+            var unread = Model.UnreadUserCounts.TryGetValue(t.Id, out var c) ? c : 0;
+
+            <a asp-controller="Support"
+               asp-action="Ticket"
+               asp-route-id="@t.Id">
+
+                <div class="support-ticket-left">
+                    <img
+                        class="support-ticket-avatar"
+                        src="@(string.IsNullOrWhiteSpace(user?.Profile?.Profile_Photo_Url)
+                                ? "/images/default-avatar.png"
+                                : user.Profile.Profile_Photo_Url)" />
+
+                    <div class="support-ticket-info">
+                        <strong>@(t.Subject ?? "No subject")</strong>
+
+                        <small>
+                            @(user?.Profile?.Full_Name
+                              ?? user?.Profile?.Username
+                              ?? "Unknown user")
+                        </small>
+
+                        @if (!string.IsNullOrWhiteSpace(user?.Profile?.Country)
+                            || !string.IsNullOrWhiteSpace(user?.Profile?.State))
+                        {
+                            <small>
+                                @(user?.Profile?.Country)
+                                @(string.IsNullOrWhiteSpace(user?.Profile?.State)
+                                    ? ""
+                                    : $", {user.Profile.State}")
+                            </small>
+                        }
+                    </div>
+                </div>
+
+                <div class="support-ticket-right">
+                    @if (unread > 0)
+                    {
+                        <span class="support-ticket-unread">
+                            @unread
+                        </span>
+                    }
+
+                    <small>@t.CreatedAt.ToLocalTime()</small>
+                </div>
+            </a>
+        }
+    </div>
+}
+
+<script>
+    fetch('/Support/CategoriesDropdown')
+        .then(r => {
+            console.log("CategoriesDropdown response:", r.status, r.statusText);
+            return r.text();
+        })
+        .then(html => {
+            document.getElementById("support-categories-container").innerHTML = html;
+        });
+</script>

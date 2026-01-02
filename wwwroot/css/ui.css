@@ -1,0 +1,209 @@
+﻿.admin-page-center {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+#divisionGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 300px));
+    gap: 20px;
+    justify-content: center;
+}
+
+body {
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--white);
+}
+
+h1 {
+    font-family: inherit;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    margin: 20px 0 0 0;
+}
+
+.admin-card-small {
+    width: 300px;
+    height: 180px;
+    background-color: var(--dark-blue);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--white);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    transition: background-color 0.2s ease;
+    font-family: inherit;
+}
+
+.admin-card-small:hover {
+    background-color: var(--mid-dark-blue);
+}
+
+.division-item {
+    display: block;
+    font-family: inherit;
+}
+
+.division-item h3 {
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.full-width-divider {
+    width: 100vw;
+    height: 1px;
+    background: white;
+    margin: 20px 0;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.admin-select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--mid-dark-blue);
+    background-color: var(--dark-blue);
+    color: var(--white);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.admin-button {
+    background-color: var(--secondary);
+    color: var(--white);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.admin-button:hover {
+    background-color: var(--bright-blue);
+}
+
+
+.division-card {
+    position: relative;
+}
+
+.division-sort-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+}
+
+.division-sort-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.12);
+    color: var(--white);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.division-sort-button:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.division-title {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.division-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.division-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.division-card {
+    width: 300px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.division-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.division-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.division-name {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.division-sort-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+}
+
+.division-sort-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.12);
+    color: var(--white);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.division-sort-button:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.division-create-card {
+    width: 300px;
+    height: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    text-decoration: none;
+}

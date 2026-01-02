@@ -1,0 +1,185 @@
+﻿@using RevUpIQ.Admin.Models.MiniGames
+@{
+    var game = ViewData["GameData"] as PhotoGuessDailyDto;
+}
+
+<div class="trivia-game">
+
+@if (game == null)
+{
+    <div class="trivia-error">No Photo Guess Data Loaded</div>
+}
+else
+{
+    <form class="trivia-edit"
+          method="post"
+          action="/MiniGames/UpdatePhotoGuess"
+          id="photoGuessEditForm"
+          enctype="multipart/form-data">
+
+        <input type="hidden" name="id" value="@game.Id" />
+
+        <!-- QUESTION -->
+        <textarea class="edit-question"
+                  name="Question"
+                  rows="3">@game.Question</textarea>
+
+        <!-- IMAGE -->
+        <div class="photo-upload">
+
+            <div id="photoImageFrame"
+                 data-has-image="@(string.IsNullOrEmpty(game.ImageUrl) ? "false" : "true")">
+
+                <img id="photoPreview"
+                     src="@(string.IsNullOrEmpty(game.ImageUrl) ? "" : game.ImageUrl)"
+                     alt="Preview"
+                     style="@(string.IsNullOrEmpty(game.ImageUrl) ? "display:none;" : "display:block;")" />
+
+                <span class="photo-image-placeholder"
+                      style="@(string.IsNullOrEmpty(game.ImageUrl) ? "" : "display:none;")">
+                    Click image to change
+                </span>
+
+            </div>
+
+            <input type="file"
+                   id="imageInput"
+                   name="ImageFile"
+                   accept="image/*"
+                   style="display:none;" />
+
+        </div>
+
+        <div class="trivia-options">
+
+            <div class="option-box correct">
+                <div class="option-label">CORRECT ANSWER</div>
+                <input class="edit-option correct"
+                       type="text"
+                       name="RealAnswer"
+                       value="@game.RealAnswer" />
+            </div>
+
+            <div class="option-box">
+                <div class="option-label">OPTION A</div>
+                <input class="edit-option"
+                       type="text"
+                       name="Answer1"
+                       value="@game.Answer1" />
+            </div>
+
+            <div class="option-box">
+                <div class="option-label">OPTION B</div>
+                <input class="edit-option"
+                       type="text"
+                       name="Answer2"
+                       value="@game.Answer2" />
+            </div>
+
+            <div class="option-box">
+                <div class="option-label">OPTION C</div>
+                <input class="edit-option"
+                       type="text"
+                       name="Answer3"
+                       value="@game.Answer3" />
+            </div>
+
+        </div>
+
+        <button type="submit"
+                class="admin-button save-btn"
+                disabled>
+            Save Changes
+        </button>
+
+    </form>
+}
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("photoGuessEditForm");
+    if (!form) return;
+
+    const saveBtn = form.querySelector(".save-btn");
+    const inputs = form.querySelectorAll("input:not([type='hidden']):not([type='file']), textarea");
+    const imageInput = document.getElementById("imageInput");
+    const frame = document.getElementById("photoImageFrame");
+    const preview = document.getElementById("photoPreview");
+    const placeholder = frame.querySelector(".photo-image-placeholder");
+
+    function hasExistingImage() {
+        return frame.dataset.hasImage === "true";
+    }
+
+    function validateForm() {
+        let isValid = true;
+
+        inputs.forEach(function (el) {
+            if (!el.value.trim()) isValid = false;
+        });
+
+        const hasNewImage = imageInput.files && imageInput.files.length > 0;
+        const imageOk = hasNewImage || hasExistingImage();
+        if (!imageOk) isValid = false;
+
+        saveBtn.disabled = !isValid;
+        saveBtn.style.opacity = isValid ? "1" : "0.5";
+        saveBtn.style.cursor = isValid ? "pointer" : "not-allowed";
+    }
+
+    inputs.forEach(el => el.addEventListener("input", validateForm));
+
+    frame.addEventListener("click", function () {
+        imageInput.click();
+    });
+
+    imageInput.addEventListener("change", function () {
+
+        if (imageInput.files && imageInput.files[0]) {
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = "block";
+                placeholder.style.display = "none";
+                frame.dataset.hasImage = "true";
+                validateForm();
+            };
+
+            reader.readAsDataURL(imageInput.files[0]);
+
+        } else {
+            validateForm();
+        }
+
+    });
+
+    validateForm();
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: "POST",
+            body: formData
+        })
+        .then(function (res) {
+            if (res.ok) {
+                window.history.back();
+            } else {
+                alert("Error saving photo guess.");
+            }
+        })
+        .catch(function () {
+            alert("Error saving photo guess.");
+        });
+    });
+
+});
+</script>

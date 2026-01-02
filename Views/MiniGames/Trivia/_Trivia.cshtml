@@ -1,0 +1,28 @@
+@using RevUpIQ.Admin.Models.MiniGames
+@model TriviaDailyDto
+
+<div class="trivia-game">
+
+@if (Model == null)
+{
+    <div class="trivia-error">
+        No trivia available for this day.
+    </div>
+}
+else
+{
+
+    <div class="trivia-question">
+        @Model.Question
+    </div>
+
+
+    <div class="trivia-options">
+        <button class="trivia-option correct">@Model.RealAnswer</button>
+        <button class="trivia-option">@Model.Answer1</button>
+        <button class="trivia-option">@Model.Answer2</button>
+        <button class="trivia-option">@Model.Answer3</button>
+    </div>
+}
+
+</div>

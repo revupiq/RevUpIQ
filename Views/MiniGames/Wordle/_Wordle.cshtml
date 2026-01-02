@@ -1,0 +1,30 @@
+@using RevUpIQ.Admin.Models.MiniGames
+@model RaceWordDailyDto
+
+<div class="trivia-game">
+
+@if (Model == null)
+{
+    <div class="trivia-error">No word set for this day.</div>
+}
+else
+{
+    <div class="wordle-viewer">
+        @{
+            var w = (Model.TargetWord ?? "").ToUpper().Trim();
+            var len = Math.Clamp(w.Length == 0 ? 5 : w.Length, 4, 6);
+            w = w.PadRight(len);
+            for (int i = 0; i < len; i++)
+            {
+                <div class="wordle-cell-view">@w[i]</div>
+            }
+        }
+    </div>
+}
+
+</div>
+
+<style>
+.wordle-viewer{display:flex;justify-content:center;gap:14px;margin-top:30px}
+.wordle-cell-view{width:64px;height:64px;border-radius:14px;border:3px solid var(--bright-blue);background:var(--dark-blue);display:flex;align-items:center;justify-content:center;color:var(--white);font-size:30px;font-weight:900}
+</style>

@@ -1,0 +1,105 @@
+@using RevUpIQ.Admin.Models.MiniGames
+@using RevUpIQ.Admin.Models.Users
+@model CombinedSuggestion
+
+@{
+    ViewData["Title"] = "Suggestion Details";
+
+    long suggestionId =
+    Model.RaceWord?.Id ??
+    Model.Trivia?.Id ??
+    Model.PhotoGuess?.Id ?? 0;
+
+    string mode =
+    Model.RaceWord != null ? GameModeType.RaceWord.ToString() :
+    Model.Trivia != null ? GameModeType.Trivia.ToString() :
+    Model.PhotoGuess != null ? GameModeType.PhotoGuess.ToString() :
+    "Combined";
+}
+
+<style>
+    .details-delete-container {
+        position: relative;
+        width: 100%;
+        height: 0;
+    }
+
+    .details-delete-btn {
+        position: absolute;
+        top: 10px;
+        /* very top */
+        right: 30px;
+        background: #d9534f;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.2s;
+        z-index: 100;
+    }
+
+    .details-delete-btn:hover {
+        background: #c64542;
+    }
+</style>
+
+@if (Model == null)
+{
+    <div>No suggestion found.</div>
+}
+else
+{
+
+    <div class="details-delete-container">
+        <button class="details-delete-btn" onclick="deleteThisSuggestion(@suggestionId, '@mode')">
+            Delete Suggestion
+        </button>
+    </div>
+
+    <script>
+        function deleteThisSuggestion(id, mode) {
+            if (!confirm("Are you sure you want to delete this suggestion?"))
+                return;
+
+            fetch(`/UsersSuggestion/DeleteSuggestion?id=${id}&mode=${encodeURIComponent(mode)}`)
+                .then(r => {
+                    if (r.ok) {
+                        alert("Deleted.");
+                        window.history.back();
+                    }
+                });
+        }
+    </script>
+
+    @if (Model.UserProfile != null)
+    {
+        @await Html.PartialAsync(
+        "~/Views/Exrta/Partials/_UserSuggestionDetails.cshtml",
+Model.UserProfile
+)
+}
+
+    @if (Model.RaceWord != null)
+    {
+        @await Html.PartialAsync(
+        "~/Views/Exrta/Partials/_RaceWordSuggestionDetails.cshtml",
+Model.RaceWord
+)
+}
+    else if (Model.Trivia != null)
+    {
+        @await Html.PartialAsync(
+        "~/Views/Exrta/Partials/_TriviaSuggestionDetails.cshtml",
+Model.Trivia
+)
+}
+    else if (Model.PhotoGuess != null)
+    {
+        @await Html.PartialAsync(
+        "~/Views/Exrta/Partials/_PhotoGuessSuggestionDetails.cshtml",
+Model.PhotoGuess
+)
+}
+}

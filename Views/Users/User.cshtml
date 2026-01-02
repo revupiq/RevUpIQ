@@ -1,0 +1,79 @@
+@using System.Linq
+@using RevUpIQ.Admin.Models.Users
+@model UserProfileViewModel
+
+<link rel="stylesheet" href="~/css/users.css" />
+
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="user-profile">
+    @if (Model == null || Model.Profile == null)
+    {
+        <div class="users-container">
+            <div class="user-row">
+                <span>Profile not found</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        var profile = Model.Profile;
+
+        <div style="position: relative; width: 100%; height: 320px; overflow: visible;">
+            <img src="@(string.IsNullOrWhiteSpace(profile.Cover_Photo_Url) ? "/images/default-cover.jpg" : profile.Cover_Photo_Url)"
+                style="width:100%; height:100%; object-fit:cover; border-bottom:1px solid var(--mid-dark-blue);" />
+
+            <button type="button" class="admin-button"
+                style="position:absolute; top:16px; right:16px; background:#c0392b; color:#fff;" data-ban-user
+                data-user-id="@profile.Id">
+                Ban User
+            </button>
+
+            <img src="@(string.IsNullOrWhiteSpace(profile.Profile_Photo_Url) ? "/images/default-avatar.png" : profile.Profile_Photo_Url)"
+                style="width:140px;height:140px;border-radius:50%;object-fit:cover;position:absolute;bottom:-70px;left:50%;transform:translateX(-50%);
+                            border:4px solid var(--dark-blue);background:var(--dark-blue);box-shadow:0 8px 24px rgba(0,0,0,.6);" />
+        </div>
+
+        @await Html.PartialAsync("_BanUserModal", Model.Profile.Id)
+        
+        <div id="user-profile-container"></div>
+
+        <div class="users-container">
+            <div class="user-header">
+                <span>Divisions</span>
+            </div>
+
+            <div id="user-division-container">
+                @foreach (var d in (Model.Divisions ?? new List<UserDivision>()).OrderByDescending(x => x.Subscribed_At))
+                {
+                    <div class="user-division-slot" data-user-division-id="@d.Id"></div>
+                }
+            </div>
+        </div>
+
+        <div id="user-game-history" data-user-id="@Model.Profile.Id"></div>
+
+    }
+</div>
+
+
+<script>
+    document.querySelectorAll('.user-division-slot').forEach(async el => {
+        const id = el.getAttribute('data-user-division-id');
+        const html = await fetch(`/Users/UserDivision?id=${id}`).then(r => r.text());
+        el.innerHTML = html;
+    });
+    fetch('/Users/UserGameHistory?id=@Model.Profile.Id')
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('user-game-history').innerHTML = html;
+        });
+
+    fetch('/Users/UserProfile?id=@Model.Profile.Id')
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('user-profile-container').innerHTML = html;
+        });
+</script>

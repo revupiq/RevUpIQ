@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/fonts.css" />
+    <link rel="stylesheet" href="~/css/colors.css" />
+    <link rel="stylesheet" href="~/css/game-mode.css" />
+    <link rel="stylesheet" href="~/css/ui.css" />
+    <link rel="stylesheet" href="~/css/calendar.css" />
+    <link rel="stylesheet" href="~/css/minigames.css" />
+    <link rel="stylesheet" href="~/css/users.css" />
+    <link rel="stylesheet" href="~/css/user.css" />
+    <link rel="stylesheet" href="~/css/leagues.css" />
+    <link rel="stylesheet" href="~/css/support-categories.css" />
+
+    <script src="~/js/miniGameSelector.js"></script>
+    <script src="~/js/dailyGameFilter.js"></script>
+    <script src="~/js/user-game-history.js"></script>
+    <script src="~/js/user-profile.js"></script>
+    <script src="~/js/ban-user-modal.js"></script>
+    <script src="~/js/support-categories.js"></script>
+    <script src="~/js/division-reorder.js"></script>
+    <script src="~/js/division-edit-modal.js"></script>
+
+    
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+
+<body style="margin:0; background-color:var(--background);">
+
+    <a href="@Url.Action("Index", "Home")" style="text-decoration:none;">
+        <div style="height:60px;
+                background-color:var(--dark-blue);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:12px;
+                cursor:pointer;">
+
+            <img src="~/images/logo.png" style="height:36px;" />
+
+            <span style="font-size:18px;
+                     color:var(--white);
+                     font-weight:600;">
+                Rev Up IQ Admin Panel
+            </span>
+        </div>
+    </a>
+
+
+
+
+    <div class="container" style="color:var(--white);">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @RenderSection("Scripts", required: false)
+
+</body>
+
+</html>

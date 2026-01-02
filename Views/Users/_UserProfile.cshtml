@@ -1,0 +1,204 @@
+@using System.Linq
+@using RevUpIQ.Admin.Models.Users
+@model UserProfileViewModel
+
+<link rel="stylesheet" href="~/css/users.css" />
+
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="user-profile">
+    @if (Model == null || Model.Profile == null)
+    {
+        <div class="users-container">
+            <div class="user-row">
+                <span>Profile not found</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        var profile = Model.Profile;
+
+        var email = Model.AuthUser?.Email ?? "";
+        var birthday = profile.Birthday.HasValue ? profile.Birthday.Value.ToString("yyyy-MM-dd") : "";
+
+        var usernameView = string.IsNullOrWhiteSpace(profile.Username) ? "undefined" : profile.Username;
+        var fullNameView = string.IsNullOrWhiteSpace(profile.Full_Name) ? "undefined" : profile.Full_Name;
+        var emailView = string.IsNullOrWhiteSpace(email) ? "undefined" : email;
+        var countryView = string.IsNullOrWhiteSpace(profile.Country) ? "undefined" : profile.Country;
+        var stateView = string.IsNullOrWhiteSpace(profile.State) ? "undefined" : profile.State;
+        var birthdayView = profile.Birthday == null ? "undefined" : profile.Birthday.Value.ToString("yyyy-MM-dd");
+        var sexView = string.IsNullOrWhiteSpace(profile.Sex) ? "undefined" : profile.Sex;
+        var descView = string.IsNullOrWhiteSpace(profile.Description) ? "undefined" : profile.Description;
+
+        var bannedUntil = Model.AuthUser?.Banned_Until;
+        var isBanned = bannedUntil.HasValue && bannedUntil.Value.ToUniversalTime() > DateTime.UtcNow;
+        var bannedUntilView = bannedUntil.HasValue ? bannedUntil.Value.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + "  UTC" : "undefined";
+        var banStatusView = isBanned ? "BANNED" : "ACTIVE";
+
+        <form method="post" action="/Users/UpdateProfile" class="users-container" style="margin-top:100px;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@profile.Id" />
+
+            <div class="user-header">
+                <span>Field</span>
+                <span>Value</span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="user-row profile-row" data-editable>
+                <span>Username</span>
+                <span class="row-value">
+                    <span class="view">@usernameView</span>
+                    <input class="admin-input edit" name="Username" value="@profile.Username" hidden />
+                </span>
+                <span></span>
+                <span class="row-actions">
+                    <button type="button" class="admin-button edit-btn" data-profile-edit>Edit</button>
+                </span>
+            </div>
+
+            <div class="user-row profile-row" data-editable>
+                <span>Full Name</span>
+                <span class="row-value">
+                    <span class="view">@fullNameView</span>
+                    <input class="admin-input edit" name="Full_Name" value="@profile.Full_Name" hidden />
+                </span>
+                <span></span>
+                <span class="row-actions">
+                    <button type="button" class="admin-button edit-btn" data-profile-edit>Edit</button>
+                </span>
+            </div>
+
+            <div class="user-row profile-row">
+                <span>Email</span>
+                <span class="row-value">
+                    <span>@emailView</span>
+                </span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="user-row profile-row">
+                <span>Ban Status</span>
+                <span class="row-value">
+                    <span>@banStatusView</span>
+                </span>
+                <span></span>
+                <span class="row-actions">
+                    @if (isBanned)
+                    {
+                        <button type="button" class="admin-button" data-unban-user data-user-id="@profile.Id">
+                            Unban
+                        </button>
+                    }
+                </span>
+            </div>
+
+            <div class="user-row profile-row">
+                <span>Banned Until</span>
+                <span class="row-value">
+                    <span>@(isBanned? bannedUntilView : "undefined")</span>
+                </span>
+                <span></span>
+                <span></span>
+            </div>
+
+        <div class="user-row profile-row">
+    <span>Free Account</span>
+    <span class="row-value">
+        <label class="admin-toggle">
+            <input type="checkbox"
+                   id="freeAccountToggle"
+                   data-user-id="@profile.Id"
+                   @(profile.Free_Account ? "checked" : "") />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">
+                @(profile.Free_Account ? "FREE" : "PAID")
+            </span>
+        </label>
+    </span>
+    <span></span>
+    <span></span>
+</div>
+
+
+            <div class="user-row profile-row" data-editable>
+                <span>Country</span>
+                <span class="row-value">
+                    <span class="view">@countryView</span>
+                    <input class="admin-input edit" name="Country" value="@profile.Country" hidden />
+                </span>
+                <span></span>
+                <span class="row-actions">
+                    <button type="button" class="admin-button edit-btn" data-profile-edit>Edit</button>
+                </span>
+            </div>
+
+            <div class="user-row profile-row" data-editable>
+                <span>State</span>
+                <span class="row-value">
+                    <span class="view">@stateView</span>
+                    <input class="admin-input edit" name="State" value="@profile.State" hidden />
+                </span>
+                <span></span>
+                <span class="row-actions">
+                    <button type="button" class="admin-button edit-btn" data-profile-edit>Edit</button>
+                </span>
+            </div>
+
+            <div class="user-row profile-row" data-editable>
+                <span>Birthday</span>
+                <span class="row-value">
+                    <span class="view">@birthdayView</span>
+                    <input class="admin-input edit" type="date" name="Birthday" value="@birthday" hidden />
+                </span>
+                <span></span>
+                <span class="row-actions">
+                    <button type="button" class="admin-button edit-btn" data-profile-edit>Edit</button>
+                </span>
+            </div>
+
+            <div class="user-row profile-row" data-editable>
+                <span>Sex</span>
+                <span class="row-value">
+                    <span class="view">@sexView</span>
+                    <input class="admin-input edit" name="Sex" value="@profile.Sex" hidden />
+                </span>
+                <span></span>
+                <span class="row-actions">
+                    <button type="button" class="admin-button edit-btn" data-profile-edit>Edit</button>
+                </span>
+            </div>
+
+            <div class="user-row profile-row">
+                <span>Joined</span>
+                <span class="row-value">@profile.Created_At.ToString("yyyy-MM-dd")</span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="user-row profile-row">
+                <span>Updated</span>
+                <span class="row-value">@profile.Updated_At.ToString("yyyy-MM-dd")</span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="user-row profile-row" data-editable>
+                <span>Description</span>
+                <span class="row-value">
+                    <span class="view">@descView</span>
+                    <textarea class="admin-input edit" name="Description" rows="2" hidden>@profile.Description</textarea>
+                </span>
+                <span></span>
+                <span class="row-actions">
+                    <button type="button" class="admin-button edit-btn" data-profile-edit>Edit</button>
+                </span>
+            </div>
+        </form>
+    }
+</div>

@@ -1,0 +1,65 @@
+@using RevUpIQ.Admin.Models.MiniGames
+@model RevUpIQ.Admin.Models.MiniGames.DailyGameFilter
+
+@{
+    var gameData = ViewData["GameData"];
+    var hasData = gameData != null;
+}
+
+<div class="mini-game-card">
+    <div class="mini-game-body">
+        <div class="mini-game-box" style="position:relative;">
+
+            @switch (Model.Mode)
+            {
+                case GameModeType.PhotoGuess:
+                    @await Html.PartialAsync(
+                    "~/Views/MiniGames/PhotoGuess/_PhotoGuess.cshtml",
+                        gameData as PhotoGuessDailyDto)
+                        break;
+
+                case GameModeType.Trivia:
+                    @await Html.PartialAsync(
+                    "~/Views/MiniGames/Trivia/_Trivia.cshtml",
+                        gameData as TriviaDailyDto)
+                        break;
+
+                case GameModeType.RaceWord:
+                    @await Html.PartialAsync(
+                    "~/Views/MiniGames/Wordle/_Wordle.cshtml",
+                        gameData as RaceWordDailyDto)
+                        break;
+            }
+
+            <!-- ACTION BUTTON -->
+            @if (hasData)
+            {
+                <!-- EDIT -->
+                <form method="post" action="/MiniGames/EditMiniGame" style="position:absolute; top:12px; right:12px;">
+
+                    <input type="hidden" name="divisionId" value="@Model.Id" />
+                    <input type="hidden" name="Mode" value="@Model.Mode" />
+                    <input type="hidden" name="Date" value="@Model.Date" />
+
+                    <button type="submit" class="admin-button">
+                        Edit Mini Game
+                    </button>
+                </form>
+            }
+            else
+            {
+                <!-- CREATE -->
+                <form method="post" action="/MiniGames/CreateMiniGame" style="position:absolute; top:12px; right:12px;">
+
+                    <input type="hidden" name="divisionId" value="@Model.Id" />
+                    <input type="hidden" name="Mode" value="@Model.Mode" />
+                    <input type="hidden" name="Date" value="@Model.Date" />
+
+                    <button type="submit" class="admin-button">
+                        Create Mini Game
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</div>

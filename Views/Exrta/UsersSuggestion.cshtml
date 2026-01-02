@@ -1,0 +1,91 @@
+@using RevUpIQ.Admin.Models.MiniGames
+<link rel="stylesheet" href="~/css/suggestions.css" />
+
+<style>
+    #suggestion-loader {
+        display: none;
+        text-align: center;
+        padding: 20px;
+    }
+
+    #suggestion-loader .spinner {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #ffffff;
+        animation: suggestion-spin 0.8s linear infinite;
+        margin: 0 auto;
+    }
+
+    @@keyframes suggestion-spin {
+        to {
+            transform: rotate(360deg);
+</style>
+
+<div class="admin-page-center">
+    <div class="game-mode-card">
+        <div class="game-mode-grid">
+
+            <button type="button" class="game-mode-item filter-mode" onclick="loadSuggestions('Combined')">
+                <div class="game-mode-icon-wrap">
+                    <img src="~/images/combined_icon.png" alt="Combined" />
+                </div>
+                <span class="game-mode-label">Combined</span>
+            </button>
+
+            <button type="button" class="game-mode-item filter-mode" onclick="loadSuggestions('@GameModeType.Trivia')">
+                <div class="game-mode-icon-wrap">
+                    <img src="~/images/trivia_icon.png" alt="Trivia" />
+                </div>
+                <span class="game-mode-label">Trivia</span>
+            </button>
+
+            <button type="button" class="game-mode-item filter-mode"
+                onclick="loadSuggestions('@GameModeType.PhotoGuess')">
+                <div class="game-mode-icon-wrap">
+                    <img src="~/images/photo_guess_icon.png" alt="Photo Guess" />
+                </div>
+                <span class="game-mode-label">Photo Guess</span>
+            </button>
+
+            <button type="button" class="game-mode-item filter-mode"
+                onclick="loadSuggestions('@GameModeType.RaceWord')">
+                <div class="game-mode-icon-wrap">
+                    <img src="~/images/race_word_icon.png" alt="Race Word" />
+                </div>
+                <span class="game-mode-label">Race Word</span>
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<div id="suggestion-list-container">
+    <div id="suggestion-loader">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="suggestion-content">
+        @await Html.PartialAsync(
+                "~/Views/Exrta/_SuggestionList.cshtml",
+                Enumerable.Empty<CombinedSuggestion>())
+    </div>
+</div>
+
+<script>
+    function loadSuggestions(mode) {
+        document.getElementById("suggestion-loader").style.display = "block";
+        document.getElementById("suggestion-content").style.display = "none";
+
+        fetch(`/UsersSuggestion/SuggestionList?mode=${encodeURIComponent(mode)}`)
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById("suggestion-content").innerHTML = html;
+            })
+            .finally(() => {
+                document.getElementById("suggestion-loader").style.display = "none";
+                document.getElementById("suggestion-content").style.display = "block";
+            });
+    }
+</script>

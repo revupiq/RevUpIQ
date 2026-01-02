@@ -1,0 +1,108 @@
+.users-container {
+    max-width: 1300px;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.user-header {
+    display: grid;
+    grid-template-columns: 3fr 2fr 2fr 2fr;  /* 4 columns */
+    font-weight: bold;
+    color: #bfc6ff;
+    padding: 10px 26px;
+}
+
+.user-row {
+    background: #0f2b7a;
+    border-radius: 22px;
+    padding: 18px 26px;
+    color: white;
+    display: grid;
+    grid-template-columns: 3fr 2fr 2fr 2fr;  /* match header */
+    align-items: center;
+    font-weight: 600;
+}
+
+.user-row span,
+.user-header span {
+    text-align: center;
+}
+
+.user-row:hover {
+    background: #183cbf;
+    transform: scale(1.01);
+    transition: 0.15s ease-in-out;
+}
+
+
+.users-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 24px auto 12px;
+    padding: 10px 18px;
+    max-width: 420px;
+    border-radius: 999px;
+    background: var(--card-bg, #111827);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 14px 30px rgba(0, 0, 0, 0.55);
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+}
+
+.users-pagination .page-info {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted, #9ca3af);
+}
+
+.users-pagination .page-link {
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--accent, #a855f7);
+}
+
+.users-pagination .page-link:hover {
+    background: var(--accent-soft, rgba(168, 85, 247, 0.18));
+    border-color: var(--accent, #a855f7);
+    color: var(--accent-strong, #f5d0fe);
+    transform: translateY(-1px);
+}
+
+.users-pagination .page-link:active {
+    transform: translateY(0);
+    background: var(--accent-soft-strong, rgba(168, 85, 247, 0.28));
+}
+
+.users-pagination .page-link[disabled],
+.users-pagination .page-link.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    cursor: default;
+}
+
+.user-row {
+    cursor: pointer;
+}
+.users-search {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.users-search input {
+    width: 300px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--mid-dark-blue);
+}

@@ -1,0 +1,237 @@
+body {
+    background-color: var(--background);
+    color: var(--white);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.users-container {
+    width: 92%;
+    max-width: 1100px;
+    margin: 24px auto 60px;
+    background: var(--dark-blue);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .6);
+    border: 1px solid var(--mid-dark-blue);
+}
+
+.user-header,
+.user-row {
+    display: grid;
+    grid-template-columns: 2.2fr 1.4fr 1.2fr 1.6fr;
+    align-items: center;
+}
+
+.user-header {
+    background: var(--primary);
+    padding: 14px 16px;
+    font-weight: 600;
+    font-size: .85rem;
+    letter-spacing: .03em;
+    color: var(--light-blue);
+    border-bottom: 1px solid var(--mid-dark-blue);
+    text-transform: uppercase;
+}
+
+.user-row {
+    padding: 14px 16px;
+    transition: background .15s ease, transform .08s ease;
+    cursor: pointer;
+}
+
+.user-row:nth-child(even) {
+    background: rgba(69, 148, 254, .06);
+}
+
+.user-row:hover {
+    background: rgba(69, 148, 254, .18);
+    transform: translateY(-1px);
+}
+
+.user-row span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--white);
+}
+
+.user-profile .user-row span:last-child {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+}
+
+.user-profile .user-row {
+    grid-template-columns: 220px 1fr;
+}
+
+.user-profile .user-row span:last-child {
+    grid-column: 2 / -1;
+    white-space: normal;
+}
+
+.users-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 24px auto 14px;
+    padding: 10px 18px;
+    background: var(--dark-blue);
+    width: max-content;
+    border-radius: 999px;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .05),
+        0 10px 22px rgba(0, 0, 0, .6);
+}
+
+.page-link {
+    padding: 6px 14px;
+    font-size: .85rem;
+    text-decoration: none;
+    color: var(--secondary);
+    border-radius: 999px;
+    transition: background .15s ease, transform .08s ease;
+}
+
+.page-link:hover {
+    background: rgba(69, 148, 254, .25);
+    transform: translateY(-1px);
+}
+
+.page-info {
+    font-size: .8rem;
+    color: var(--light-blue);
+}
+
+.user-profile .user-row {
+    cursor: default;
+}
+
+.user-profile .user-row:hover {
+    background: inherit !important;
+    transform: none !important;
+}
+
+.user-profile img {
+    cursor: default;
+}
+
+.user-profile h2,
+.user-profile p {
+    margin: 6px 0;
+}
+
+.user-profile h2 {
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+.user-profile p {
+    font-size: .85rem;
+}
+
+.game-win {
+    color: var(--bright-blue);
+    font-weight: 600;
+}
+
+.game-lose {
+    color: var(--red);
+    font-weight: 600;
+}
+
+.game-none {
+    color: var(--dark-grey);
+}
+
+.user-profile .game-history .user-row,
+.user-profile .game-history .user-header {
+    grid-template-columns: 2.2fr 1.4fr 1.2fr 1.6fr;
+}
+
+.user-profile .game-history .user-row span:last-child {
+    grid-column: auto;
+}
+
+.user-profile .user-row.profile-row {
+    grid-template-columns: 220px 1fr 1.2fr 140px;
+    align-items: center;
+}
+
+.user-profile .user-row.profile-row span:last-child {
+    grid-column: auto;
+    white-space: nowrap;
+}
+
+.user-profile .user-row.profile-row .row-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.user-profile .user-row.profile-row .row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.admin-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.admin-toggle input {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 52px;
+    height: 26px;
+    background: #3a3f4b;
+    border-radius: 20px;
+    transition: background .25s ease;
+}
+
+.toggle-slider::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform .25s ease;
+}
+
+/* ON */
+.admin-toggle input:checked+.toggle-slider {
+    background: #2ecc71;
+}
+
+.admin-toggle input:checked+.toggle-slider::before {
+    transform: translateX(26px);
+}
+
+/* Label text */
+.toggle-text {
+    font-weight: 600;
+    font-size: 13px;
+    color: #cfd3dc;
+    letter-spacing: .5px;
+}
+
+/* Disabled look */
+.admin-toggle input:disabled+.toggle-slider {
+    opacity: 0.55;
+}
+
+.admin-toggle input:disabled~.toggle-text {
+    opacity: 0.55;
+}

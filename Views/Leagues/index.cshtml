@@ -1,0 +1,71 @@
+@using RevUpIQ.Admin.Models.Leagues
+@model List<LeagueDto>
+
+<link rel="stylesheet" href="~/css/leagues.css" />
+
+<div class="leagues-page">
+    <h1 class="leagues-title">Leagues</h1>
+
+    @if (Model == null || !Model.Any())
+    {
+        <p>No leagues found</p>
+    }
+    else
+    {
+        <div class="leagues-list">
+            @foreach (var league in Model)
+            {
+                var joined = league.JoinedUsers?.Length ?? 0;
+                var max = league.MaxPlayers?.ToString() ?? "-";
+
+                <a asp-controller="Leagues"
+                   asp-action="Details"
+                   asp-route-id="@league.Id"
+                   class="league-link">
+
+                    <div class="league-item">
+                        <div class="league-top">
+                            <div class="league-name">@league.Name</div>
+                            <div class="league-pill">@joined / @max players</div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(league.Description))
+                        {
+                            <div class="league-desc">@league.Description</div>
+                        }
+
+                        <div class="league-meta">
+                            <div class="league-meta-row">
+                                <span class="league-meta-label">Start</span>
+                                <span class="league-meta-value">
+                                    @(league.StartDate?.ToString("yyyy-MM-dd") ?? "-")
+                                </span>
+                            </div>
+
+                            <div class="league-meta-row">
+                                <span class="league-meta-label">End</span>
+                                <span class="league-meta-value">
+                                    @(league.EndDate?.ToString("yyyy-MM-dd") ?? "-")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+
+        <div class="leagues-pagination">
+            @if (ViewBag.Page > 1)
+            {
+                <a class="page-btn" href="?page=@(ViewBag.Page - 1)">Previous</a>
+            }
+
+            <span class="page-current">Page @ViewBag.Page</span>
+
+            @if (ViewBag.HasNext)
+            {
+                <a class="page-btn" href="?page=@(ViewBag.Page + 1)">Next</a>
+            }
+        </div>
+    }
+</div>

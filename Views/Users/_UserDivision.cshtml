@@ -1,0 +1,19 @@
+@using RevUpIQ.Admin.Models.Users
+@model UserDivisionViewModel
+
+<div class="user-row">
+    <!-- LEFT COLUMN -->
+    <span style="display:flex;align-items:center;gap:10px;padding-left:16px;">
+        @if (!string.IsNullOrWhiteSpace(Model.Division?.LogoUrl))
+        {
+            <img src="@Model.Division!.LogoUrl"
+                 style="width:32px;height:32px;border-radius:6px;object-fit:cover;" />
+        }
+        <span>@(Model.Division?.Name ?? "Unknown Division")</span>
+    </span>
+
+    <!-- RIGHT COLUMN -->
+    <span style="padding-right:16px;color:var(--light-blue);font-size:.9rem;">
+        Subscribed at: @Model.UserDivision.Subscribed_At.ToString("yyyy-MM-dd")
+    </span>
+</div>

@@ -1,0 +1,86 @@
+@using RevUpIQ.Admin.Models.MiniGames
+@using RevUpIQ.Admin.Models
+
+<div class="admin-page-center">
+
+    <div class="game-mode-card leaderboard-filter-bar">
+
+        <!-- ROW 1: GAME MODES (Top Row) -->
+        <div class="leaderboard-filter-row">
+            <div class="game-mode-grid">
+
+                <button type="button" class="game-mode-item filter-mode" data-filter-name="GameMode"
+                    data-mode="@GameModeType.All">
+                    <div class="game-mode-icon-wrap">
+                        <img src="~/images/combined_icon.png" alt="All Games" />
+                    </div>
+                    <span class="game-mode-label">All Games</span>
+                </button>
+
+                <button type="button" class="game-mode-item filter-mode" data-filter-name="GameMode"
+                    data-mode="@GameModeType.Trivia">
+                    <div class="game-mode-icon-wrap">
+                        <img src="~/images/trivia_icon.png" alt="Trivia" />
+                    </div>
+                    <span class="game-mode-label">Trivia</span>
+                </button>
+
+                <button type="button" class="game-mode-item filter-mode" data-filter-name="GameMode"
+                    data-mode="@GameModeType.PhotoGuess">
+                    <div class="game-mode-icon-wrap">
+                        <img src="~/images/photo_guess_icon.png" alt="Photo Guess" />
+                    </div>
+                    <span class="game-mode-label">Photo Guess</span>
+                </button>
+
+                <button type="button" class="game-mode-item filter-mode" data-filter-name="GameMode"
+                    data-mode="@GameModeType.RaceWord">
+                    <div class="game-mode-icon-wrap">
+                        <img src="~/images/race_word_icon.png" alt="Race Word" />
+                    </div>
+                    <span class="game-mode-label">Race Word</span>
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- ROW 2: TIME + DIVISION (Bottom Row) -->
+        <div class="leaderboard-filter-row">
+
+            <!-- Time filters -->
+            <div class="leaderboard-filter-section leaderboard-filter-time">
+                <div class="leaderboard-time-group">
+
+                    <button type="button" class="leaderboard-time-item filter-time selected"
+                        data-filter-name="TimeFilter" data-time="@LeaderboardTimeType.Daily">
+                        <span class="leaderboard-time-text">Daily</span>
+                    </button>
+
+                    <button type="button" class="leaderboard-time-item filter-time" data-filter-name="TimeFilter"
+                        data-time="@LeaderboardTimeType.Weekly">
+                        <span class="leaderboard-time-text">Weekly</span>
+                    </button>
+
+                    <button type="button" class="leaderboard-time-item filter-time" data-filter-name="TimeFilter"
+                        data-time="@LeaderboardTimeType.Monthly">
+                        <span class="leaderboard-time-text">Monthly</span>
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Division dropdown -->
+            <div class="leaderboard-filter-section leaderboard-filter-division">
+                <select class="division-select">
+                    @foreach (var d in Model)
+                    {
+                        <option value="@d.Id">@d.Name</option>
+                    }
+                </select>
+            </div>
+
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,90 @@
+.suggestion-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* center horizontally */
+    gap: 16px;
+    padding: 20px 0;
+}
+
+.suggestion-card {
+    width: 90%;
+    max-width: 900px;
+    background: var(--mid-dark-blue);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.suggestion-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.suggestion-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: white;
+}
+
+.suggestion-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.suggestion-label {
+    font-weight: 600;
+    color: var(--light-blue);
+}
+.suggestion-card {
+    width: 90%;
+    max-width: 900px;
+    background: var(--mid-dark-blue);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 🔥 push delete button to right */
+}
+
+.suggestion-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.delete-btn {
+    background: #d64545;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+}
+
+.delete-btn:hover {
+    background: #b73838;
+}
+
+.delete-icon {
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+
+.suggestion-card.clickable {
+    cursor: pointer;
+}

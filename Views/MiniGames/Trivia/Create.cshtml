@@ -1,0 +1,91 @@
+﻿@using RevUpIQ.Admin.Models.MiniGames
+
+<div class="trivia-game">
+
+    <form class="trivia-edit" method="post" action="/MiniGames/CreateTrivia" id="triviaCreateForm">
+
+        <input type="hidden" name="DivisionId" value="@ViewData["DivisionId"]" />
+        <input type="hidden" name="Date" value="@ViewData["Date"]" />
+
+        <textarea class="edit-question" name="Question" rows="3" placeholder="Type your question here..."></textarea>
+
+        <div class="trivia-options">
+
+            <div class="option-box correct">
+                <div class="option-label">CORRECT ANSWER</div>
+                <input class="edit-option correct" type="text" name="RealAnswer" placeholder="Correct Answer" />
+            </div>
+            <div class="option-box">
+                <div class="option-label">OPTION A</div>
+                <input class="edit-option" type="text" name="Answer1" placeholder="Answer A" />
+            </div>
+
+            <div class="option-box">
+                <div class="option-label">OPTION B</div>
+                <input class="edit-option" type="text" name="Answer2" placeholder="Answer B" />
+            </div>
+
+            <div class="option-box">
+                <div class="option-label">OPTION C</div>
+                <input class="edit-option" type="text" name="Answer3" placeholder="Answer C" />
+            </div>
+
+
+
+        </div>
+
+        <button type="submit" class="admin-button save-btn" disabled>
+            Create Trivia Question
+        </button>
+
+    </form>
+
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const form = document.getElementById("triviaCreateForm");
+        const saveBtn = form.querySelector(".save-btn");
+        const inputs = form.querySelectorAll("input, textarea");
+
+        function validateForm() {
+            let valid = true;
+
+            inputs.forEach(el => {
+                if (!el.value.trim()) valid = false;
+            });
+
+            saveBtn.disabled = !valid;
+            saveBtn.style.opacity = valid ? "1" : "0.5";
+            saveBtn.style.cursor = valid ? "pointer" : "not-allowed";
+        }
+
+        inputs.forEach(el => el.addEventListener("input", validateForm));
+
+        validateForm();
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: "POST",
+                body: formData
+            })
+                .then(res => {
+                    if (res.ok) {
+                        window.history.back();
+                    } else {
+                        alert("Error creating trivia.");
+                    }
+                })
+                .catch(() => {
+                    alert("Error creating trivia.");
+                });
+        });
+
+    });
+</script>

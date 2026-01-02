@@ -1,0 +1,59 @@
+@using RevUpIQ.Admin.Models.MiniGames
+@model RaceWordSubmission
+
+<style>
+    .race-section-container {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .race-card-title {
+        color: white;
+        font-size: 22px;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .race-card {
+        background: var(--mid-dark-blue);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 20px;
+        width: 100%;
+        max-width: 650px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .race-card-label {
+        color: var(--light-blue);
+        font-weight: 600;
+    }
+</style>
+
+<div class="race-section-container">
+    <div style="width: 100%; max-width: 650px;">
+
+        <div class="race-card-title">Race Word Suggestion</div>
+
+        <div class="race-card">
+            <div>
+                <span class="race-card-label">Word:</span> @Model.Word
+            </div>
+
+            <div>
+                <span class="race-card-label">Created:</span> @Model.Created_At
+            </div>
+
+            <div>
+                <span class="race-card-label">Updated:</span> @Model.Updated_At
+            </div>
+        </div>
+
+    </div>
+</div>

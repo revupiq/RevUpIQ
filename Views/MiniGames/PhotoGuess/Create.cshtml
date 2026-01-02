@@ -1,0 +1,169 @@
+﻿@using RevUpIQ.Admin.Models.MiniGames
+
+<div class="trivia-game">
+
+    <form class="trivia-edit" method="post" action="/MiniGames/CreatePhotoGuess" id="photoGuessCreateForm"
+        enctype="multipart/form-data">
+
+        <input type="hidden" name="DivisionId" value="@ViewData["DivisionId"]" />
+        <input type="hidden" name="Date" value="@ViewData["Date"]" />
+
+        <textarea class="edit-question" name="Question" rows="3"
+            placeholder="Type your question or clue here..."></textarea>
+
+        <div class="photo-upload">
+            <div class="option-label">IMAGE</div>
+
+            <div class="photo-image-frame" id="photoImageFrame">
+                <span class="photo-image-placeholder">Click here to upload or change image</span>
+                <img id="photoPreview" alt="Preview" />
+            </div>
+
+            <input type="file" id="imageInput" name="ImageFile" accept="image/*" />
+        </div>
+
+        <div class="trivia-options">
+
+            <div class="option-box correct">
+                <div class="option-label">CORRECT ANSWER</div>
+                <input class="edit-option correct" type="text" name="RealAnswer" placeholder="Correct Answer" />
+            </div>
+
+            <div class="option-box">
+                <div class="option-label">OPTION A</div>
+                <input class="edit-option" type="text" name="Answer1" placeholder="Answer A" />
+            </div>
+
+            <div class="option-box">
+                <div class="option-label">OPTION B</div>
+                <input class="edit-option" type="text" name="Answer2" placeholder="Answer B" />
+            </div>
+
+            <div class="option-box">
+                <div class="option-label">OPTION C</div>
+                <input class="edit-option" type="text" name="Answer3" placeholder="Answer C" />
+            </div>
+            
+        </div>
+
+        <button type="submit" class="admin-button save-btn" disabled>
+            Create Photo Guess
+        </button>
+
+    </form>
+
+</div>
+
+<style>
+    .photo-upload {
+        width: 100%;
+        max-width: 700px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .photo-image-frame {
+        width: 100%;
+        max-width: 700px;
+        aspect-ratio: 16 / 9;
+        border-radius: 18px;
+        background: transparent;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+        margin-top: 8px;
+    }
+
+    .photo-image-placeholder {
+        color: var(--light-blue);
+        font-size: 14px;
+        font-weight: 700;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+    #photoPreview {
+        display: none;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 18px;
+    }
+
+    #imageInput {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const form = document.getElementById("photoGuessCreateForm");
+        const saveBtn = form.querySelector(".save-btn");
+        const inputs = form.querySelectorAll('input:not([type="hidden"]):not([type="file"]), textarea');
+
+        const imageInput = document.getElementById("imageInput");
+        const frame = document.getElementById("photoImageFrame");
+        const preview = document.getElementById("photoPreview");
+        const placeholder = frame.querySelector(".photo-image-placeholder");
+
+        // VALIDATE WITHOUT POINTS + TIME
+        function validateForm() {
+            let isValid = true;
+
+            inputs.forEach(function (el) {
+                if (!el.value.trim()) isValid = false;
+            });
+
+            if (!imageInput.files || imageInput.files.length === 0) {
+                isValid = false;
+            }
+
+            saveBtn.disabled = !isValid;
+            saveBtn.style.opacity = isValid ? "1" : "0.5";
+            saveBtn.style.cursor = isValid ? "pointer" : "not-allowed";
+        }
+
+        inputs.forEach(el => el.addEventListener("input", validateForm));
+
+        frame.addEventListener("click", () => imageInput.click());
+
+        imageInput.addEventListener("change", function () {
+            if (imageInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                    placeholder.style.display = "none";
+                    validateForm();
+                };
+                reader.readAsDataURL(imageInput.files[0]);
+            }
+        });
+
+        validateForm();
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            fetch("/MiniGames/CreatePhotoGuess", {
+                method: "POST",
+                body: formData
+            })
+                .then(res => {
+                    if (res.ok) window.history.back();
+                    else alert("Error creating photo guess.");
+                })
+                .catch(() => alert("Error creating photo guess."));
+        });
+
+    });
+</script>

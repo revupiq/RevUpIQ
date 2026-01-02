@@ -1,0 +1,71 @@
+﻿@{
+    ViewData["Title"] = "Create Division";
+}
+
+<div style="display:flex;
+            justify-content:center;
+            margin-top:60px;">
+
+    <div style="width:420px;">
+
+        <h1 class="admin-title" style="text-align:center;">
+            Create Division
+        </h1>
+
+        <form asp-controller="Divisions"
+              asp-action="Create"
+              method="post"
+              enctype="multipart/form-data">
+
+            <div style="margin-bottom:16px;">
+                <input type="text"
+                       id="divisionName"
+                       name="Name"
+                       class="admin-input"
+                       placeholder="Division Name"
+                       required />
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <input type="file"
+                       id="divisionLogo"
+                       name="Logo"
+                       class="admin-input"
+                       accept="image/*"
+                       required />
+            </div>
+
+            <button type="submit"
+                    id="submitBtn"
+                    class="admin-button"
+                    style="width:100%; opacity:0.5;"
+                    disabled>
+                Create Division
+            </button>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const nameInput = document.getElementById("divisionName");
+        const logoInput = document.getElementById("divisionLogo");
+        const submitBtn = document.getElementById("submitBtn");
+
+        if (!nameInput || !logoInput || !submitBtn) {
+            return;
+        }
+
+        function toggleButton() {
+            const hasName = nameInput.value.trim() !== "";
+            const hasLogo = logoInput.files.length > 0;
+
+            submitBtn.disabled = !(hasName && hasLogo);
+            submitBtn.style.opacity = submitBtn.disabled ? "0.5" : "1";
+        }
+
+        nameInput.addEventListener("input", toggleButton);
+        logoInput.addEventListener("change", toggleButton);
+    });
+</script>

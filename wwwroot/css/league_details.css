@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.league-details-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.league-details-page h1 {
+    margin: 0 0 6px 0;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.league-details-page > div:first-of-type {
+    margin-bottom: 12px;
+    opacity: 0.85;
+}
+
+.league-info {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.league-block {
+    padding: 14px 16px;
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.league-block-title {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: 12px;
+    margin-bottom: 10px;
+    opacity: 0.85;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+}
+
+.user-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.division-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--mid-dark-blue);
+}
+
+.division-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    object-fit: contain;
+    border: 1px solid var(--mid-dark-blue);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 4px;
+}
+
+.meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.meta-item {
+    padding: 12px 14px;
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.meta-label {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-bottom: 6px;
+}
+
+.meta-value {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.player-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    transition: background 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+}
+
+.player-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 900px) {
+    .league-info {
+        grid-template-columns: 1fr;
+    }
+
+    .meta-grid {
+        grid-template-columns: 1fr;
+    }
+}

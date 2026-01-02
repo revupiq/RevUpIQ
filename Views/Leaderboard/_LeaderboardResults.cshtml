@@ -1,0 +1,71 @@
+@model List<RevUpIQ.Admin.Models.Users.UserProfileViewModel?>
+
+<div style="padding:20px">
+    <h3>Leaderboard Users</h3>
+
+    @if (Model != null && Model.Any())
+    {
+        var rank = 1;
+
+        foreach (var u in Model)
+        {
+            if (u?.Profile == null)
+                continue;
+
+            var profile = u.Profile;
+            var auth = u.AuthUser;
+
+            var avatarUrl = string.IsNullOrWhiteSpace(profile.Profile_Photo_Url)
+                ? "/images/default-avatar.png"
+                : profile.Profile_Photo_Url;
+
+            var location =
+                !string.IsNullOrWhiteSpace(profile.Country) && !string.IsNullOrWhiteSpace(profile.State)
+                    ? $"{profile.Country}, {profile.State}"
+                    : !string.IsNullOrWhiteSpace(profile.Country)
+                        ? profile.Country
+                        : profile.State ?? "";
+
+            var url = Url.Action("UserDetails", "Users", new { id = profile.Id });
+
+            <a href="@url" style="text-decoration:none;color:inherit;">
+                <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #eee;font-size:16px;cursor:pointer;">
+
+                    <div style="width:40px;text-align:right;font-weight:bold;margin-right:10px;">
+                        @rank
+                    </div>
+
+                    <img src="@avatarUrl"
+                         style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-right:12px;" />
+
+                    <div>
+                        <div style="font-weight:600;">
+                            @profile.Full_Name
+                        </div>
+
+                        <div style="font-size:13px;color:#666;">
+                            @("@" + profile.Username)
+                            @if (!string.IsNullOrWhiteSpace(location))
+                            {
+                                @: • @location
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(auth?.Email))
+                        {
+                            <div style="font-size:12px;color:#999;">
+                                @auth.Email
+                            </div>
+                        }
+                    </div>
+                </div>
+            </a>
+
+            rank++;
+        }
+    }
+    else
+    {
+        <div>No users found.</div>
+    }
+</div>

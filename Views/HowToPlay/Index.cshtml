@@ -1,0 +1,72 @@
+@model RevUpIQ.Admin.Models.HowToPlay
+
+@{
+    ViewData["Title"] = "How To Play";
+}
+
+<link rel="stylesheet" href="~/css/how-to-play.css" />
+
+<div class="how-to-play-page">
+    <h2 class="how-to-play-title">How To Play</h2>
+
+    <div class="how-to-play-box">
+        <form id="howToPlayForm" class="how-to-play-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="how-to-play-field">
+                <label class="how-to-play-label">YouTube Video Link</label>
+                <input asp-for="Video_Link" class="how-to-play-input" />
+            </div>
+
+            <div class="how-to-play-field">
+                <label class="how-to-play-label">Trivia Text</label>
+                <textarea asp-for="Trivia_Text" class="how-to-play-textarea"></textarea>
+            </div>
+
+            <div class="how-to-play-field">
+                <label class="how-to-play-label">Photo Guess Text</label>
+                <textarea asp-for="Photo_Guess_Text" class="how-to-play-textarea"></textarea>
+            </div>
+
+            <div class="how-to-play-field">
+                <label class="how-to-play-label">Race Word Text</label>
+                <textarea asp-for="Race_Word_Text" class="how-to-play-textarea"></textarea>
+            </div>
+
+            <div class="how-to-play-actions">
+                <button type="submit" class="how-to-play-save">
+                    Save
+                </button>
+                <span id="saveStatus" style="margin-left:12px;opacity:.8;"></span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('howToPlayForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const status = document.getElementById('saveStatus');
+    const data = new FormData(form);
+
+    status.textContent = 'Saving...';
+
+    const res = await fetch('@Url.Action("Save", "HowToPlay")', {
+        method: 'POST',
+        body: data,
+        headers: {
+            'RequestVerificationToken': data.get('__RequestVerificationToken')
+        }
+    });
+
+    if (res.ok) {
+        status.textContent = 'Saved ✓';
+        setTimeout(() => status.textContent = '', 2000);
+    } else {
+        status.textContent = 'Error';
+    }
+});
+</script>

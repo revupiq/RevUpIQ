@@ -1,0 +1,98 @@
+@using RevUpIQ.Admin.Models.Leagues
+@using RevUpIQ.Admin.Models.Users
+@model LeagueDetailsViewModel
+
+<link rel="stylesheet" href="~/css/league_details.css" />
+
+@{
+    var joined = Model.Users?.Count ?? 0;
+    var max = Model.League.MaxPlayers?.ToString() ?? "-";
+
+    var owner = Model.Owner;
+    var ownerName =
+        !string.IsNullOrWhiteSpace(owner?.Username) ? owner.Username :
+        !string.IsNullOrWhiteSpace(owner?.Full_Name) ? owner.Full_Name :
+        "Unknown";
+}
+
+<div class="league-details-page">
+    <h1>@Model.League.Name</h1>
+    <div>@joined / @max players</div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.League.Description))
+    {
+        <p>@Model.League.Description</p>
+    }
+
+    <div class="league-info">
+        <div class="league-block" style="grid-column: 1 / -1;">
+            <div class="league-block-title">Owner</div>
+
+            <div class="user-row"
+                 onclick="location.href='@Url.Action("UserDetails", "Users", new { id = owner?.Id.ToString() })'">
+                <img class="avatar"
+                     src="@(string.IsNullOrWhiteSpace(owner?.Profile_Photo_Url)
+                            ? "/images/default-avatar.png"
+                            : owner.Profile_Photo_Url)" />
+                <span>@ownerName</span>
+            </div>
+        </div>
+
+        <div class="league-block">
+            <div class="league-block-title">Division</div>
+            <div class="division-row">
+                @if (!string.IsNullOrWhiteSpace(Model.Division?.LogoUrl))
+                {
+                    <img class="division-logo" src="@Model.Division.LogoUrl" />
+                }
+                <span>@(Model.Division?.Name ?? "-")</span>
+            </div>
+        </div>
+
+        <div class="league-block">
+            <div class="league-block-title">Dates</div>
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <div class="meta-label">Start</div>
+                    <div class="meta-value">
+                        @(Model.League.StartDate?.ToString("yyyy-MM-dd") ?? "-")
+                    </div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">End</div>
+                    <div class="meta-value">
+                        @(Model.League.EndDate?.ToString("yyyy-MM-dd") ?? "-")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3>Players (@joined)</h3>
+
+    @if (Model.Users == null || Model.Users.Count == 0)
+    {
+        <div>No players joined</div>
+    }
+    else
+    {
+        <div class="players-grid">
+            @foreach (var p in Model.Users)
+            {
+                var name =
+                    !string.IsNullOrWhiteSpace(p?.Username) ? p.Username :
+                    !string.IsNullOrWhiteSpace(p?.Full_Name) ? p.Full_Name :
+                    "Player";
+
+                <div class="player-card"
+                     onclick="location.href='@Url.Action("UserDetails", "Users", new { id = p.Id.ToString() })'">
+                    <img class="avatar"
+                         src="@(string.IsNullOrWhiteSpace(p?.Profile_Photo_Url)
+                                ? "/images/default-avatar.png"
+                                : p.Profile_Photo_Url)" />
+                    <span>@name</span>
+                </div>
+            }
+        </div>
+    }
+</div>

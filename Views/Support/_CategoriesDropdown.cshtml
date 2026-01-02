@@ -1,0 +1,62 @@
+@model List<YourApp.Models.Support.SupportCategory>
+
+<div class="support-notice-editor">
+    <label class="admin-label">Support Warning</label>
+    <small class="admin-hint">
+        This message is shown to users before they send a support message.
+    </small>
+
+    <div class="support-notice-editor-row">
+        <input type="text"
+               id="supportNoticeInput"
+               class="admin-input"
+               value="@ViewBag.SupportNotice"
+               placeholder="Enter support warning message" />
+
+        <button type="button"
+                id="saveSupportNoticeBtn"
+                class="admin-button">
+            Save
+        </button>
+    </div>
+</div>
+
+<div class="scx-container">
+    <label class="admin-label scx-label">Category</label>
+
+    <div id="scxWrap" class="scx-wrap">
+        <button type="button" id="scxBtn" class="admin-input scx-button">
+            <span id="scxSelected">Select category</span>
+            <span class="scx-arrow">▼</span>
+        </button>
+
+        <div id="scxMenu" class="scx-menu">
+            @foreach (var c in Model)
+            {
+                <div class="scx-item">
+                    <button type="button"
+                            class="scx-pick"
+                            data-id="@c.Id"
+                            data-name="@c.Name">
+                        @c.Name
+                    </button>
+
+                    <button type="button"
+                            class="admin-button scx-delete"
+                            data-id="@c.Id">
+                        Delete
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="scx-add">
+        <input type="text"
+               class="admin-input"
+               placeholder="New category" />
+        <button type="button" class="admin-button">
+            Add
+        </button>
+    </div>
+</div>

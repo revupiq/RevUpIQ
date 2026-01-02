@@ -1,0 +1,68 @@
+@model RevUpIQ.Admin.Models.MiniGames.MiniGameSetting
+
+<style>
+    .mini-setting-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .mini-setting-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background: var(--dark-blue);
+        padding: 16px 28px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px #0004;
+    }
+
+    .mini-setting-label {
+        color: var(--light-blue);
+        font-weight: 600;
+        margin-right: 6px;
+    }
+
+    .mini-setting-input {
+        width: 90px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--mid-dark-blue);
+        background: var(--darker-blue);
+        color: var(--light-blue);
+        text-align: center;
+    }
+
+    .mini-setting-button {
+        padding: 8px 18px;
+        background: var(--yellow);
+        color: var(--dark-blue);
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+    }
+</style>
+
+<div style="text-align:center; font-weight:600; color:var(--light-blue); margin-bottom:12px;">
+    Game Mode: @Model.GameMode
+</div>
+
+<form method="post" action="/MiniGames/UpdateMiniGameSetting">
+    <input type="hidden" name="mode" value="@Model.GameMode" />
+
+    <div class="mini-setting-container">
+        <div class="mini-setting-row">
+
+            <label class="mini-setting-label">Timer:</label>
+            <input type="number"
+                   class="mini-setting-input"
+                   name="timer"
+                   value="@Model.TimerSeconds" />
+            <button type="submit" class="mini-setting-button">
+                Save / Update
+            </button>
+
+        </div>
+    </div>
+</form>

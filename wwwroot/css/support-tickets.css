@@ -1,0 +1,75 @@
+/* ========================= */
+/* SUPPORT TICKETS – HOME */
+/* ========================= */
+
+/* Container card must stack rows vertically */
+.admin-card-small.support-tickets {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Each ticket row */
+.admin-card-small.support-tickets > a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border-bottom: 1px solid var(--mid-dark-blue);
+    text-decoration: none;
+    color: inherit;
+    background: transparent;
+}
+
+/* Hover ONLY the row */
+.admin-card-small.support-tickets > a:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* Left side */
+.support-ticket-left {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.support-ticket-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #0b3a66;
+}
+
+/* Ticket text */
+.support-ticket-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Right side */
+.support-ticket-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+/* Unread badge */
+.support-ticket-unread {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: #b42323;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+}

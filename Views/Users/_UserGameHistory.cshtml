@@ -1,0 +1,60 @@
+@using RevUpIQ.Admin.Models.Users
+@model UserGameHistoryViewModel
+
+@{
+    int? selected = ViewBag.SelectedDivisionId as int?;
+}
+
+<div class="users-container game-history">
+    <div class="user-row" style="cursor:default;">
+        <span style="font-weight:600;">Filter</span>
+        <span>
+            <select id="divisionFilter" class="admin-select">
+                <option value="">All Divisions</option>
+                @foreach (var d in Model.Divisions.OrderBy(x => x.Name))
+                {
+                    <option value="@d.Id" selected="@(selected == d.Id)">
+                        @d.Name
+                    </option>
+                }
+            </select>
+        </span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="user-header">
+        <span>Game</span>
+        <span>Division</span>
+        <span>Date • Score</span>
+        <span>Result</span>
+    </div>
+
+    @foreach (var g in Model.Games
+        .OrderByDescending(x => x.Played_Date)
+        .ThenByDescending(x => x.Id))
+    {
+        var division = Model.Divisions.FirstOrDefault(d => d.Id == g.Division_Id);
+
+        <div class="user-row">
+            <span style="display:flex;flex-direction:column;gap:2px;">
+                <strong>@g.Game_Type</strong>
+            </span>
+
+            <span>
+                @(division?.Name ?? $"Division #{g.Division_Id}")
+            </span>
+
+            <span style="display:flex;flex-direction:column;gap:2px;">
+                <span style="color:var(--light-blue);font-size:.85rem;">
+                    @g.Played_Date.ToString("yyyy-MM-dd")
+                </span>
+                <span>@g.Score</span>
+            </span>
+
+            <span class="@(g.Won == true ? "game-win" : g.Won == false ? "game-lose" : "game-none")">
+                @(g.Won == null ? "NOT PLAYED" : g.Won.Value ? "WIN" : "LOSE")
+            </span>
+        </div>
+    }
+</div>

@@ -1,0 +1,92 @@
+.how-to-play-page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 14px 0;
+}
+
+.how-to-play-title {
+    margin: 0 0 14px 0;
+}
+
+.how-to-play-box {
+    background: var(--dark-blue);
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+
+.how-to-play-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.how-to-play-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.how-to-play-label {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--light-blue);
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.how-to-play-input {
+    width: 100%;
+    background: var(--background);
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 14px;
+    padding: 12px 14px;
+    color: var(--white);
+    font-weight: 700;
+}
+
+.how-to-play-textarea {
+    width: 100%;
+    min-height: 160px;
+    background: var(--background);
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 14px;
+    padding: 14px;
+    color: var(--white);
+    font-weight: 700;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+.how-to-play-input::placeholder,
+.how-to-play-textarea::placeholder {
+    color: var(--white);
+    opacity: 1;
+}
+
+.how-to-play-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.how-to-play-save {
+    padding: 10px 22px;
+    border-radius: 12px;
+    border: 1px solid var(--mid-dark-blue);
+    background: rgba(255,255,255,.06);
+    color: var(--white);
+    font-weight: 800;
+    cursor: pointer;
+    transition: background .15s ease, transform .08s ease;
+}
+
+.how-to-play-save:hover {
+    background: rgba(69,148,254,.18);
+    transform: translateY(-1px);
+}
+.how-to-play-page,
+.how-to-play-page * {
+    box-sizing: border-box;
+}

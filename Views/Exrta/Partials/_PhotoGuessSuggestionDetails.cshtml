@@ -1,0 +1,89 @@
+@using RevUpIQ.Admin.Models.MiniGames
+@model PhotoGuessSubmission
+
+<style>
+    .photo-section-container {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .photo-card-title {
+        color: white;
+        font-size: 22px;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .photo-card {
+        background: var(--mid-dark-blue);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 20px;
+        width: 100%;
+        max-width: 650px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .photo-card-label {
+        color: var(--light-blue);
+        font-weight: 600;
+    }
+
+    .photo-card-image {
+        width: 100%;
+        max-width: 350px;
+        border-radius: 10px;
+        object-fit: cover;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="photo-section-container">
+    <div style="width: 100%; max-width: 650px;">
+
+        <div class="photo-card-title">Photo Guess Suggestion</div>
+
+        <div class="photo-card">
+
+            @if (!string.IsNullOrWhiteSpace(Model.Photo_Url))
+            {
+                <img src="@Model.Photo_Url" class="photo-card-image" />
+            }
+
+            <div>
+                <span class="photo-card-label">Question:</span> @Model.Question
+            </div>
+
+            <div>
+                <span class="photo-card-label">Correct Answer:</span> @Model.Correct_Answer
+            </div>
+
+            <div>
+                <span class="photo-card-label">Incorrect 1:</span> @Model.Incorrect_Answer_1
+            </div>
+
+            <div>
+                <span class="photo-card-label">Incorrect 2:</span> @Model.Incorrect_Answer_2
+            </div>
+
+            <div>
+                <span class="photo-card-label">Incorrect 3:</span> @Model.Incorrect_Answer_3
+            </div>
+
+            <div>
+                <span class="photo-card-label">Created:</span> @Model.Created_At
+            </div>
+
+            <div>
+                <span class="photo-card-label">Updated:</span> @Model.Updated_At
+            </div>
+
+        </div>
+    </div>
+</div>

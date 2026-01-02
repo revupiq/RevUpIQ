@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div id="divisions"></div>
+
+
+<div class="full-width-divider"></div>
+
+@await Html.PartialAsync("~/Views/Users/_Index.cshtml")
+
+<script>
+fetch('/Divisions/Index')
+  .then(r => r.text())
+  .then(html => document.getElementById('divisions').innerHTML = html);
+</script>
+
+<div class="full-width-divider"></div>
+
+@await Html.PartialAsync("~/Views/Exrta/_Index.cshtml")

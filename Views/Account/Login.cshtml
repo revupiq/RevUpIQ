@@ -1,0 +1,42 @@
+@model RevUpIQ.Admin.Models.LoginViewModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Admin Login";
+}
+
+<div style="min-height:calc(100vh - 60px); display:flex; justify-content:center; align-items:center;">
+    <div class="admin-card-small"
+         style="width:360px; height:auto; padding:24px 24px 20px; box-sizing:border-box;
+                display:flex; flex-direction:column; gap:14px;">
+
+        <h3 style="margin:0; text-align:center; color:var(--white);">
+            Admin Login
+        </h3>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <span style="color:var(--red); font-size:13px; text-align:center;">
+                Invalid username or password
+            </span>
+        }
+
+        <form asp-action="Login" method="post"
+              style="width:100%; display:flex; flex-direction:column; gap:10px;">
+
+            <input asp-for="Username"
+                   class="admin-input"
+                   placeholder="Username" />
+
+            <input asp-for="Password"
+                   type="password"
+                   class="admin-input"
+                   placeholder="Password" />
+
+            <button type="submit"
+                    class="admin-button"
+                    style="width:100%; margin-top:4px;">
+                Login
+            </button>
+        </form>
+    </div>
+</div>

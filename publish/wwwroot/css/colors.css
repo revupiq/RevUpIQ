@@ -1,0 +1,16 @@
+﻿:root {
+    --primary: #022859;
+    --secondary: #4594FE;
+    --tertiary: #5990D9;
+    --dark-blue: #012340;
+    --mid-dark-blue: rgb(31, 90, 142);
+    --yellow: #FF9F10;
+    --dark-yellow: #E28700;
+    --white: #FFFFFF;
+    --grey: #E0E0E0;
+    --dark-grey: #6E7A86;
+    --light-blue: #93B0D7;
+    --background: #000B19;
+    --bright-blue: #006EFF;
+    --red: #FF3B30;
+}

@@ -1,0 +1,67 @@
+@using RevUpIQ.Admin.Models.MiniGames
+@model RevUpIQ.Admin.Models.MiniGames.DailyGameFilter
+
+
+@{
+    DateTime start = DateTime.Today;
+}
+
+
+
+<div class="admin-page-center">
+    <div class="game-mode-card">
+        <div class="game-mode-grid">
+
+            <button type="button" class="game-mode-item filter-mode" data-filter-name="GameMode"
+                data-mode="@GameModeType.Trivia">
+                <div class="game-mode-icon-wrap">
+                    <img src="~/images/trivia_icon.png" alt="Trivia" />
+                </div>
+                <span class="game-mode-label">Trivia</span>
+            </button>
+
+            <button type="button" class="game-mode-item filter-mode" data-filter-name="GameMode"
+                data-mode="@GameModeType.PhotoGuess">
+                <div class="game-mode-icon-wrap">
+                    <img src="~/images/photo_guess_icon.png" alt="Photo Guess" />
+                </div>
+                <span class="game-mode-label">Photo Guess</span>
+            </button>
+            
+            <button type="button" class="game-mode-item filter-mode" data-filter-name="GameMode"
+                data-mode="@GameModeType.RaceWord">
+                <div class="game-mode-icon-wrap">
+                    <img src="~/images/race_word_icon.png" alt="Race Word" />
+                </div>
+                <span class="game-mode-label">Race Word</span>
+            </button>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="full-width-divider"></div>
+
+<div id="miniGameSettingHost"></div>
+
+<div class="full-width-divider"></div>
+
+
+<div id="calendarLoading" style="display:none; padding:16px 0; color:var(--white); font-weight:600; text-align:center;">
+    Loading...
+</div>
+
+<div id="calendarHost"></div>
+
+
+
+<div class="full-width-divider"></div>
+
+<div id="miniGameHost"></div>
+
+<div style="display:none !important;">
+    <span id="model-Mode">@Model.Mode</span>
+    <span id="model-Date">@Model.Date</span>
+    <span id="model-Id">@Model.Id</span>
+</div>

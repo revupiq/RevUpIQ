@@ -1,0 +1,56 @@
+﻿@model List<RevUpIQ.Admin.Models.Division.DivisionDto>
+
+<h1 class="division-title">Divisions</h1>
+
+<div class="admin-page-center">
+    <div class="division-grid">
+
+@foreach (var d in Model.OrderByDescending(x => x.SortIndex))
+{
+    <a asp-controller="Divisions"
+       asp-action="Details"
+       asp-route-id="@d.Id"
+       class="division-link">
+
+        <div class="admin-card-small division-card"
+             data-id="@d.Id">
+
+            <div class="division-sort-controls">
+                <button type="button"
+                        class="division-sort-button"
+                        data-dir="LEFT">
+                    ◀
+                </button>
+
+                <button type="button"
+                        class="division-sort-button"
+                        data-dir="RIGHT">
+                    ▶
+                </button>
+            </div>
+
+            <div class="division-content">
+                @if (!string.IsNullOrWhiteSpace(d.LogoUrl))
+                {
+                    <img src="@d.LogoUrl"
+                         class="division-logo" />
+                }
+
+                <span class="division-name">
+                    @d.Name
+                </span>
+            </div>
+
+        </div>
+    </a>
+}
+
+
+<a asp-controller="Divisions"
+   asp-action="Create"
+   class="admin-card-small division-create-card">
+    + Add New Division
+</a>
+
+    </div>
+</div>

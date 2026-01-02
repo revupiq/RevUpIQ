@@ -1,0 +1,48 @@
+<h1 style="text-align:center; margin-top:20px;">Users</h1>
+
+<div class="admin-page-center" style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit, minmax(300px, 300px));
+        gap:20px;
+        justify-content:center;
+        margin-top:40px;
+     ">
+
+    <a href="/Leaderboard" class="admin-card-small" style="
+    width:300px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-decoration:none;
+">
+        Leaderboard
+    </a>
+
+    <a asp-controller="Users" asp-action="UsersList" class="admin-card-small" style="
+        width:300px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        text-decoration:none;
+   ">
+        Users List
+    </a>
+
+    <a asp-controller="Leagues" asp-action="Index" class="admin-card-small" style="
+        width:300px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        text-decoration:none;
+   ">
+        Leagues
+    </a>
+    <a asp-controller="Support" asp-action="Index" class="admin-card-small" style="
+    width:300px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-decoration:none;">
+        Support
+    </a>
+</div>

@@ -1,0 +1,94 @@
+.leaderboard-filter-bar {
+    display: flex;
+    flex-wrap: wrap;    /* <-- THIS IS WHAT YOU NEED */
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 20px 32px;
+    border-radius: 18px;
+    background: var(--dark-blue);
+    width: 100%;
+    max-width: 1100px;
+}
+
+
+
+/* sections inside the bar */
+.leaderboard-filter-section {
+    display: flex;
+    align-items: center;
+}
+
+/* game modes: reuse your existing grid, just keep them tighter */
+.leaderboard-filter-modes .game-mode-grid {
+    display: flex;
+    gap: 24px;
+}
+
+/* TIME FILTERS -------------------------------------------------- */
+
+.leaderboard-time-group {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.leaderboard-time-item {
+    padding: 6px 18px;
+    border-radius: 999px;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.leaderboard-time-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.leaderboard-time-item.selected {
+    background: rgb(2, 80, 247);
+  
+}
+
+.leaderboard-time-item.selected .leaderboard-time-text {
+    color: #fff !important;
+}
+
+
+/* DIVISION SELECT ----------------------------------------------- */
+
+.leaderboard-filter-division {
+    margin-top: 14px;
+    margin-left: auto;
+}
+
+.division-select {
+    min-width: 260px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--accent-blue);
+    background:  rgb(2, 80, 247);
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+}
+
+/* make it behave nicely on smaller widths */
+@media (max-width: 1100px) {
+    .leaderboard-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 20px;
+    }
+
+    .leaderboard-filter-division {
+        margin-left: 0;
+    }
+
+    .division-select {
+        width: 100%;
+    }
+}

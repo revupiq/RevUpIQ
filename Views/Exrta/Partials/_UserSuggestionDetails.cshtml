@@ -1,0 +1,73 @@
+@using RevUpIQ.Admin.Models.Users
+@model UserProfileViewModel
+
+<style>
+    .user-section-container {
+        margin-top: 40px; /* space below top bar */
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .user-card-title {
+        color: white;
+        font-size: 22px;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .user-card {
+        background: var(--mid-dark-blue);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 20px;
+        width: 100%;
+        max-width: 650px;
+        color: white;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .user-card-photo {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .user-card-info {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .user-card-label {
+        color: var(--light-blue);
+        font-weight: 600;
+    }
+</style>
+
+<div class="user-section-container">
+    <div style="width: 100%; max-width: 650px;">
+        
+        <div class="user-card-title">Creator Info</div>
+
+        <div class="user-card">
+            <img src="@Model.Profile.Profile_Photo_Url" class="user-card-photo" />
+
+            <div class="user-card-info">
+                <div><span class="user-card-label">Full Name:</span> @Model.Profile.Full_Name</div>
+                <div><span class="user-card-label">Username:</span> @Model.Profile.Username</div>
+                <div><span class="user-card-label">Email:</span> @Model.AuthUser?.Email</div>
+                <div><span class="user-card-label">Location:</span> @Model.Profile.Country, @Model.Profile.State</div>
+                <div><span class="user-card-label">Description:</span> @Model.Profile.Description</div>
+                <div><span class="user-card-label">Created:</span> @Model.AuthUser?.Created_At</div>
+                <div><span class="user-card-label">Last Sign In:</span> @Model.AuthUser?.Last_Sign_In_At</div>
+            </div>
+        </div>
+
+    </div>
+</div>

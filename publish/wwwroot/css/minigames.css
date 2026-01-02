@@ -1,0 +1,229 @@
+/* CENTER CONTAINER */
+.mini-game-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 420px;
+    padding-bottom: 120px;
+    background: transparent;
+}
+
+/* MAIN GAME CARD */
+.mini-game-box {
+    width: 900px;
+    max-width: 95%;
+    min-height: 800px;
+    margin: auto;
+    background: var(--dark-blue);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+
+/* TRIVIA LAYOUT */
+.trivia-game {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+/* HEADER */
+.trivia-header {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+/* STAT BOX */
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+/* LABELS WHITE */
+.stat-label {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--white);
+    font-weight: 900;
+}
+
+/* HEADER INPUTS WHITE */
+.edit-small {
+    width: 120px;
+    background: var(--background);
+    border: 1px solid var(--secondary);
+    border-radius: 12px;
+    padding: 10px;
+    color: var(--white);
+    font-weight: 700;
+    text-align: center;
+}
+.edit-question::placeholder,
+.edit-option::placeholder,
+.edit-small::placeholder {
+    color: var(--white);
+    opacity: 1;
+}
+
+
+/* QUESTION */
+.trivia-question {
+    font-size: 34px;
+    font-weight: 800;
+    text-align: center;
+    max-width: 760px;
+    color: var(--white);
+    margin-bottom: 40px;
+}
+
+/* OPTIONS DISPLAY MODE */
+.trivia-options {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.trivia-option {
+    background: var(--bright-blue);
+    color: var(--white);
+    border: none;
+    padding: 18px;
+    border-radius: 20px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.trivia-option.correct {
+    background: #19c37d;
+    color: #ffffff;
+}
+
+/* ERROR */
+.trivia-error {
+    color: var(--red);
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* EDIT LAYOUT */
+.trivia-edit {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+/* QUESTION INPUT */
+.edit-question {
+    width: 100%;
+    min-height: 90px;
+    font-size: 26px;
+    font-weight: 800;
+    text-align: center;
+    background: var(--background);
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 14px;
+    padding: 18px;
+    color: var(--white);
+    resize: none;
+    line-height: 1.4;
+}
+
+.edit-question::placeholder {
+    color: #f5f5f5;
+}
+
+/* OPTION INPUTS */
+.edit-option {
+    width: 100%;
+    background: var(--bright-blue);
+    color: var(--white);
+    border: none;
+    padding: 26px;
+    border-radius: 22px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.edit-option::placeholder {
+    color: #ffffff;
+}
+
+/* CORRECT INPUT */
+.edit-option.correct {
+    background: #19c37d;
+    color: #eafff5;
+}
+
+/* OPTION GROUP */
+.option-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.option-label {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--light-blue);
+    font-weight: 800;
+}
+
+.option-box.correct .option-label {
+    color: #19c37d;
+}
+
+/* BUTTON */
+.save-btn {
+    margin-top: 30px;
+    font-size: 16px;
+    padding: 12px 26px;
+}
+
+
+.photo-image-frame {
+    width: 100%;
+    max-width: 700px;
+    height: 320px;                 /* RESERVES SPACE */
+    border-radius: 18px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 2px dashed rgba(100, 205, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+}
+
+/* IMAGE INSIDE AREA */
+#photoPreview {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;          /* NICE FIT */
+    border-radius: 18px;
+}
+
+/* PLACEHOLDER CENTERED */
+.photo-image-placeholder {
+    color: #8fd8ff;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: center;
+    padding: 14px 24px;
+    border-radius: 12px;
+    border: 2px dashed rgba(140, 215, 255, 0.8);
+    background: rgba(10, 80, 150, 0.25);
+}

@@ -1,0 +1,77 @@
+/* GAME MODE CARD */
+.game-mode-card {
+    width: 800px;
+    height: 180px;
+    background-color: var(--dark-blue);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* GAME MODE GRID */
+.game-mode-grid {
+    display: flex;
+    gap: 98px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* GAME MODE BUTTON (no big rectangle) */
+button.game-mode-item {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.game-mode-item {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--white);
+}
+
+/* YELLOW CIRCLE (default) */
+.game-mode-icon-wrap {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: var(--accent-yellow, #f6a623);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    transition: transform 0.25s ease,
+                box-shadow 0.25s ease,
+                background-color 0.25s ease;
+}
+
+/* SELECTED = BRIGHT BLUE CIRCLE */
+.game-mode-item.selected .game-mode-icon-wrap {
+    background: var(--bright-blue) !important;
+}
+
+/* ICON */
+.game-mode-icon-wrap img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    transition: transform 0.25s ease;
+}
+
+/* HOVER EFFECT */
+.game-mode-item:hover .game-mode-icon-wrap {
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px rgba(246,166,35,0.6);
+}
+
+.game-mode-item:hover .game-mode-icon-wrap img {
+    transform: scale(1.25);
+}
+
+/* LABEL */
+.game-mode-label {
+    font-size: 16px;
+    font-weight: 600;
+}

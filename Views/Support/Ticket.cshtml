@@ -1,0 +1,193 @@
+@using YourApp.Models.Support
+@model SupportTicketViewModel
+
+@{
+    ViewData["Title"] = "Support Ticket";
+}
+
+<link rel="stylesheet" href="~/css/support.css" asp-append-version="true" />
+
+<h1 class="stx-title">Support Ticket</h1>
+
+<div class="stx-section">
+    <div class="stx-top" style="align-items:center;">
+        <div style="display:flex; gap:12px; align-items:center;">
+
+            <a asp-controller="Users"
+               asp-action="UserDetails"
+               asp-route-id="@Model.Ticket.UserId"
+               style="display:inline-flex; text-decoration:none;">
+                <img
+                    src="@(string.IsNullOrWhiteSpace(Model.UserProfile?.Profile?.Profile_Photo_Url)
+                            ? "/images/default-avatar.png"
+                            : Model.UserProfile.Profile.Profile_Photo_Url)"
+                    alt="Profile"
+                    style="
+                        width:48px;
+                        height:48px;
+                        border-radius:50%;
+                        object-fit:cover;
+                        background:#0b3a66;
+                        cursor:pointer;
+                    " />
+            </a>
+
+            <div class="stx-meta">
+                <strong class="stx-subject">
+                    @(Model.Ticket.Subject ?? "No subject")
+                </strong>
+
+                @if (Model.UserProfile?.Profile != null)
+                {
+                    <small class="stx-line">
+                        @(Model.UserProfile.Profile.Full_Name
+                          ?? Model.UserProfile.Profile.Username
+                          ?? "Unknown")
+                    </small>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.UserProfile.AuthUser?.Email))
+                    {
+                        <small class="stx-line">
+                            Email: @Model.UserProfile.AuthUser.Email
+                        </small>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.UserProfile.AuthUser?.Phone))
+                    {
+                        <small class="stx-line">
+                            Phone: @Model.UserProfile.AuthUser.Phone
+                        </small>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.UserProfile.Profile.Country)
+                        || !string.IsNullOrWhiteSpace(Model.UserProfile.Profile.State))
+                    {
+                        <small class="stx-line">
+                            Location:
+                            @(Model.UserProfile.Profile.Country)
+                            @(string.IsNullOrWhiteSpace(Model.UserProfile.Profile.State)
+                                ? ""
+                                : $", {Model.UserProfile.Profile.State}")
+                        </small>
+                    }
+                }
+                else
+                {
+                    <small class="stx-line">
+                        User ID: @Model.Ticket.UserId
+                    </small>
+                }
+
+                <small class="stx-line">
+                    Status: @Model.Ticket.Status
+                </small>
+            </div>
+        </div>
+
+        @if (Model.Ticket.Status == "open")
+        {
+            <form asp-controller="Support"
+                  asp-action="Close"
+                  asp-route-id="@Model.Ticket.Id"
+                  method="post">
+                <button type="submit" class="admin-button stx-close">
+                    Close Ticket
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+
+
+
+<div class="stx-section">
+    <div id="messages" class="stx-thread">
+        @if (Model.Messages == null || !Model.Messages.Any())
+        {
+            <p class="stx-empty">No messages yet.</p>
+        }
+        else
+        {
+            @foreach (var m in Model.Messages)
+            {
+                var isAdmin = m.SenderRole == "admin";
+                <div class="stx-bubble @(isAdmin ? "stx-bubble-admin" : "stx-bubble-user")">
+                    <small class="stx-bubble-meta">
+                        @(isAdmin ? "Admin" : "User") • @m.CreatedAt.ToLocalTime()
+                    </small>
+                    <div class="stx-bubble-body">@m.Body</div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@if (Model.Ticket.Status == "open")
+{
+    <div class="stx-section">
+        <form asp-controller="Support" asp-action="Reply" asp-route-id="@Model.Ticket.Id" method="post">
+            <textarea name="body" class="admin-input stx-input" rows="4" placeholder="Write a reply…" required></textarea>
+
+            <div class="stx-actions">
+                <button type="submit" class="admin-button stx-send">
+                    Send Reply
+                </button>
+            </div>
+        </form>
+    </div>
+}
+else
+{
+    <p class="stx-closed">This ticket is closed.</p>
+}
+
+
+
+
+<script>
+    const ticketId = "@Model.Ticket.Id";
+    const box = document.getElementById("messages");
+
+    let last = "@(Model.Messages != null && Model.Messages.Any() ? Model.Messages.Last().CreatedAt.UtcDateTime.ToString("O") : "")";
+    if (!last) last = null;
+
+    function append(msg) {
+        const isAdmin = msg.senderRole === "admin";
+
+        const div = document.createElement("div");
+        div.className = "stx-bubble " + (isAdmin ? "stx-bubble-admin" : "stx-bubble-user");
+
+        const small = document.createElement("small");
+        small.className = "stx-bubble-meta";
+        small.textContent =
+            (isAdmin ? "Admin" : "User") + " • " + new Date(msg.createdAt).toLocaleString();
+
+        const body = document.createElement("div");
+        body.className = "stx-bubble-body";
+        body.textContent = msg.body;
+
+        div.appendChild(small);
+        div.appendChild(body);
+        box.appendChild(div);
+    }
+
+    async function poll() {
+        const url = `/Support/Messages?id=${ticketId}` + (last ? `&after=${encodeURIComponent(last)}` : "");
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) return;
+
+        const p = box.querySelector("p");
+        if (p) p.remove();
+
+        data.forEach(append);
+        last = data[data.length - 1].createdAt;
+        box.scrollTop = box.scrollHeight;
+    }
+
+    box.scrollTop = box.scrollHeight;
+    setInterval(poll, 2500);
+</script>

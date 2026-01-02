@@ -1,0 +1,62 @@
+﻿.admin-page-center {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.admin-card-small {
+    width: 300px;
+    height: 180px;
+    background-color: var(--dark-blue);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--white);
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+}
+
+.admin-card-small:hover {
+    background-color: var(--mid-dark-blue);
+}
+
+.full-width-divider {
+    width: 100vw;
+    height: 1px;
+    background: white;
+    margin: 20px 0;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* DROPDOWN */
+.admin-select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--mid-dark-blue);
+    background-color: var(--dark-blue);
+    color: var(--white);
+    font-size: 14px;
+}
+
+
+
+/* BUTTON */
+.admin-button {
+    background-color: var(--secondary);
+    color: var(--white);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-button:hover {
+    background-color: var(--bright-blue);
+}

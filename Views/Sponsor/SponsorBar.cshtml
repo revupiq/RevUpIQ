@@ -1,0 +1,226 @@
+@using System.Text.Json
+@model RevUpIQ.Admin.Models.Sponsors.SponsorBarEntry
+
+<link rel="stylesheet" href="~/css/sponsor-bar.css" />
+<link rel="stylesheet" href="~/css/sponsor-bar-edit.css" />
+
+@{
+    var weekStatus = ViewBag.WeekStatus as List<bool> ?? new List<bool>();
+    var weekStatusJson = JsonSerializer.Serialize(weekStatus);
+}
+
+<div class="sponsor-edit-container">
+    <div class="sponsor-edit-card">
+        <h3>Edit Sponsor Bar</h3>
+
+        <form method="post" enctype="multipart/form-data" action="/SponsorBar/Edit" id="sponsorForm">
+            <input type="hidden" id="sponsorIdInput" name="sponsorId" value="@(Model?.Sponsor_Id ?? Guid.Empty)" />
+
+            <div class="edit-form-group-row">
+                <div class="edit-form-group">
+                    <label>Year</label>
+                    <select name="Year" id="yearSelect">
+                        @{
+                            var currentYear = DateTime.UtcNow.Year;
+                            var selectedYear = Model?.Year > 0 ? Model.Year : currentYear;
+
+                            for (int y = currentYear - 1; y <= currentYear + 2; y++)
+                            {
+                                <option value="@y" selected="@(y == selectedYear)">@y</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="edit-form-group">
+                    <label>Week</label>
+                    <select name="Week_Number" id="weekSelect">
+                        @{
+                            var selectedWeek = (Model?.Week_Number ?? 0) > 0
+                                ? Model.Week_Number
+                                : System.Globalization.ISOWeek.GetWeekOfYear(DateTime.UtcNow);
+
+                            var weeksInYear = System.Globalization.ISOWeek.GetWeeksInYear(selectedYear);
+
+                            for (int w = 1; w <= weeksInYear; w++)
+                            {
+                                <option value="@w" selected="@(w == selectedWeek)">Week @w</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="edit-form-group">
+                <label>Text</label>
+                <input type="text" name="Text" id="textInput" value="@(Model?.Text ?? "")" />
+            </div>
+
+            <div class="edit-form-group">
+                <label>Visit Link</label>
+                <input type="text" name="Link_Url" id="linkInput" value="@(Model?.Link_Url ?? "")" />
+            </div>
+
+            <div class="edit-form-group">
+                <label>Current Image</label>
+                <img id="editPreviewImg"
+                     src="@(string.IsNullOrWhiteSpace(Model?.Image_Url) ? "" : Model.Image_Url)"
+                     style="max-width: 200px; border-radius: 8px; border:1px solid var(--mid-dark-blue); margin-bottom:8px;" />
+            </div>
+
+            <div class="edit-form-group">
+                <label>Upload New Image</label>
+                <input type="file" name="ImageFile" id="fileInput" />
+            </div>
+
+            <button type="submit" class="edit-save-button" id="updateBtn">
+                @(Model?.Sponsor_Id != Guid.Empty ? "Update" : "Create")
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="sponsor-container">
+    <div class="sponsor-pill">
+        <div class="sponsor-pill-top"></div>
+
+        <div class="sponsor-pill-content">
+            <div class="sponsor-pill-text" id="sponsorText">
+                @(Model?.Text ?? "")
+            </div>
+
+            <div class="sponsor-pill-logo">
+                <img id="sponsorLogoImg" src="@(Model?.Image_Url ?? "")" alt="Sponsor logo" />
+            </div>
+        </div>
+
+        <div class="sponsor-pill-bottom">
+            <div class="sponsor-pill-underline"></div>
+        </div>
+    </div>
+</div>
+
+<div class="sponsor-link-visible">
+    <span>Visit link:</span>
+    <a id="sponsorLinkAnchor" href="@(Model?.Link_Url ?? "#")" target="_blank">@(Model?.Link_Url ?? "")</a>
+</div>
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const weekStatus = @Html.Raw(weekStatusJson);
+
+        const form = document.getElementById("sponsorForm");
+        const sponsorIdInput = document.getElementById("sponsorIdInput");
+
+        const yearSelect = document.getElementById("yearSelect");
+        const weekSelect = document.getElementById("weekSelect");
+
+        const textInput = document.getElementById("textInput");
+        const linkInput = document.getElementById("linkInput");
+        const fileInput = document.getElementById("fileInput");
+        const updateBtn = document.getElementById("updateBtn");
+
+        const sponsorText = document.getElementById("sponsorText");
+        const sponsorLogoImg = document.getElementById("sponsorLogoImg");
+        const sponsorLinkAnchor = document.getElementById("sponsorLinkAnchor");
+        const editPreviewImg = document.getElementById("editPreviewImg");
+
+        if (!form || !yearSelect || !weekSelect || !textInput || !linkInput || !updateBtn) return;
+
+        function hasValidId() {
+            return sponsorIdInput &&
+                sponsorIdInput.value &&
+                sponsorIdInput.value !== "00000000-0000-0000-0000-000000000000";
+        }
+
+        function applyMode() {
+            const edit = hasValidId();
+            form.action = edit ? "/SponsorBar/Edit" : "/SponsorBar/Create";
+            updateBtn.textContent = edit ? "Update" : "Create";
+        }
+
+        function validateForm() {
+            const valid = textInput.value.trim().length > 0 && linkInput.value.trim().length > 0;
+            updateBtn.disabled = !valid;
+        }
+
+        function isoWeekToDate(year, week) {
+            const d = new Date(Date.UTC(year, 0, 1 + (week - 1) * 7));
+            const day = d.getUTCDay();
+            if (day <= 4) d.setUTCDate(d.getUTCDate() - day + 1);
+            else d.setUTCDate(d.getUTCDate() + 8 - day);
+            return d;
+        }
+
+        function goToByDate() {
+            const y = parseInt(yearSelect.value, 10);
+            const w = parseInt(weekSelect.value, 10);
+            const date = isoWeekToDate(y, w);
+            const iso = date.toISOString().split("T")[0];
+            window.location.href = `/SponsorBar/ByDate?date=${iso}`;
+        }
+
+        function colorWeekOptions() {
+            const options = weekSelect.querySelectorAll("option");
+            options.forEach(opt => {
+                const w = parseInt(opt.value, 10);
+                const has = Array.isArray(weekStatus) ? !!weekStatus[w - 1] : false;
+
+                // Note: option styling works in many browsers, but not all (OS dropdowns vary)
+                opt.style.backgroundColor = has ? "rgba(34,197,94,.18)" : "rgba(248,113,113,.18)";
+                opt.style.color = "#ffffff";
+            });
+
+            updateWeekSelectClass();
+        }
+
+        function updateWeekSelectClass() {
+            const w = parseInt(weekSelect.value, 10);
+            const has = Array.isArray(weekStatus) ? !!weekStatus[w - 1] : false;
+
+            weekSelect.classList.toggle("has-data", has);
+            weekSelect.classList.toggle("no-data", !has);
+        }
+
+        textInput.addEventListener("input", function () {
+            validateForm();
+            if (sponsorText) sponsorText.textContent = textInput.value;
+        });
+
+        linkInput.addEventListener("input", function () {
+            validateForm();
+            if (sponsorLinkAnchor) {
+                sponsorLinkAnchor.textContent = linkInput.value;
+                sponsorLinkAnchor.href = linkInput.value || "#";
+            }
+        });
+
+        if (fileInput) {
+            fileInput.addEventListener("change", function () {
+                const file = fileInput.files && fileInput.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const src = e.target.result;
+                    if (sponsorLogoImg) sponsorLogoImg.src = src;
+                    if (editPreviewImg) editPreviewImg.src = src;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        yearSelect.addEventListener("change", goToByDate);
+
+        weekSelect.addEventListener("change", function () {
+            updateWeekSelectClass();
+            goToByDate();
+        });
+
+        applyMode();
+        validateForm();
+        colorWeekOptions();
+    });
+</script>

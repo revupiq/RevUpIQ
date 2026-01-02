@@ -1,0 +1,52 @@
+@using RevUpIQ.Admin.Models.MiniGames
+@model RevUpIQ.Admin.Models.MiniGames.DailyGameFilter
+
+@{
+    DateTime? selected = DateTime.TryParse(Model.Date, out var dt) ? dt.Date : (DateTime?)null;
+
+    var monthBase = (DateTime)(ViewData["CalendarMonthBase"] ?? DateTime.Today);
+    var baseDate = selected ?? monthBase;
+
+    var year = baseDate.Year;
+    var month = baseDate.Month;
+    var daysInMonth = DateTime.DaysInMonth(year, month);
+    var monthText = new DateTime(year, month, 1).ToString("MMMM yyyy");
+
+    var flags = ViewData["DayFlags"] as Dictionary<int, bool> ?? new();
+}
+
+
+<div class="calendar-header" style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+    <button id="prev-month" class="admin-button" style="padding:4px 10px; font-size:14px;">◀</button>
+    <div id="calendar-title"
+        style="font-size:18px; font-weight:600; color:var(--white); min-width:140px; text-align:center;">
+        @monthText
+    </div>
+    <button id="next-month" class="admin-button" style="padding:4px 10px; font-size:14px;">▶</button>
+</div>
+
+<div class="calendar-scroll-container">
+    <div class="calendar-items-row" id="calendar-days">
+        @for (var day = 1; day <= daysInMonth; day++)
+        {
+            var date = new DateTime(year, month, day);
+            var isSelected = selected.HasValue && date.Date == selected.Value;
+            var isToday = date.Date == DateTime.Today;
+            var isActive = flags.ContainsKey(day) && flags[day];
+
+            <div class="calendar-day filter-date
+                            @(isSelected ? "selected" : "")
+                            @(isActive ? "" : "calendar-disabled")" data-date="@date.ToString("yyyy-MM-dd")">
+
+                <div class="calendar-week">@date.ToString("ddd")</div>
+                <div class="calendar-number">@day</div>
+                <div class="calendar-month">@date.ToString("MMM")</div>
+
+                @if (isToday)
+                {
+                    <div class="calendar-today">TODAY</div>
+                }
+            </div>
+        }
+    </div>
+</div>

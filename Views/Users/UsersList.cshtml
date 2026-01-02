@@ -1,0 +1,119 @@
+@using RevUpIQ.Admin.Models.Users
+@model UsersListViewModel
+
+<link rel="stylesheet" href="~/css/users.css" />
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="users-search">
+    <input type="text"
+           id="userSearch"
+           placeholder="Search by email or phone"
+           onkeyup="filterUsers()" />
+</div>
+
+<h1 style="text-align:center; margin-top:20px;">Users</h1>
+
+<div id="normalWrap">
+    <div class="users-container">
+        <div class="user-header">
+            <span>Email</span>
+            <span>Phone</span>
+            <span>Created</span>
+            <span>Last Sign In</span>
+        </div>
+
+        <div id="normalList">
+            @foreach (var user in Model.Users)
+            {
+                <div class="user-row"
+                     onclick="location.href='@Url.Action("UserDetails", new { id = user.Id })'">
+                    <span>@(user.Email ?? "—")</span>
+                    <span>@(user.Phone ?? "—")</span>
+                    <span>@user.Created_At.ToString("yyyy-MM-dd")</span>
+                    <span>@(user.Last_Sign_In_At?.ToString("yyyy-MM-dd HH:mm") ?? "Never")</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="users-pagination">
+        @if (Model.Page > 1)
+        {
+            <a asp-action="UsersList"
+               asp-route-page="@(Model.Page - 1)"
+               asp-route-perPage="@Model.PerPage"
+               class="page-link page-link-prev">« Previous</a>
+        }
+
+        <span class="page-info">Page @Model.Page</span>
+
+        @if (Model.HasNextPage)
+        {
+            <a asp-action="UsersList"
+               asp-route-page="@(Model.Page + 1)"
+               asp-route-perPage="@Model.PerPage"
+               class="page-link page-link-next">Next »</a>
+        }
+    </div>
+</div>
+
+<div id="searchWrap" style="display:none;">
+    <div class="users-container">
+        <div class="user-header">
+            <span>Email</span>
+            <span>Phone</span>
+            <span>Created</span>
+            <span>Last Sign In</span>
+        </div>
+
+        <div id="searchResults"></div>
+
+        <div class="users-pagination">
+            <span class="page-info" id="searchInfo"></span>
+        </div>
+    </div>
+</div>
+
+
+<script>
+async function filterUsers() {
+    const query = document.getElementById("userSearch").value.trim();
+
+    if (!query) {
+        document.getElementById("normalWrap").style.display = "block";
+        document.getElementById("searchWrap").style.display = "none";
+        return;
+    }
+
+    const res = await fetch(`/Users/SearchUsers?q=${encodeURIComponent(query)}`);
+    const users = await res.json();
+
+    document.getElementById("normalWrap").style.display = "none";
+    document.getElementById("searchWrap").style.display = "block";
+
+    const container = document.getElementById("searchResults");
+    container.innerHTML = "";
+
+    users.forEach(u => {
+        const row = document.createElement("div");
+        row.className = "user-row";
+        row.onclick = () => location.href = `/Users/UserDetails/${u.id}`;
+
+        row.innerHTML = `
+            <span>${u.email ?? "—"}</span>
+            <span>${u.phone ?? "—"}</span>
+            <span>${u.created_At.substring(0,10)}</span>
+            <span>${u.last_Sign_In_At ? u.last_Sign_In_At.substring(0,16) : "Never"}</span>
+        `;
+
+        container.appendChild(row);
+    });
+
+    document.getElementById("searchInfo").innerText =
+        `Results: ${users.length}`;
+}
+</script>
+

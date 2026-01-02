@@ -1,0 +1,141 @@
+.sponsor-edit-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 35px;
+}
+
+.sponsor-edit-card {
+    width: 420px;
+    background: var(--dark-blue);
+    padding: 26px;
+    border-radius: 12px;
+    border: 1px solid var(--mid-dark-blue);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.sponsor-edit-card h3 {
+    color: var(--white);
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 18px;
+}
+
+.edit-form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 14px;
+    gap: 6px;
+}
+
+.edit-form-group label {
+    font-size: 13px;
+    color: var(--grey);
+}
+
+.edit-form-group input[type="text"],
+.edit-form-group input[type="file"] {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--mid-dark-blue);
+    background: #020617;
+    color: var(--white);
+    font-size: 14px;
+}
+
+.edit-save-button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: var(--light-blue);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.edit-save-button:hover {
+    filter: brightness(1.08);
+}
+
+.edit-save-button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--light-blue);
+    color: white;
+    transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.edit-save-button:disabled {
+    background: #5a5a5a;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+.edit-form-group-row {
+    display: flex;
+    gap: 14px;
+    max-width: 420px;
+    margin: 0 auto 20px auto;
+}
+
+.edit-form-group-row .edit-form-group {
+    flex: 1;
+}
+
+.edit-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-form-group label {
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--grey);
+}
+
+.edit-form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--mid-dark-blue);
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.edit-form-group select:focus {
+    border-color: var(--light-blue);
+    box-shadow: 0 0 0 1px var(--light-blue);
+}
+
+.edit-form-group select option {
+    background: #0f172a;
+    color: #ffffff;
+}
+.edit-form-group select {
+    color: #ffffff;
+}
+
+.edit-form-group select option {
+    color: #ffffff;
+}
+
+.edit-form-group select option:checked {
+    background-color: #0f172a;
+    color: #ffffff;
+}
+.edit-form-group select {
+    -webkit-text-fill-color: #ffffff;
+}
+
+

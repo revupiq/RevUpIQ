@@ -1,0 +1,27 @@
+@using RevUpIQ.Admin.Models.Division
+@{
+    ViewData["Title"] = "Leaderboard";
+}
+@model List<DivisionDto>
+
+<link rel="stylesheet" href="~/css/leaderboard.css" />
+
+@section Scripts {
+    <script src="~/js/leaderboard.js"></script>
+}
+
+<div style="
+    width:100%;
+    display:flex;
+    justify-content:center;
+    margin-top:40px;
+">
+    <div style="font-size:28px; font-weight:600;">
+        Leaderboard
+    </div>
+</div>
+
+@await Html.PartialAsync("_filters")
+
+<div id="leaderboardHost"></div>
+

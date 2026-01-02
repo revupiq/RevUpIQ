@@ -1,0 +1,119 @@
+is_global = true
+build_property.TargetFramework = net10.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v10.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = RevUpIQ.Admin
+build_property.RootNamespace = RevUpIQ.Admin
+build_property.ProjectDir = I:\Freelancing\MotorMindIQ\Backend\RevUpIQ.Admin\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 9.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = I:\Freelancing\MotorMindIQ\Backend\RevUpIQ.Admin
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 10.0
+build_property.EnableCodeStyleSeverity = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Account/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Divisions/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGl2aXNpb25zXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Divisions/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGl2aXNpb25zXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Divisions/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGl2aXNpb25zXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Divisions/_EditDivisionModal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGl2aXNpb25zXF9FZGl0RGl2aXNpb25Nb2RhbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Home/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Home/Privacy.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/PhotoGuess/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXFBob3RvR3Vlc3NcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/PhotoGuess/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXFBob3RvR3Vlc3NcRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/PhotoGuess/_PhotoGuess.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXFBob3RvR3Vlc3NcX1Bob3RvR3Vlc3MuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/Trivia/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXFRyaXZpYVxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/Trivia/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXFRyaXZpYVxFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/Trivia/_Trivia.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXFRyaXZpYVxfVHJpdmlhLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/Wordle/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXFdvcmRsZVxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/Wordle/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXFdvcmRsZVxFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/Wordle/_Wordle.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXFdvcmRsZVxfV29yZGxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/_DailyGameFilter.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXF9EYWlseUdhbWVGaWx0ZXIuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/MiniGames/_MiniGameViewer.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWluaUdhbWVzXF9NaW5pR2FtZVZpZXdlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Shared/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Shared/_ValidationScriptsPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[I:/Freelancing/MotorMindIQ/Backend/RevUpIQ.Admin/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-1jlwpxmbuz

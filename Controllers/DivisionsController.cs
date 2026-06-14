@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RevUpIQ.Admin.Models.Division;
 using RevUpIQ.Admin.Models.Divisions;
@@ -179,13 +179,31 @@ namespace RevUpIQ.Admin.Controllers
                 .GetPublicUrl(filePath)
                 .ToString();
 
-            await _supabase
+            var existingResult = await _supabase
                 .From<DivisionBackground>()
-                .Upsert(new DivisionBackground
+                .Where(b => b.Division_Id == divisionId)
+                .Get();
+
+            var existingRecord = existingResult.Models.FirstOrDefault();
+
+            if (existingRecord != null)
+            {
+                await _supabase.From<DivisionBackground>()
+                    .Where(b => b.Id == existingRecord.Id)
+                    .Set(b => b.Background_Url, publicUrl)
+                    .Set(b => b.Updated_At, DateTime.UtcNow)
+                    .Update();
+            }
+            else
+            {
+                await _supabase.From<DivisionBackground>().Insert(new DivisionBackground
                 {
                     Division_Id = divisionId,
-                    Background_Url = publicUrl
+                    Background_Url = publicUrl,
+                    Created_At = DateTime.UtcNow,
+                    Updated_At = DateTime.UtcNow
                 });
+            }
 
             return Ok(new { url = publicUrl });
         }

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "I:\\Freelancing\\MotorMindIQ\\RevUpIQ.Admin\\RevUpIQ.Admin\\RevUpIQ.Admin.csproj": {}
+    "I:\\Freelancing\\MotorMindIQ\\RevUpIQ\\RevUpIQ.Admin.csproj": {}
   },
   "projects": {
-    "I:\\Freelancing\\MotorMindIQ\\RevUpIQ.Admin\\RevUpIQ.Admin\\RevUpIQ.Admin.csproj": {
+    "I:\\Freelancing\\MotorMindIQ\\RevUpIQ\\RevUpIQ.Admin.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "I:\\Freelancing\\MotorMindIQ\\RevUpIQ.Admin\\RevUpIQ.Admin\\RevUpIQ.Admin.csproj",
+        "projectUniqueName": "I:\\Freelancing\\MotorMindIQ\\RevUpIQ\\RevUpIQ.Admin.csproj",
         "projectName": "RevUpIQ.Admin",
-        "projectPath": "I:\\Freelancing\\MotorMindIQ\\RevUpIQ.Admin\\RevUpIQ.Admin\\RevUpIQ.Admin.csproj",
+        "projectPath": "I:\\Freelancing\\MotorMindIQ\\RevUpIQ\\RevUpIQ.Admin.csproj",
         "packagesPath": "C:\\Users\\ifnis\\.nuget\\packages\\",
-        "outputPath": "I:\\Freelancing\\MotorMindIQ\\RevUpIQ.Admin\\RevUpIQ.Admin\\obj\\",
+        "outputPath": "I:\\Freelancing\\MotorMindIQ\\RevUpIQ\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "I:\\Freelancing\\MotorMindIQ\\RevUpIQ.Admin\\RevUpIQ.Admin\\NuGet.Config",
+          "I:\\Freelancing\\MotorMindIQ\\RevUpIQ\\NuGet.Config",
           "C:\\Users\\ifnis\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"

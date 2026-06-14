@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "MRb3xO4IoUQ=",
+  "dgSpecHash": "pc3gfS1L0ac=",
   "success": true,
-  "projectFilePath": "I:\\Freelancing\\MotorMindIQ\\RevUpIQ.Admin\\RevUpIQ.Admin\\RevUpIQ.Admin.csproj",
+  "projectFilePath": "I:\\Freelancing\\MotorMindIQ\\RevUpIQ\\RevUpIQ.Admin.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ifnis\\.nuget\\packages\\microsoft.identitymodel.abstractions\\7.5.1\\microsoft.identitymodel.abstractions.7.5.1.nupkg.sha512",
     "C:\\Users\\ifnis\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\7.5.1\\microsoft.identitymodel.jsonwebtokens.7.5.1.nupkg.sha512",

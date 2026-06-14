@@ -23,7 +23,7 @@ namespace RevUpIQ.Admin.Models.Users
         public long Game_Daily_Id { get; set; }
 
         [Column("score")]
-        public int Score { get; set; }
+        public double Score { get; set; }
 
         [Column("won")]
         public bool? Won { get; set; }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RevUpIQ.Admin")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1aaebfafd15551feac543c7920e7beee19d6304b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a6a4068985cdaafc9bfc61a538726a55a3ed389a")]
 [assembly: System.Reflection.AssemblyProductAttribute("RevUpIQ.Admin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RevUpIQ.Admin")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

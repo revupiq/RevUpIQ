@@ -179,6 +179,9 @@ namespace RevUpIQ.Admin.Controllers
                 .GetPublicUrl(filePath)
                 .ToString();
 
+            // Add a cache-busting timestamp so the browser knows the image changed
+            publicUrl += (publicUrl.Contains("?") ? "&" : "?") + "t=" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
             var existingResult = await _supabase
                 .From<DivisionBackground>()
                 .Where(b => b.Division_Id == divisionId)
@@ -188,11 +191,9 @@ namespace RevUpIQ.Admin.Controllers
 
             if (existingRecord != null)
             {
-                await _supabase.From<DivisionBackground>()
-                    .Where(b => b.Id == existingRecord.Id)
-                    .Set(b => b.Background_Url, publicUrl)
-                    .Set(b => b.Updated_At, DateTime.UtcNow)
-                    .Update();
+                existingRecord.Background_Url = publicUrl;
+                existingRecord.Updated_At = DateTime.UtcNow;
+                await _supabase.From<DivisionBackground>().Update(existingRecord);
             }
             else
             {

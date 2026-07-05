@@ -55,25 +55,23 @@
 
         <div id="user-game-history" data-user-id="@Model.Profile.Id"></div>
 
+        <script>
+            document.querySelectorAll('.user-division-slot').forEach(async el => {
+                const id = el.getAttribute('data-user-division-id');
+                const html = await fetch(`/Users/UserDivision?id=${id}`).then(r => r.text());
+                el.innerHTML = html;
+            });
+            fetch('/Users/UserGameHistory?id=@Model.Profile.Id')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('user-game-history').innerHTML = html;
+                });
+
+            fetch('/Users/UserProfile?id=@Model.Profile.Id')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('user-profile-container').innerHTML = html;
+                });
+        </script>
     }
 </div>
-
-
-<script>
-    document.querySelectorAll('.user-division-slot').forEach(async el => {
-        const id = el.getAttribute('data-user-division-id');
-        const html = await fetch(`/Users/UserDivision?id=${id}`).then(r => r.text());
-        el.innerHTML = html;
-    });
-    fetch('/Users/UserGameHistory?id=@Model.Profile.Id')
-        .then(r => r.text())
-        .then(html => {
-            document.getElementById('user-game-history').innerHTML = html;
-        });
-
-    fetch('/Users/UserProfile?id=@Model.Profile.Id')
-        .then(r => r.text())
-        .then(html => {
-            document.getElementById('user-profile-container').innerHTML = html;
-        });
-</script>

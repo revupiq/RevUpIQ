@@ -54,6 +54,40 @@ namespace RevUpIQ.Admin.Controllers
             Console.WriteLine($"Users fetched: {users.Count}");
             Console.ResetColor();
 
+            // Filter out users that have no profile row (single lightweight query)
+            try
+            {
+                var userGuids = users
+                    .Where(u => Guid.TryParse(u.Id, out _))
+                    .Select(u => Guid.Parse(u.Id))
+                    .ToList();
+
+                if (userGuids.Any())
+                {
+                    var profileResult = await _supabase
+                        .From<Profile>()
+                        .Select("id")
+                        .Filter("id", Supabase.Postgrest.Constants.Operator.In, userGuids)
+                        .Get();
+
+                    var profileIds = profileResult.Models
+                        .Select(p => p.Id.ToString())
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                    users = users.Where(u => profileIds.Contains(u.Id)).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"Profile filter failed — showing all users. {ex.Message}");
+                Console.ResetColor();
+            }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Users with profiles: {users.Count}");
+            Console.ResetColor();
+
             var vm = new UsersListViewModel
             {
                 Users = users,
@@ -313,6 +347,27 @@ namespace RevUpIQ.Admin.Controllers
                 return Json(new List<AuthUser>());
 
             var ids = await SearchUserIds(q);
+
+            // Filter to only IDs that have a profile row
+            if (ids.Any())
+            {
+                try
+                {
+                    var profileResult = await _supabase
+                        .From<Profile>()
+                        .Select("id")
+                        .Filter("id", Supabase.Postgrest.Constants.Operator.In, ids)
+                        .Get();
+
+                    var profileIds = profileResult.Models
+                        .Select(p => p.Id)
+                        .ToHashSet();
+
+                    ids = ids.Where(id => profileIds.Contains(id)).ToList();
+                }
+                catch { }
+            }
+
             var users = new List<AuthUser>();
 
             using var http = new HttpClient();

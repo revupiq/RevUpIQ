@@ -31,26 +31,33 @@ namespace RevUpIQ.Admin.Controllers
             if (!ModelState.IsValid || model.Logo == null || model.Logo.Length == 0)
                 return View(model);
 
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(model.Logo.FileName)}";
+            var logoUrl = await UploadIconAsync(model.Logo);
 
-            using (var ms = new MemoryStream())
-            {
-                await model.Logo.CopyToAsync(ms);
-                await _supabase.Storage.From(BucketName)
-                    .Upload(ms.ToArray(), fileName);
-            }
-
-            var logoUrl = _supabase.Storage
-                .From(BucketName)
-                .GetPublicUrl(fileName);
+            string? purchaseIconUrl = null;
+            if (model.PurchaseIcon != null && model.PurchaseIcon.Length > 0)
+                purchaseIconUrl = await UploadIconAsync(model.PurchaseIcon);
 
             await _supabase.From<DivisionDto>().Insert(new DivisionDto
             {
                 Name = model.Name,
-                LogoUrl = logoUrl
+                LogoUrl = logoUrl,
+                PurchaseIconUrl = purchaseIconUrl
             });
 
             return RedirectToAction("Index", "Home");
+        }
+
+        private async Task<string> UploadIconAsync(IFormFile file)
+        {
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+
+            var bucket = _supabase.Storage.From(BucketName);
+            await bucket.Upload(ms.ToArray(), fileName);
+
+            return bucket.GetPublicUrl(fileName);
         }
 
 
@@ -90,45 +97,22 @@ namespace RevUpIQ.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(DivisionDto model, IFormFile? Logo)
+        public async Task<IActionResult> Edit(DivisionDto model, IFormFile? Logo, IFormFile? PurchaseIcon)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
+            var update = _supabase.From<DivisionDto>()
+                .Where(d => d.Id == model.Id)
+                .Set(d => d.Name, model.Name);
+
             if (Logo != null && Logo.Length > 0)
-            {
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(Logo.FileName)}";
+                update = update.Set(d => d.LogoUrl, await UploadIconAsync(Logo));
 
-                using (var ms = new MemoryStream())
-                {
-                    await Logo.CopyToAsync(ms);
-                    var bytes = ms.ToArray();
+            if (PurchaseIcon != null && PurchaseIcon.Length > 0)
+                update = update.Set(d => d.PurchaseIconUrl, await UploadIconAsync(PurchaseIcon));
 
-                    var bucket = _supabase.Storage.From(BucketName);
-                    await bucket.Upload(bytes, fileName);
-                }
-
-                var bucketRef = _supabase.Storage.From(BucketName);
-                model.LogoUrl = bucketRef.GetPublicUrl(fileName);
-            }
-
-
-            if (Logo != null)
-            {
-                await _supabase.From<DivisionDto>()
-                    .Where(d => d.Id == model.Id)
-                    .Set(d => d.Name, model.Name)
-                    .Set(d => d.LogoUrl, model.LogoUrl)
-                    .Update();
-            }
-            else
-            {
-                await _supabase.From<DivisionDto>()
-                    .Where(d => d.Id == model.Id)
-                    .Set(d => d.Name, model.Name)
-                    .Update();
-            }
-
+            await update.Update();
 
             return RedirectToAction("Details", new { id = model.Id });
         }
@@ -146,6 +130,37 @@ namespace RevUpIQ.Admin.Controllers
             });
 
             return Ok();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadIcon(int divisionId, string kind, IFormFile icon)
+        {
+            if (divisionId <= 0)
+                return BadRequest("Invalid divisionId.");
+
+            if (icon == null || icon.Length == 0)
+                return BadRequest("No image uploaded.");
+
+            var ext = Path.GetExtension(icon.FileName)?.ToLowerInvariant();
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            if (string.IsNullOrWhiteSpace(ext) || !allowed.Contains(ext))
+                return BadRequest("Invalid file type. Use a PNG, JPG or WebP image.");
+
+            if (kind != "logo" && kind != "purchase")
+                return BadRequest("Unknown icon type.");
+
+            var url = await UploadIconAsync(icon);
+
+            var update = _supabase.From<DivisionDto>().Where(d => d.Id == divisionId);
+
+            update = kind == "logo"
+                ? update.Set(d => d.LogoUrl, url)
+                : update.Set(d => d.PurchaseIconUrl, url);
+
+            await update.Update();
+
+            return Ok(new { url });
         }
 
         [HttpPost]

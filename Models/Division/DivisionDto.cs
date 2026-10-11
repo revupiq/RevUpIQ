@@ -15,6 +15,9 @@ namespace RevUpIQ.Admin.Models.Division
         [Column("logo_url")]
         public string? LogoUrl { get; set; }
 
+        [Column("purchase_icon_url")]
+        public string? PurchaseIconUrl { get; set; }
+
         [Column("sort_index")]
         public int SortIndex { get; set; }
     }

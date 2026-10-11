@@ -6,6 +6,7 @@ namespace RevUpIQ.Admin.Models.Division
     {
         public string Name { get; set; } = string.Empty;
         public IFormFile? Logo { get; set; }
+        public IFormFile? PurchaseIcon { get; set; }
     }
 }
 

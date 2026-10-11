@@ -468,14 +468,12 @@ I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\v326ixcv73-{0}-f
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\bcfkcr36g8-{0}-jp32walghe-jp32walghe.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\zpaxwregjh-{0}-80es6omq57-80es6omq57.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\khhg5jknvx-{0}-3r8b2a0bt1-3r8b2a0bt1.gz
-I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\j32bwhekmb-{0}-mvkl5aogmg-mvkl5aogmg.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\6eju3jo89v-{0}-ukh0x86oag-ukh0x86oag.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\on68ztl69x-{0}-aqzkgymy90-aqzkgymy90.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\847p0rq2m0-{0}-61n19gt1b8-61n19gt1b8.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\cykmxuicvg-{0}-44lah4u0ty-44lah4u0ty.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\z9arqhetfp-{0}-o8c13ufbdt-o8c13ufbdt.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\1pm9dugw50-{0}-n5bv6fe9fm-n5bv6fe9fm.gz
-I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\i6mh2rsqg9-{0}-dyzq51ladl-dyzq51ladl.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\ozfm5xj1nk-{0}-ze9cwkdb7x-ze9cwkdb7x.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\pc5g5cve6r-{0}-gdr5dkiklq-gdr5dkiklq.gz
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\50x1bfy3hx-{0}-ynn5aqz61d-ynn5aqz61d.gz
@@ -555,3 +553,5 @@ I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\refint\RevUpIQ.Admin.dll
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\RevUpIQ.Admin.pdb
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\RevUpIQ.Admin.genruntimeconfig.cache
 I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\ref\RevUpIQ.Admin.dll
+I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\j32bwhekmb-{0}-2smtnyhrsy-2smtnyhrsy.gz
+I:\Freelancing\MotorMindIQ\RevUpIQ\obj\Debug\net10.0\compressed\i6mh2rsqg9-{0}-jefsrkflwe-jefsrkflwe.gz

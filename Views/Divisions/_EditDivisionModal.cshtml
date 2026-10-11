@@ -5,136 +5,141 @@
     var bg = ViewData["DivisionBackground"] as DivisionBackground;
 }
 
-<div style="max-width:1200px; margin:30px auto; padding:20px;">
+<div class="division-details">
 
-    <div style="display:flex; gap:24px; align-items:flex-start;">
+    <div class="division-details-header">
+        <h1 class="division-details-title">@Model?.Name</h1>
 
-        <div style="flex:1;">
+        <div class="division-details-actions">
+            <button id="openEdit" type="button" class="admin-button">
+                Rename Division
+            </button>
 
-            <div style="display:flex; gap:16px; align-items:center; margin-bottom:12px;">
-                @if (!string.IsNullOrWhiteSpace(Model?.LogoUrl))
-                {
-                    <img src="@Model.LogoUrl"
-                         style="width:80px; height:80px; border-radius:12px; object-fit:cover;" />
-                }
-
-                <div>
-                    <h1 style="margin:0;">@Model?.Name</h1>
-
-                    <div style="display:flex; gap:10px; margin-top:8px;">
-                        <button id="openEdit" type="button" class="admin-button">
-                            Edit Division
-                        </button>
-
-                        <form asp-controller="Divisions"
-                              asp-action="Delete"
-                              method="post"
-                              onsubmit="return confirm('Delete this division permanently?');">
-                            <input type="hidden" name="id" value="@Model?.Id" />
-                            <button type="submit"
-                                    class="admin-button"
-                                    style="background:#c0392b;">
-                                Delete Division
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
+            <form asp-controller="Divisions"
+                  asp-action="Delete"
+                  method="post"
+                  onsubmit="return confirm('Delete this division permanently?');">
+                <input type="hidden" name="id" value="@Model?.Id" />
+                <button type="submit" class="admin-button admin-button-danger">
+                    Delete Division
+                </button>
+            </form>
         </div>
+    </div>
 
-        <div style="width:260px; display:flex; flex-direction:column; gap:12px;">
+    <div class="division-details-body">
 
-            <div style="
-                width:100%;
-                aspect-ratio: 9 / 16;
-                border-radius:20px;
-                overflow:hidden;
-                background:#0f1e2d;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-            ">
+        <section class="division-section">
+            <h2 class="division-section-title">Icons</h2>
+            <p class="division-section-hint">
+                Drag an image onto a card, or use its button. It uploads straight away. PNG, JPG or WebP.
+            </p>
+
+            <div class="division-icon-grid">
+
+                <div class="division-icon-card">
+                    <div class="division-icon-preview">
+                        @if (!string.IsNullOrWhiteSpace(Model?.LogoUrl))
+                        {
+                            <img src="@Model.LogoUrl" alt="Division logo" />
+                        }
+                        else
+                        {
+                            <span>No logo yet<br />Drag an image here</span>
+                        }
+                    </div>
+                    <h3>Division Logo</h3>
+                    <p>Shown in the app's division menu and in this admin panel.</p>
+                    <label class="admin-button division-upload-button">
+                        @(string.IsNullOrWhiteSpace(Model?.LogoUrl) ? "Upload Logo" : "Change Logo")
+                        <input type="file"
+                               accept=".png,.jpg,.jpeg,.webp"
+                               data-icon-kind="logo"
+                               hidden />
+                    </label>
+                </div>
+
+                <div class="division-icon-card">
+                    <div class="division-icon-preview">
+                        @if (!string.IsNullOrWhiteSpace(Model?.PurchaseIconUrl))
+                        {
+                            <img src="@Model.PurchaseIconUrl" alt="Purchase page icon" />
+                        }
+                        else
+                        {
+                            <span>No icon yet<br />Drag an image here</span>
+                        }
+                    </div>
+                    <h3>Purchase Page Icon</h3>
+                    <p>Shown on the app's purchase page. If empty, the app uses its default artwork.</p>
+                    <label class="admin-button division-upload-button">
+                        @(string.IsNullOrWhiteSpace(Model?.PurchaseIconUrl) ? "Upload Purchase Icon" : "Change Purchase Icon")
+                        <input type="file"
+                               accept=".png,.jpg,.jpeg,.webp"
+                               data-icon-kind="purchase"
+                               hidden />
+                    </label>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="division-background">
+            <h2 class="division-section-title">Background</h2>
+
+            <div class="division-background-preview">
                 @if (bg != null && !string.IsNullOrWhiteSpace(bg.Background_Url))
                 {
-                    <img src="@bg.Background_Url"
-                         style="width:100%; height:100%; object-fit:cover;" />
+                    <img src="@bg.Background_Url" alt="Division background" />
                 }
             </div>
 
-            <label class="admin-button" style="cursor:pointer; width:fit-content;">
+            <label class="admin-button division-upload-button">
                 Upload Background
                 <input type="file"
                        id="divisionBackgroundInput"
                        accept="image/*"
-                       style="display:none;" />
+                       hidden />
             </label>
-
-        </div>
+        </section>
 
     </div>
 
 </div>
 
 
+<div id="editModal" class="division-modal">
+    <div class="division-modal-box">
 
-<div id="editModal" style="
-        display:none;
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,0.4);
-        z-index:9999;
-        justify-content:center;
-        align-items:center;
-     ">
-    <div style="
-        background:#1e1e1e;
-        padding:24px;
-        border-radius:12px;
-        width:480px;
-        max-width:90%;
-        box-sizing:border-box;
-        position:relative;
-        display:flex;
-        flex-direction:column;
-        gap:12px;
-    ">
-
-        <button id="closeEdit" type="button" style="
-                    position:absolute;
-                    top:8px;
-                    right:8px;
-                    width:25px;
-                    height:25px;
-                    border:none;
-                    border-radius:50%;
-                    background:#444;
-                    color:white;
-                    cursor:pointer;
-                ">
+        <button id="closeEdit" type="button" class="division-modal-close" aria-label="Close">
             ✕
         </button>
 
-        <h2 style="margin:0 0 10px 0;">Edit Division</h2>
+        <h2 class="division-modal-title">Rename Division</h2>
 
-        <form asp-controller="Divisions" asp-action="Edit" method="post" enctype="multipart/form-data"
-            style="padding:0 12px;">
+        <form asp-controller="Divisions"
+              asp-action="Edit"
+              method="post"
+              enctype="multipart/form-data"
+              class="division-modal-form">
 
             <input type="hidden" name="Id" value="@Model?.Id" />
 
-            <label>Name</label>
-            <input type="text" name="Name" value="@Model?.Name" class="admin-input" />
+            <label for="divisionNameInput">Division name</label>
+            <input type="text"
+                   id="divisionNameInput"
+                   name="Name"
+                   value="@Model?.Name"
+                   class="admin-input"
+                   required />
 
-            <label>Description</label>
+            <p class="division-modal-hint">
+                To change the logo or purchase page icon, use the buttons on the page.
+            </p>
 
-
-            <label>Logo</label>
-            <input type="file" name="Logo" class="admin-input" accept="image/*" />
-
-            <button type="submit" class="admin-button" style="margin-top:10px;">
-                Save Changes
+            <button type="submit" class="admin-button">
+                Save Name
             </button>
         </form>
     </div>
 </div>
-

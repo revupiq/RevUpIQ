@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "revupiq-admin",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "RevUpIQ.Admin.csproj", "-c", "Debug", "--launch-profile", "http"],
+      "port": 5198
+    }
+  ]
+}

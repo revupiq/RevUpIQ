@@ -58,43 +58,144 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // ---------- Image uploads (file picker or drag & drop) ----------
+
+    // Posts a file to the server, reloads the page on success.
+    // `busyEl` gets the "is-uploading" class while the request is running.
+    function uploadImage(url, fields, busyEl, errorMessage) {
+        const divisionId = divisionIdEl ? divisionIdEl.value : null;
+        if (!divisionId) {
+            alert("Division id not found on the page.");
+            return Promise.resolve();
+        }
+
+        const formData = new FormData();
+        formData.append("divisionId", divisionId);
+        Object.keys(fields).forEach(function (key) {
+            formData.append(key, fields[key]);
+        });
+
+        const headers = { "X-Requested-With": "XMLHttpRequest" };
+        if (antiForgeryToken) headers["RequestVerificationToken"] = antiForgeryToken;
+
+        if (busyEl) busyEl.classList.add("is-uploading");
+
+        return fetch(url, { method: "POST", body: formData, headers })
+            .then(async function (response) {
+                if (response.ok) {
+                    window.location.reload();
+                    return;
+                }
+
+                const text = await response.text().catch(() => "");
+                alert(text || errorMessage);
+            })
+            .catch(function () {
+                alert(errorMessage);
+            })
+            .finally(function () {
+                if (busyEl) busyEl.classList.remove("is-uploading");
+            });
+    }
+
+    // Makes `zone` accept a dropped image file and passes it to `onFile`.
+    function enableDropZone(zone, onFile) {
+        ["dragenter", "dragover"].forEach(function (type) {
+            zone.addEventListener(type, function (e) {
+                e.preventDefault();
+                if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+                zone.classList.add("is-dragover");
+            });
+        });
+
+        zone.addEventListener("dragleave", function (e) {
+            if (e.relatedTarget && zone.contains(e.relatedTarget)) return;
+            zone.classList.remove("is-dragover");
+        });
+
+        zone.addEventListener("drop", function (e) {
+            e.preventDefault();
+            zone.classList.remove("is-dragover");
+
+            const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            if (!file) return;
+
+            if (!file.type || file.type.indexOf("image/") !== 0) {
+                alert("Please drop an image file (PNG, JPG or WebP).");
+                return;
+            }
+
+            onFile(file);
+        });
+    }
+
+    const iconInputs = document.querySelectorAll("input[data-icon-kind]");
+    const dropZones = [];
+
+    iconInputs.forEach(function (input) {
+        const button = input.closest("label");
+        const card = input.closest(".division-icon-card");
+
+        function send(file) {
+            return uploadImage(
+                "/Divisions/UploadIcon",
+                { kind: input.dataset.iconKind, icon: file },
+                button,
+                "Error uploading icon."
+            );
+        }
+
+        input.addEventListener("change", function () {
+            const file = input.files && input.files[0];
+            if (!file) return;
+
+            send(file).finally(function () {
+                input.value = "";
+            });
+        });
+
+        if (card) {
+            enableDropZone(card, send);
+            dropZones.push(card);
+        }
+    });
+
     if (bgInput) {
+        const button = bgInput.closest("label");
+        const zone = bgInput.closest(".division-background");
+
+        function sendBackground(file) {
+            return uploadImage(
+                bgInput.dataset.uploadUrl || "/Divisions/UploadDivisionBackground",
+                { backgroundImage: file },
+                button,
+                "Error uploading background."
+            );
+        }
+
         bgInput.addEventListener("change", function () {
             const file = bgInput.files && bgInput.files[0];
             if (!file) return;
 
-            const divisionId = divisionIdEl ? divisionIdEl.value : null;
-            if (!divisionId) {
-                alert("Division id not found on the page.");
+            sendBackground(file).finally(function () {
                 bgInput.value = "";
-                return;
-            }
+            });
+        });
 
-            const uploadUrl = bgInput.dataset.uploadUrl || "/Divisions/UploadDivisionBackground";
+        if (zone) {
+            enableDropZone(zone, sendBackground);
+            dropZones.push(zone);
+        }
+    }
 
-            const formData = new FormData();
-            formData.append("divisionId", divisionId);
-            formData.append("backgroundImage", file);
-
-            const headers = { "X-Requested-With": "XMLHttpRequest" };
-            if (antiForgeryToken) headers["RequestVerificationToken"] = antiForgeryToken;
-
-            fetch(uploadUrl, { method: "POST", body: formData, headers })
-                .then(async function (response) {
-                    if (response.ok) {
-                        window.location.reload();
-                        return;
-                    }
-
-                    const text = await response.text().catch(() => "");
-                    alert(text || "Error uploading background.");
-                })
-                .catch(function () {
-                    alert("Error uploading background.");
-                })
-                .finally(function () {
-                    bgInput.value = "";
-                });
+    // Stop the browser from opening an image that is dropped outside a zone.
+    if (dropZones.length > 0) {
+        ["dragover", "drop"].forEach(function (type) {
+            window.addEventListener(type, function (e) {
+                if (e.dataTransfer && Array.from(e.dataTransfer.types || []).indexOf("Files") !== -1) {
+                    e.preventDefault();
+                }
+            });
         });
     }
 });

@@ -438,3 +438,14 @@ h1 {
     font-size: 13px;
     color: var(--light-blue);
 }
+
+/* Keep the page background filling the whole viewport on short pages */
+html {
+    background-color: var(--background);
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    margin-bottom: 0;
+}

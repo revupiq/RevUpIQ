@@ -8,7 +8,7 @@
 
 .user-header {
     display: grid;
-    grid-template-columns: 3fr 2fr 2fr 2fr;  /* 4 columns */
+    grid-template-columns: 3fr 2fr 2fr 2fr 1fr 1fr;  /* 6 columns */
     font-weight: bold;
     color: #bfc6ff;
     padding: 10px 26px;
@@ -20,7 +20,7 @@
     padding: 18px 26px;
     color: white;
     display: grid;
-    grid-template-columns: 3fr 2fr 2fr 2fr;  /* match header */
+    grid-template-columns: 3fr 2fr 2fr 2fr 1fr 1fr;  /* match header */
     align-items: center;
     font-weight: 600;
 }
@@ -97,7 +97,38 @@
 .users-search {
     display: flex;
     justify-content: center;
+    gap: 10px;
     margin: 20px 0;
+}
+
+.users-toolbar {
+    display: flex;
+    gap: 10px;
+    padding: 0 26px;
+}
+
+.users-toolbar input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--mid-dark-blue);
+    background: #0b1a33;
+    color: #fff;
+}
+
+.users-toolbar select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--mid-dark-blue);
+    background: #0b1a33;
+    color: #fff;
+}
+
+.users-search select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--mid-dark-blue);
 }
 
 .users-search input {
@@ -105,4 +136,42 @@
     padding: 10px;
     border-radius: 6px;
     border: 1px solid var(--mid-dark-blue);
+}
+
+.user-delete-btn {
+    background: transparent;
+    color: #ff6b6b;
+    border: 1px solid #ff6b6b;
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.user-delete-btn:hover {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+.user-delete-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.profile-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.profile-badge.has-profile {
+    background: rgba(46, 204, 113, 0.18);
+    color: #2ecc71;
+}
+
+.profile-badge.no-profile {
+    background: rgba(255, 107, 107, 0.18);
+    color: #ff6b6b;
 }

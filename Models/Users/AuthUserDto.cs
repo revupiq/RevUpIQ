@@ -17,6 +17,9 @@ namespace RevUpIQ.Admin.Models.Users
         public DateTime? Last_Sign_In_At { get; set; }
 
         public DateTime? Banned_Until { get; set; }
+
+        // Filled in by the admin panel, not part of the Supabase auth payload
+        public bool HasProfile { get; set; }
     }
 
 }

@@ -9,21 +9,21 @@
     var position = 0;
 }
 
-<div class="admin-page-center">
-    @Html.AntiForgeryToken()
+@Html.AntiForgeryToken()
 
-    <p class="division-order-help">
-        Drag a division to change the order players see. Number 1 is shown first in the app.
+<p class="division-order-help">
+    Drag a division to change the order players see. Number 1 is shown first in the app.
+</p>
+
+@if (hasTies)
+{
+    <p class="division-order-warning">
+        Some divisions share the same order position, so players may see them in an arbitrary order.
+        Drag any division (or use the arrows) and the full order will be saved.
     </p>
+}
 
-    @if (hasTies)
-    {
-        <p class="division-order-warning">
-            Some divisions share the same order position, so players may see them in an arbitrary order.
-            Drag any division (or use the arrows) and the full order will be saved.
-        </p>
-    }
-
+<div class="admin-page-center">
     <div class="division-grid" id="divisionGrid">
 
 @foreach (var d in ordered)

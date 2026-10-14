@@ -103,6 +103,7 @@ namespace RevUpIQ.Admin.Controllers
         public async Task<IActionResult> UserDetails(string id)
         {
             var vm = await LoadUserProfileAsync(id);
+            ViewBag.DefaultCoverUrl = await AppSettingsClient.GetAsync(AppSettingsClient.DefaultCoverKey);
             return View("User", vm);
         }
 

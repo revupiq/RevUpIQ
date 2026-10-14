@@ -1,0 +1,443 @@
+@{
+    ViewData["Title"] = "App Settings";
+    var currentUrl = ViewBag.CurrentUrl as string;
+}
+
+<link rel="stylesheet" href="~/css/how-to-play.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+
+<div class="how-to-play-page">
+    <h2 class="how-to-play-title">App Settings</h2>
+
+    <h3 class="cover-section-title">Default Cover Photo</h3>
+
+    <p class="cover-hint">
+        Shown on a player&rsquo;s profile when they have not chosen their own cover photo.
+    </p>
+
+    @Html.AntiForgeryToken()
+
+    <div class="how-to-play-box">
+        <div class="how-to-play-form">
+
+            <div class="how-to-play-field">
+                <span class="how-to-play-label">Current default</span>
+                <div class="cover-preview">
+                    @if (string.IsNullOrWhiteSpace(currentUrl))
+                    {
+                        <div class="cover-empty">
+                            No default set &mdash; the app uses its built-in image.
+                        </div>
+                    }
+                    else
+                    {
+                        <img id="coverPreview" src="@currentUrl" alt="Current default cover photo" />
+                    }
+                </div>
+            </div>
+
+            <div class="how-to-play-field">
+                <span class="how-to-play-label">Graphic size</span>
+                <ul class="cover-specs">
+                    <li><strong>1300 &times; 1080 px</strong> (aspect ratio 65:54). The crop tool below locks to this ratio and exports up to 2600 &times; 2160 px for sharp phones.</li>
+                    <li>JPG, PNG or WebP, up to 5 MB.</li>
+                    <li>Keep the important part of the picture in the <strong>top 40%</strong>. The bottom third fades into the app background and the top sits under the status bar.</li>
+                </ul>
+            </div>
+
+            <div class="how-to-play-field">
+                <span class="how-to-play-label">Upload a new default</span>
+
+                <div id="dropZone" class="cover-drop" tabindex="0" role="button"
+                     aria-label="Drop an image here or press Enter to choose a file">
+                    <div class="cover-drop-title">Drag &amp; drop an image here</div>
+                    <div class="cover-drop-sub">JPG, PNG or WebP &mdash; you can crop it to the right size next</div>
+                    <span class="admin-button division-upload-button">Choose image</span>
+                    <input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+                </div>
+
+                <span id="coverFileInfo" class="cover-file-info"></span>
+            </div>
+
+            <div class="cover-footer">
+                <span id="coverStatus" class="cover-status" role="status"></span>
+                @if (!string.IsNullOrWhiteSpace(currentUrl))
+                {
+                    <button type="button" id="builtInBtn" class="how-to-play-save">Use app&rsquo;s built-in image</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full-screen crop editor -->
+<div id="cropOverlay" class="crop-overlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Crop cover photo">
+    <div class="crop-topbar">
+        <button type="button" id="cropCancel" class="crop-btn">Cancel</button>
+        <div class="crop-title">Crop cover photo</div>
+        <button type="button" id="saveBtn" class="crop-btn crop-btn-primary" disabled>Save as default</button>
+    </div>
+
+    <div class="crop-stage">
+        <img id="cropImage" alt="Image to crop" />
+    </div>
+
+    <div class="crop-bottombar">
+        <button type="button" id="zoomOut" class="crop-btn" title="Zoom out">&minus;</button>
+        <button type="button" id="zoomIn" class="crop-btn" title="Zoom in">+</button>
+        <button type="button" id="rotateBtn" class="crop-btn" title="Rotate 90&deg;">&#8635; Rotate</button>
+        <button type="button" id="resetCrop" class="crop-btn">Reset</button>
+        <span id="cropSize" class="crop-size"></span>
+        <span id="cropStatus" class="crop-status" role="status"></span>
+    </div>
+</div>
+
+<style>
+    .cover-section-title { margin: 0 0 6px 0; font-size: 1.15rem; }
+
+    .cover-hint { opacity: .8; margin: 0 0 14px 0; }
+
+    .cover-preview {
+        max-width: 520px;
+        border: 1px solid var(--mid-dark-blue);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--background);
+    }
+
+    .cover-preview img { display: block; width: 100%; height: auto; }
+
+    .cover-empty { padding: 28px 16px; text-align: center; opacity: .75; }
+
+    .cover-specs { margin: 0; padding-left: 18px; line-height: 1.6; }
+
+    /* Same look as the division icon / background drop cards */
+    .cover-drop {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        border: 1px dashed var(--dark-grey);
+        border-radius: 12px;
+        padding: 24px 16px;
+        text-align: center;
+        cursor: pointer;
+        background-color: var(--dark-blue);
+        transition: border-color .15s ease, background-color .15s ease;
+    }
+
+    .cover-drop:focus { outline: none; }
+
+    .cover-drop:hover,
+    .cover-drop:focus,
+    .cover-drop.dragover {
+        border-color: var(--yellow);
+        background-color: var(--primary);
+    }
+
+    .cover-drop-title { font-weight: 700; }
+    .cover-drop-sub { font-size: 13px; color: var(--light-blue); }
+
+    .cover-file-info { font-size: 13px; opacity: .8; }
+    .cover-file-info.warn { color: #f5b041; opacity: 1; }
+
+    /* Full-screen crop editor */
+    .crop-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        background: #000;
+        color: var(--white);
+    }
+
+    .crop-topbar,
+    .crop-bottombar {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: var(--background);
+    }
+
+    .crop-topbar { justify-content: space-between; border-bottom: 1px solid var(--mid-dark-blue); }
+    .crop-bottombar { flex-wrap: wrap; border-top: 1px solid var(--mid-dark-blue); }
+
+    .crop-title { font-weight: 800; }
+
+    .crop-stage {
+        flex: 1 1 auto;
+        min-height: 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .crop-stage img { display: block; max-width: 100%; }
+
+    .crop-btn {
+        min-width: 40px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--mid-dark-blue);
+        background: rgba(255, 255, 255, .06);
+        color: var(--white);
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .crop-btn:hover { background: rgba(69, 148, 254, .18); }
+
+    .crop-btn-primary { background: var(--bright-blue, #4594fe); border-color: var(--bright-blue, #4594fe); }
+    .crop-btn-primary:hover { filter: brightness(1.1); background: var(--bright-blue, #4594fe); }
+    .crop-btn:disabled { opacity: .5; cursor: default; }
+
+    .crop-size { margin-left: auto; font-size: 13px; opacity: .8; }
+    .crop-size.warn { color: #f5b041; opacity: 1; }
+
+    .crop-status { font-weight: 700; }
+    .crop-status.ok { color: #2ecc71; }
+    .crop-status.err { color: #ff6b6b; }
+
+    body.crop-open { overflow: hidden; }
+
+    .cover-footer {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .cover-status { margin-right: auto; font-weight: 700; }
+    .cover-status.ok { color: #2ecc71; }
+    .cover-status.err { color: #ff6b6b; }
+
+    .how-to-play-save:disabled { opacity: .5; cursor: default; transform: none; }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<script>
+(function () {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('coverFile');
+    const info = document.getElementById('coverFileInfo');
+    const saveBtn = document.getElementById('saveBtn');
+    const builtInBtn = document.getElementById('builtInBtn');
+    const status = document.getElementById('coverStatus');
+    const overlay = document.getElementById('cropOverlay');
+    const cropStatus = document.getElementById('cropStatus');
+    const cancelBtn = document.getElementById('cropCancel');
+    const cropImage = document.getElementById('cropImage');
+    const cropSize = document.getElementById('cropSize');
+
+    const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+    const MAX = 5 * 1024 * 1024;
+    const RATIO = 1300 / 1080;
+    const OUT_W = 2600;      // export width cap; height follows the ratio
+    const MIN_W = 1300;      // below this the picture is soft in the app
+
+    let cropper = null;
+    let objectUrl = null;
+
+    function setStatus(text, cls) {
+        status.textContent = text;
+        status.className = 'cover-status' + (cls ? ' ' + cls : '');
+        cropStatus.textContent = text;
+        cropStatus.className = 'crop-status' + (cls ? ' ' + cls : '');
+    }
+
+    function setInfo(text, warn) {
+        info.textContent = text;
+        info.className = 'cover-file-info' + (warn ? ' warn' : '');
+    }
+
+    function resetCropper() {
+        if (cropper) { cropper.destroy(); cropper = null; }
+        if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+        overlay.style.display = 'none';
+        document.body.classList.remove('crop-open');
+        saveBtn.disabled = true;
+    }
+
+    function updateSize() {
+        if (!cropper) return;
+        const d = cropper.getData(true);
+        const small = d.width < MIN_W;
+        cropSize.textContent = d.width + ' × ' + d.height + ' px selected' +
+            (small ? ' — low resolution' : '');
+        cropSize.className = 'crop-size' + (small ? ' warn' : '');
+    }
+
+    function loadFile(file) {
+        resetCropper();
+        setInfo('', false);
+        setStatus('', '');
+
+        if (!file) return;
+
+        if (!TYPES.includes(file.type)) {
+            setInfo('Only JPG, PNG or WebP images are allowed.', true);
+            return;
+        }
+
+        if (file.size > MAX) {
+            setInfo('The image must be 5 MB or smaller.', true);
+            return;
+        }
+
+        objectUrl = URL.createObjectURL(file);
+        cropImage.onload = () => {
+            setInfo(file.name + ' — ' + cropImage.naturalWidth + ' × ' + cropImage.naturalHeight +
+                ' px.', false);
+
+            // Show the full-screen editor before building the cropper so it can measure its stage
+            overlay.style.display = 'flex';
+            document.body.classList.add('crop-open');
+
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(cropImage, {
+                aspectRatio: RATIO,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 1,
+                responsive: true,
+                background: false,
+                zoomOnWheel: true,
+                crop: updateSize
+            });
+
+            saveBtn.disabled = false;
+        };
+        cropImage.onerror = () => {
+            setInfo('That file could not be read as an image.', true);
+            resetCropper();
+        };
+        cropImage.src = objectUrl;
+    }
+
+    // Choose by click / keyboard
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+    });
+    fileInput.addEventListener('change', () => loadFile(fileInput.files[0]));
+
+    // Drag & drop
+    ['dragenter', 'dragover'].forEach(ev =>
+        dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(ev =>
+        dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+    dropZone.addEventListener('drop', e => {
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        loadFile(file);
+    });
+
+    // Stop the browser opening a dropped file when it misses the drop zone
+    ['dragover', 'drop'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
+
+    function cancelCrop() {
+        if (saveBtn.disabled && status.textContent.startsWith('Cropping')) return;
+        resetCropper();
+        fileInput.value = '';
+        setInfo('', false);
+        setStatus('', '');
+    }
+
+    cancelBtn.addEventListener('click', cancelCrop);
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && overlay.style.display !== 'none') cancelCrop();
+    });
+
+    document.getElementById('zoomIn').addEventListener('click', () => cropper && cropper.zoom(0.1));
+    document.getElementById('zoomOut').addEventListener('click', () => cropper && cropper.zoom(-0.1));
+    document.getElementById('rotateBtn').addEventListener('click', () => cropper && cropper.rotate(90));
+    document.getElementById('resetCrop').addEventListener('click', () => cropper && cropper.reset());
+
+    function toBlob(canvas, quality) {
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+    }
+
+    async function exportCropped() {
+        const d = cropper.getData(true);
+        const width = Math.min(OUT_W, Math.max(d.width, 1));
+        const height = Math.round(width / RATIO);
+
+        const canvas = cropper.getCroppedCanvas({
+            width, height,
+            fillColor: '#000',
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high'
+        });
+
+        if (!canvas) throw new Error('Could not crop this image.');
+
+        // Keep the file under the 5 MB limit
+        let quality = 0.92, blob = await toBlob(canvas, quality);
+        while (blob && blob.size > MAX - 200 * 1024 && quality > 0.5) {
+            quality -= 0.1;
+            blob = await toBlob(canvas, quality);
+        }
+
+        if (!blob) throw new Error('Could not export the cropped image.');
+        return blob;
+    }
+
+    saveBtn.addEventListener('click', async () => {
+        if (!cropper) return;
+
+        saveBtn.disabled = true;
+        if (builtInBtn) builtInBtn.disabled = true;
+        setStatus('Cropping & uploading…', '');
+
+        try {
+            const blob = await exportCropped();
+
+            const form = new FormData();
+            form.append('file', blob, 'default-cover.jpg');
+
+            const res = await fetch('@Url.Action("Upload", "DefaultCover")', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: form
+            });
+            const data = await res.json().catch(() => null);
+
+            if (!res.ok) throw new Error((data && data.error) || 'Upload failed.');
+
+            setStatus('Saved ✓', 'ok');
+            setTimeout(() => location.reload(), 700);
+        } catch (err) {
+            setStatus(err.message, 'err');
+            saveBtn.disabled = false;
+            if (builtInBtn) builtInBtn.disabled = false;
+        }
+    });
+
+    if (builtInBtn) {
+        builtInBtn.addEventListener('click', async () => {
+            if (!confirm('Stop using the uploaded default and use the app’s built-in image instead?')) return;
+
+            builtInBtn.disabled = true;
+            setStatus('Saving…', '');
+
+            try {
+                const res = await fetch('@Url.Action("UseBuiltIn", "DefaultCover")', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': token }
+                });
+                if (!res.ok) throw new Error('Could not clear the default cover.');
+
+                setStatus('Saved ✓', 'ok');
+                setTimeout(() => location.reload(), 700);
+            } catch (err) {
+                setStatus(err.message, 'err');
+                builtInBtn.disabled = false;
+            }
+        });
+    }
+})();
+</script>

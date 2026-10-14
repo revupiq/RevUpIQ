@@ -20,11 +20,25 @@ else
             }
         }
     </div>
+
+    <div class="wordle-category">
+        Category:
+        @if (string.IsNullOrWhiteSpace(Model.Category))
+        {
+            <span class="wordle-category-none">None</span>
+        }
+        else
+        {
+            <strong>@Model.Category</strong>
+        }
+    </div>
 }
 
 </div>
 
 <style>
 .wordle-viewer{display:flex;justify-content:center;gap:14px;margin-top:30px}
+.wordle-category{text-align:center;margin-top:18px;color:var(--white)}
+.wordle-category-none{opacity:.6}
 .wordle-cell-view{width:64px;height:64px;border-radius:14px;border:3px solid var(--bright-blue);background:var(--dark-blue);display:flex;align-items:center;justify-content:center;color:var(--white);font-size:30px;font-weight:900}
 </style>

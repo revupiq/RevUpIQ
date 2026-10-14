@@ -15,4 +15,7 @@ public class RaceWordDailyDto : BaseModel
 
     [Column("target_word")]
     public string TargetWord { get; set; } = string.Empty;
+
+    [Column("category")]
+    public string? Category { get; set; }
 }

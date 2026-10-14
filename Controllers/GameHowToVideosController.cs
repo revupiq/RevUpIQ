@@ -32,7 +32,7 @@ namespace RevUpIQ.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Data()
+        public async Task<IActionResult> Data(string? game = null)
         {
             using var http = CreateClient();
 
@@ -53,7 +53,7 @@ namespace RevUpIQ.Admin.Controllers
 
             var rows = JsonSerializer.Deserialize<List<GameHowToRow>>(body, JsonOptions) ?? new();
 
-            var result = Games.Select(g =>
+            var result = Games.Where(g => game == null || g.Key == game).Select(g =>
             {
                 var row = rows.FirstOrDefault(r => r.Game_Type == g.Key);
                 return new

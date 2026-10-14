@@ -160,15 +160,27 @@ namespace RevUpIQ.Admin.Controllers
             if (all.Count != ids.Count || !all.Select(d => d.Id).ToHashSet().SetEquals(ids))
                 return Conflict(new { error = "The division list changed. Reload the page and try again." });
 
-            for (var position = 0; position < ids.Count; position++)
+            try
             {
-                var current = all.First(d => d.Id == ids[position]);
-                if (current.SortIndex == position) continue;
+                for (var position = 0; position < ids.Count; position++)
+                {
+                    // Plain locals: the Supabase filter can't translate list indexers
+                    var divisionId = ids[position];
+                    var newIndex = position;
 
-                await _supabase.From<DivisionDto>()
-                    .Where(d => d.Id == ids[position])
-                    .Set(d => d.SortIndex, position)
-                    .Update();
+                    var current = all.First(d => d.Id == divisionId);
+                    if (current.SortIndex == newIndex) continue;
+
+                    await _supabase.From<DivisionDto>()
+                        .Where(d => d.Id == divisionId)
+                        .Set(d => d.SortIndex, newIndex)
+                        .Update();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Division reorder failed: {ex}");
+                return StatusCode(500, new { error = "Could not save the new order: " + ex.Message });
             }
 
             return Ok();

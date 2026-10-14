@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let dragged = null;      // the .division-link being dragged
     let saving = false;
 
-    const grid = () => document.getElementById("divisionGrid");
+    const grid = () => document.getElementById("divisionOrderGrid");
     const items = () =>
         Array.from(grid()?.querySelectorAll(".division-link[data-division-id]") ?? []);
 

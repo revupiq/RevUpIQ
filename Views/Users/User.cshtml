@@ -23,7 +23,7 @@
         var profile = Model.Profile;
 
         <div style="position: relative; width: 100%; height: 320px; overflow: visible;">
-            <img src="@(string.IsNullOrWhiteSpace(profile.Cover_Photo_Url) ? "/images/default-cover.jpg" : profile.Cover_Photo_Url)"
+            <img src="@(string.IsNullOrWhiteSpace(profile.Cover_Photo_Url) ? (ViewBag.DefaultCoverUrl as string ?? "") : profile.Cover_Photo_Url)"
                 style="width:100%; height:100%; object-fit:cover; border-bottom:1px solid var(--mid-dark-blue);" />
 
             <div style="position:absolute; top:16px; right:16px; display:flex; gap:10px;">

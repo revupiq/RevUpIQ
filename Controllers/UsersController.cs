@@ -160,6 +160,8 @@ namespace RevUpIQ.Admin.Controllers
                         .LogError(ex, "Failed to load support tickets for {UserId}", vm.Profile.Id);
                 }
             }
+
+            ViewBag.DefaultCoverUrl = await AppSettingsClient.GetAsync(AppSettingsClient.DefaultCoverKey);
             return View("User", vm);
         }
 

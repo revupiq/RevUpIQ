@@ -1,0 +1,58 @@
+@model string?
+@{
+    var suggestions = new[] { "Driver", "Track", "Car Component", "Racing Term" };
+    var current = Model?.Trim() ?? "";
+    var isCustom = current.Length > 0 && !suggestions.Contains(current);
+}
+
+<div class="category-field">
+    <label class="category-label" for="categorySelect">Category</label>
+
+    <input type="hidden" name="Category" id="categoryValue" value="@current" />
+
+    <select id="categorySelect" class="admin-select">
+        <option value="" selected="@(current.Length == 0)">No category</option>
+        @foreach (var s in suggestions)
+        {
+            <option value="@s" selected="@(current == s)">@s</option>
+        }
+        <option value="__custom" selected="@isCustom">Custom…</option>
+    </select>
+
+    <input type="text"
+           id="categoryCustom"
+           class="admin-select category-custom"
+           maxlength="50"
+           placeholder="Enter a category"
+           value="@(isCustom ? current : "")"
+           style="@(isCustom ? "" : "display:none;")" />
+</div>
+
+<style>
+    .category-field { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; align-items: center; }
+    .category-label { font-size: 12px; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; color: var(--light-blue); }
+    .category-custom { min-width: 220px; }
+</style>
+
+<script>
+(function () {
+    const select = document.getElementById('categorySelect');
+    const custom = document.getElementById('categoryCustom');
+    const hidden = document.getElementById('categoryValue');
+
+    // Keeps the hidden form field in sync: trimmed text, or empty (saved as NULL)
+    function sync() {
+        const isCustom = select.value === '__custom';
+        custom.style.display = isCustom ? '' : 'none';
+        hidden.value = (isCustom ? custom.value : select.value).trim();
+    }
+
+    select.addEventListener('change', () => {
+        sync();
+        if (select.value === '__custom') custom.focus();
+    });
+    custom.addEventListener('input', sync);
+
+    sync();
+})();
+</script>

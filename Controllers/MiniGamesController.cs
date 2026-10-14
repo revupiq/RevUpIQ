@@ -352,16 +352,30 @@ namespace RevUpIQ.Admin.Controllers
         #endregion
 
         #region Race Word Actions
+        private const int MaxCategoryLength = 50;
+
+        // Trims whitespace; empty becomes null so the word has no category
+        private static bool TryNormalizeCategory(string? raw, out string? category)
+        {
+            var trimmed = raw?.Trim();
+            category = string.IsNullOrEmpty(trimmed) ? null : trimmed;
+            return category == null || category.Length <= MaxCategoryLength;
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateRaceWord(int DivisionId, WordleWord model, string Date)
         {
             var gameDate = DateTime.Parse(Date).Date;
+
+            if (!TryNormalizeCategory(model.Category, out var category))
+                return BadRequest($"Category must be {MaxCategoryLength} characters or fewer.");
 
             var raceWord = new RaceWordDailyDto
             {
                 DivisionId = DivisionId,
                 GameDate = gameDate,
                 TargetWord = model.TargetWord,
+                Category = category,
             };
 
             await _supabase.From<RaceWordDailyDto>().Insert(raceWord);
@@ -372,6 +386,9 @@ namespace RevUpIQ.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateRaceWord(long id, WordleWord model)
         {
+            if (!TryNormalizeCategory(model.Category, out var category))
+                return BadRequest($"Category must be {MaxCategoryLength} characters or fewer.");
+
             var existing = await _supabase
                 .From<RaceWordDailyDto>()
                 .Where(x => x.Id == id)
@@ -381,6 +398,7 @@ namespace RevUpIQ.Admin.Controllers
                 return NotFound();
 
             existing.TargetWord = model.TargetWord;
+            existing.Category = category;
             await _supabase.From<RaceWordDailyDto>().Update(existing);
 
             return Json(await EnsureWordIsPlayableAsync(model.TargetWord));

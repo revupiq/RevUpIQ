@@ -30,6 +30,8 @@
 
         @await Html.PartialAsync("~/Views/MiniGames/Wordle/_WordCheck.cshtml")
 
+        @await Html.PartialAsync("~/Views/MiniGames/Wordle/_CategoryField.cshtml", (string?)null)
+
         <button type="submit"
                 class="admin-button save-btn"
                 disabled>

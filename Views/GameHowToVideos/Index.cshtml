@@ -1,0 +1,217 @@
+@{
+    ViewData["Title"] = "Game How To Videos";
+    var games = ((string Key, string Title)[])ViewBag.Games;
+}
+
+<link rel="stylesheet" href="~/css/how-to-play.css" />
+
+<div class="how-to-play-page">
+    <h2 class="how-to-play-title">Game How To Videos</h2>
+
+    <p class="game-howto-hint">
+        Each game has its own how-to page in the app. Leave the video URL empty to show
+        “Video walkthrough coming soon.” Empty text fields use the app’s default instructions.
+    </p>
+
+    @Html.AntiForgeryToken()
+
+    <div id="gameHowToStatus" class="game-howto-banner">Loading…</div>
+
+    <div id="gameHowToForms" style="display:none;">
+        @foreach (var game in games)
+        {
+            <div class="how-to-play-box game-howto-card" data-game="@game.Key">
+                <h3 class="game-howto-card-title">@game.Title</h3>
+
+                <form class="how-to-play-form" data-game-form="@game.Key" novalidate>
+                    <div class="how-to-play-field">
+                        <label class="how-to-play-label" for="video-@game.Key">Video URL</label>
+                        <input id="video-@game.Key" name="videoLink" type="url" maxlength="2048"
+                               class="how-to-play-input"
+                               placeholder="https://www.youtube.com/watch?v=…" />
+                        <span class="game-howto-field-hint">
+                            Full https:// links only. YouTube plays inside the app; other links open externally.
+                        </span>
+                    </div>
+
+                    <div class="how-to-play-field">
+                        <label class="how-to-play-label" for="instr-@game.Key">Instructions</label>
+                        <textarea id="instr-@game.Key" name="instructions" maxlength="10000"
+                                  class="how-to-play-textarea"></textarea>
+                    </div>
+
+                    <div class="how-to-play-field">
+                        <label class="how-to-play-label" for="scoring-@game.Key">Scoring and game limits</label>
+                        <textarea id="scoring-@game.Key" name="scoringText" maxlength="10000"
+                                  class="how-to-play-textarea"></textarea>
+                    </div>
+
+                    <div class="how-to-play-field">
+                        <label class="how-to-play-label" for="example-@game.Key">Example</label>
+                        <textarea id="example-@game.Key" name="exampleText" maxlength="10000"
+                                  class="how-to-play-textarea"></textarea>
+                    </div>
+
+                    <div class="game-howto-footer">
+                        <span class="game-howto-updated" data-updated>Last updated: —</span>
+                        <span class="game-howto-save-status" data-status role="status"></span>
+                        <button type="submit" class="how-to-play-save">Save</button>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .game-howto-hint { opacity: .8; margin: 0 0 14px 0; }
+
+    .game-howto-card { margin-bottom: 20px; }
+
+    .game-howto-card-title { margin: 0 0 14px 0; }
+
+    .game-howto-field-hint { font-size: 12px; opacity: .7; }
+
+    .game-howto-banner {
+        margin-bottom: 16px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--mid-dark-blue);
+        background: var(--dark-blue);
+    }
+
+    .game-howto-banner.error {
+        border-color: #c0392b;
+        color: #ffb3b3;
+    }
+
+    .game-howto-footer {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .game-howto-updated { margin-right: auto; font-size: 13px; opacity: .7; }
+
+    .game-howto-save-status { font-weight: 700; }
+    .game-howto-save-status.ok { color: #2ecc71; }
+    .game-howto-save-status.err { color: #ff6b6b; }
+
+    .how-to-play-save:disabled { opacity: .6; cursor: default; transform: none; }
+</style>
+
+<script>
+(function () {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const banner = document.getElementById('gameHowToStatus');
+    const formsWrap = document.getElementById('gameHowToForms');
+
+    function formatDate(value) {
+        if (!value) return 'Last updated: never';
+        const d = new Date(value);
+        return 'Last updated: ' + (isNaN(d) ? '—' : d.toLocaleString());
+    }
+
+    function setStatus(form, text, cls) {
+        const el = form.querySelector('[data-status]');
+        el.textContent = text;
+        el.className = 'game-howto-save-status' + (cls ? ' ' + cls : '');
+    }
+
+    function validUrl(value) {
+        if (!value) return true;
+        if (/\s/.test(value)) return false;
+        try {
+            const u = new URL(value);
+            return u.protocol === 'https:' && !!u.hostname;
+        } catch { return false; }
+    }
+
+    async function load() {
+        try {
+            const res = await fetch('@Url.Action("Data", "GameHowToVideos")');
+            const data = await res.json().catch(() => null);
+
+            if (!res.ok) {
+                throw new Error((data && data.error) || 'Could not load the how-to videos.');
+            }
+
+            data.forEach(g => {
+                const form = document.querySelector(`[data-game-form="${g.gameType}"]`);
+                if (!form) return;
+
+                form.elements.videoLink.value = g.videoLink || '';
+                form.elements.instructions.value = g.instructions || '';
+                form.elements.scoringText.value = g.scoringText || '';
+                form.elements.exampleText.value = g.exampleText || '';
+                form.querySelector('[data-updated]').textContent = formatDate(g.updatedAt);
+
+                if (!g.exists) {
+                    form.querySelector('button[type=submit]').disabled = true;
+                    setStatus(form, 'No row found in game_how_to_play for this game.', 'err');
+                }
+            });
+
+            banner.style.display = 'none';
+            formsWrap.style.display = 'block';
+        } catch (err) {
+            banner.textContent = err.message;
+            banner.classList.add('error');
+        }
+    }
+
+    document.querySelectorAll('[data-game-form]').forEach(form => {
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const btn = form.querySelector('button[type=submit]');
+            const videoLink = form.elements.videoLink.value.trim();
+
+            if (!validUrl(videoLink)) {
+                setStatus(form, 'Video URL must be a full https:// link.', 'err');
+                return;
+            }
+
+            btn.disabled = true;
+            setStatus(form, 'Saving…', '');
+
+            try {
+                const res = await fetch('@Url.Action("Save", "GameHowToVideos")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        gameType: form.dataset.gameForm,
+                        videoLink: videoLink || null,
+                        instructions: form.elements.instructions.value,
+                        scoringText: form.elements.scoringText.value,
+                        exampleText: form.elements.exampleText.value
+                    })
+                });
+
+                const data = await res.json().catch(() => null);
+
+                if (!res.ok) {
+                    throw new Error((data && data.error) || 'Saving failed.');
+                }
+
+                form.elements.videoLink.value = videoLink;
+                form.querySelector('[data-updated]').textContent = formatDate(data.updatedAt);
+                setStatus(form, 'Saved ✓', 'ok');
+                setTimeout(() => setStatus(form, '', ''), 3000);
+            } catch (err) {
+                setStatus(form, err.message, 'err');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    });
+
+    load();
+})();
+</script>

@@ -22,7 +22,7 @@
             <input type="hidden" id="sponsorIdInput" name="sponsorId" value="@(Model?.Sponsor_Id ?? Guid.Empty)" />
 
             <div class="edit-form-group">
-                <label>Division</label>
+                <label>Show this ad in (division)</label>
                 <select name="DivisionId" id="divisionSelect">
                     <option value="" selected="@(!selectedDivision.HasValue)">All divisions (default)</option>
                     @foreach (var d in divisions)

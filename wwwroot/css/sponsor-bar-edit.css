@@ -138,4 +138,16 @@
     -webkit-text-fill-color: #ffffff;
 }
 
+/* Visible dropdown arrow (appearance:none above removes the native one) */
+.edit-form-group select {
+    padding-right: 38px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px 14px;
+}
 
+#divisionSelect {
+    border-color: var(--light-blue);
+    font-weight: 600;
+}

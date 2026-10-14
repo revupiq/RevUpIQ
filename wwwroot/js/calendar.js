@@ -1,6 +1,7 @@
 (function () {
 
-    let today = new Date();
+    const todayParts = AdminTime.today().split("-").map(Number);
+    let today = new Date(todayParts[0], todayParts[1] - 1, todayParts[2]);
     let current = new Date(today.getFullYear(), today.getMonth(), 1);
 
     function pad(n) { return n < 10 ? "0" + n : n; }

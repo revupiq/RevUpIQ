@@ -8,5 +8,7 @@ namespace RevUpIQ.Admin.Models.Users
         public AuthUser AuthUser { get; set; }
         public List<UserDivision> Divisions { get; set; } = new();
         public List<UserGamePlay> GamePlays { get; set; } = new();
+        public List<YourApp.Models.Support.Ticket> SupportTickets { get; set; } = new();
+        public bool SupportTicketsLoadFailed { get; set; }
     }
 }

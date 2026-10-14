@@ -114,7 +114,7 @@
                 var isAdmin = m.SenderRole == "admin";
                 <div class="stx-bubble @(isAdmin ? "stx-bubble-admin" : "stx-bubble-user")">
                     <small class="stx-bubble-meta">
-                        @(isAdmin ? "Admin" : "User") • @m.CreatedAt.ToLocalTime()
+                        @(isAdmin ? "Admin" : "User") • @DisplayTime.Format(m.CreatedAt)
                     </small>
                     <div class="stx-bubble-body">@m.Body</div>
                 </div>
@@ -161,7 +161,7 @@ else
         const small = document.createElement("small");
         small.className = "stx-bubble-meta";
         small.textContent =
-            (isAdmin ? "Admin" : "User") + " • " + new Date(msg.createdAt).toLocaleString();
+            (isAdmin ? "Admin" : "User") + " • " + AdminTime.format(msg.createdAt);
 
         const body = document.createElement("div");
         body.className = "stx-bubble-body";

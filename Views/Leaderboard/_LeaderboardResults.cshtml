@@ -1,14 +1,17 @@
-@model List<RevUpIQ.Admin.Models.Users.UserProfileViewModel?>
+@model List<RevUpIQ.Admin.Models.Leaderboard.LeaderboardEntryViewModel>
 
 <div style="padding:20px">
-    <h3>Leaderboard Users</h3>
+    <h3>@ViewData["LeaderboardPeriod"] leaderboard — @ViewData["LeaderboardDate"]</h3>
 
     @if (Model != null && Model.Any())
     {
-        var rank = 1;
-
-        foreach (var u in Model)
+        <div class="leaderboard-table-wrap">
+        <table class="leaderboard-table">
+            <thead><tr><th scope="col">Rank</th><th scope="col">User</th><th scope="col" class="leaderboard-points">Points</th></tr></thead>
+            <tbody>
+        @foreach (var entry in Model)
         {
+            var u = entry.User;
             if (u?.Profile == null)
                 continue;
 
@@ -28,12 +31,10 @@
 
             var url = Url.Action("UserDetails", "Users", new { id = profile.Id });
 
-            <a href="@url" style="text-decoration:none;color:inherit;">
+            <tr>
+                <td>@entry.Rank</td>
+                <td><a href="@url" style="text-decoration:none;color:inherit;">
                 <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #eee;font-size:16px;cursor:pointer;">
-
-                    <div style="width:40px;text-align:right;font-weight:bold;margin-right:10px;">
-                        @rank
-                    </div>
 
                     <img src="@avatarUrl"
                          style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-right:12px;" />
@@ -59,13 +60,16 @@
                         }
                     </div>
                 </div>
-            </a>
-
-            rank++;
+            </a></td>
+                <td class="leaderboard-points">@entry.TotalPoints.ToString("#,##0.##")</td>
+            </tr>
         }
+            </tbody>
+        </table>
+        </div>
     }
     else
     {
-        <div>No users found.</div>
+        <div>No scores found for this date and these filters.</div>
     }
 </div>

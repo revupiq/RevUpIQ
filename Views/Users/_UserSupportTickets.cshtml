@@ -1,0 +1,45 @@
+@model RevUpIQ.Admin.Models.Users.UserProfileViewModel
+
+<section class="user-support-tickets" aria-labelledby="userSupportTicketsTitle">
+    <h2 id="userSupportTicketsTitle">Support tickets</h2>
+    @if (Model.SupportTicketsLoadFailed)
+    {
+        <p>Unable to load support tickets.
+            <a asp-controller="Users" asp-action="UserDetails" asp-route-id="@Model.Profile.Id">Try again</a>
+        </p>
+    }
+    else if (!Model.SupportTickets.Any())
+    {
+        <p>This user has no support tickets.</p>
+    }
+    else
+    {
+        var groups = new[]
+        {
+            new { Title = "Open tickets", Tickets = Model.SupportTickets.Where(t => t.Status == "open").ToList() },
+            new { Title = "Previous tickets", Tickets = Model.SupportTickets.Where(t => t.Status != "open").ToList() }
+        };
+        foreach (var group in groups)
+        {
+            <h3>@group.Title (@group.Tickets.Count)</h3>
+            @if (!group.Tickets.Any())
+            {
+                <p>No @group.Title.ToLowerInvariant().</p>
+            }
+            foreach (var ticket in group.Tickets)
+            {
+                <a class="user-support-ticket" asp-controller="Support" asp-action="Ticket" asp-route-id="@ticket.Id">
+                    <div class="user-support-ticket-heading">
+                        <strong>@(string.IsNullOrWhiteSpace(ticket.Subject) ? "No subject" : ticket.Subject)</strong>
+                        <span class="user-support-ticket-status">@ticket.Status</span>
+                    </div>
+                    <div class="user-support-ticket-dates">
+                        <span>Created: @DisplayTime.Format(ticket.CreatedAt)</span>
+                        <span>Updated: @DisplayTime.Format(ticket.UpdatedAt)</span>
+                        <span>View ticket →</span>
+                    </div>
+                </a>
+            }
+        }
+    }
+</section>

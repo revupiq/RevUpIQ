@@ -30,6 +30,72 @@
     text-align: center;
 }
 
+.users-list-container .user-header,
+.users-list-container .user-row {
+    /* username, email, phone, created, last login, profile, delete */
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) repeat(3, minmax(0, 2fr)) minmax(0, 1fr) minmax(84px, 1fr);
+    gap: 12px;
+}
+
+.users-list-container {
+    width: calc(100% - 32px);
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.users-list-container .user-row span,
+.users-list-container .user-header span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+.users-list-container .user-row:hover {
+    transform: none;
+}
+
+@media (max-width: 700px) {
+    .users-list-container .user-header {
+        display: none;
+    }
+
+    .users-list-container .user-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        padding: 20px;
+        margin-bottom: 12px;
+    }
+
+    .users-list-container .user-row span {
+        display: grid;
+        grid-template-columns: 90px minmax(0, 1fr);
+        gap: 12px;
+        text-align: left;
+    }
+
+    .users-list-container .user-row span::before {
+        color: #bfc6ff;
+        font-weight: 400;
+    }
+
+    .users-list-container .user-row span:nth-child(1)::before { content: "Username"; }
+    .users-list-container .user-row span:nth-child(2)::before { content: "Email"; }
+    .users-list-container .user-row span:nth-child(3)::before { content: "Phone"; }
+    .users-list-container .user-row span:nth-child(4)::before { content: "Created"; }
+    .users-list-container .user-row span:nth-child(5)::before { content: "Last Login"; }
+    .users-list-container .user-row span:nth-child(6)::before { content: "Profile"; }
+    .users-list-container .user-row span:nth-child(7)::before { content: ""; }
+}
+
+.users-time-note {
+    text-align: center;
+    font-size: 12px;
+    opacity: 0.75;
+    margin: 18px 0;
+}
+
 .user-row:hover {
     background: #183cbf;
     transform: scale(1.01);
@@ -133,6 +199,8 @@
 
 .users-search input {
     width: 300px;
+    max-width: calc(100% - 32px);
+    box-sizing: border-box;
     padding: 10px;
     border-radius: 6px;
     border: 1px solid var(--mid-dark-blue);
@@ -175,3 +243,5 @@
     background: rgba(255, 107, 107, 0.18);
     color: #ff6b6b;
 }
+
+.users-list-container .user-delete-btn { white-space: nowrap; }

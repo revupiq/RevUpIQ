@@ -35,7 +35,7 @@ else
                         <td style="padding:8px; border-bottom:1px solid #222;">@item.Contact_Name</td>
                         <td style="padding:8px; border-bottom:1px solid #222;">@item.Email</td>
                         <td style="padding:8px; border-bottom:1px solid #222;">@item.Phone</td>
-                        <td style="padding:8px; border-bottom:1px solid #222;">@item.Created_At</td>
+                        <td style="padding:8px; border-bottom:1px solid #222;">@DisplayTime.Format(item.Created_At)</td>
 
                         <td style="padding:8px; border-bottom:1px solid #222; text-align:center;">
                             <button onclick="deleteSponsor(@item.Id)"

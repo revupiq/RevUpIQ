@@ -4,10 +4,10 @@
 }
 @model List<DivisionDto>
 
-<link rel="stylesheet" href="~/css/leaderboard.css" />
+<link rel="stylesheet" href="~/css/leaderboard.css" asp-append-version="true" />
 
 @section Scripts {
-    <script src="~/js/leaderboard.js"></script>
+    <script src="~/js/leaderboard.js" asp-append-version="true"></script>
 }
 
 <div style="
@@ -23,5 +23,5 @@
 
 @await Html.PartialAsync("_filters")
 
-<div id="leaderboardHost"></div>
+<div id="leaderboardHost" aria-live="polite"></div>
 

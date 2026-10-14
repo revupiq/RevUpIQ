@@ -115,28 +115,51 @@ namespace RevUpIQ.Admin.Controllers
                 .Select(u => Guid.Parse(u.Id))
                 .ToList();
 
-            var profileIds = new HashSet<Guid>();
+            var profileUsernames = new Dictionary<Guid, string?>();
 
             foreach (var group in guids.Chunk(100))
             {
                 var result = await _supabase
                     .From<Profile>()
-                    .Select("id")
+                    .Select("id,username")
                     .Filter("id", Supabase.Postgrest.Constants.Operator.In, group.ToList())
                     .Get();
 
                 foreach (var p in result.Models)
-                    profileIds.Add(p.Id);
+                    profileUsernames[p.Id] = p.Username;
             }
 
             foreach (var u in users)
-                u.HasProfile = Guid.TryParse(u.Id, out var id) && profileIds.Contains(id);
+            {
+                var hasId = Guid.TryParse(u.Id, out var id);
+                u.HasProfile = hasId && profileUsernames.ContainsKey(id);
+                if (u.HasProfile)
+                    u.Username = profileUsernames[id];
+            }
         }
 
         [HttpGet]
+        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<IActionResult> UserDetails(string id)
         {
             var vm = await LoadUserProfileAsync(id);
+            if (vm?.Profile != null)
+            {
+                try
+                {
+                    var tickets = await _supabase.From<YourApp.Models.Support.Ticket>()
+                        .Where(t => t.UserId == vm.Profile.Id)
+                        .Order("updated_at", Supabase.Postgrest.Constants.Ordering.Descending)
+                        .Get();
+                    vm.SupportTickets = tickets.Models.ToList();
+                }
+                catch (Exception ex)
+                {
+                    vm.SupportTicketsLoadFailed = true;
+                    HttpContext.RequestServices.GetRequiredService<ILogger<UsersController>>()
+                        .LogError(ex, "Failed to load support tickets for {UserId}", vm.Profile.Id);
+                }
+            }
             return View("User", vm);
         }
 
@@ -381,6 +404,23 @@ namespace RevUpIQ.Admin.Controllers
                 return Json(new List<AuthUser>());
 
             var ids = await SearchUserIds(q);
+            var usernames = new Dictionary<Guid, string?>();
+
+            // Usernames for the results (users without a profile have none)
+            if (ids.Any())
+            {
+                try
+                {
+                    var profileResult = await _supabase
+                        .From<Profile>()
+                        .Select("id,username")
+                        .Filter("id", Supabase.Postgrest.Constants.Operator.In, ids)
+                        .Get();
+
+                    usernames = profileResult.Models.ToDictionary(p => p.Id, p => p.Username);
+                }
+                catch { }
+            }
 
             var users = new List<AuthUser>();
 
@@ -402,7 +442,10 @@ namespace RevUpIQ.Admin.Controllers
                 );
 
                 if (user != null)
+                {
+                    user.Username = usernames.GetValueOrDefault(id);
                     users.Add(user);
+                }
             }
 
             await MarkProfilesAsync(users);

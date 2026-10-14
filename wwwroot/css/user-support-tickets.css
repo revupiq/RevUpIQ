@@ -1,0 +1,49 @@
+.user-support-tickets {
+    width: calc(100% - 32px);
+    max-width: 1300px;
+    margin: 40px auto;
+    color: var(--white);
+}
+
+.user-support-ticket {
+    display: block;
+    padding: 18px;
+    margin-bottom: 12px;
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 14px;
+    background: var(--dark-blue);
+    color: inherit;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.user-support-ticket:hover,
+.user-support-ticket:focus-visible {
+    border-color: var(--accent-blue);
+}
+
+.user-support-ticket-heading,
+.user-support-ticket-dates {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-support-ticket-heading {
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.user-support-ticket-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid currentColor;
+    text-transform: capitalize;
+    font-size: 13px;
+}
+
+.user-support-ticket-dates {
+    color: var(--light-blue);
+    font-size: 13px;
+}

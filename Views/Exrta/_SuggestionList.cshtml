@@ -32,10 +32,10 @@ else
                 item.Trivia?.Question ??
                 item.PhotoGuess?.Question ?? "";
 
-            string created =
-                item.RaceWord?.Created_At?.ToString() ??
-                item.Trivia?.Created_At?.ToString() ??
-                item.PhotoGuess?.Created_At?.ToString() ?? "";
+            string created = DisplayTime.Format(
+                item.RaceWord?.Created_At ??
+                item.Trivia?.Created_At ??
+                item.PhotoGuess?.Created_At);
 
             string itemMode =
                 item.RaceWord != null ? GameModeType.RaceWord.ToString() :

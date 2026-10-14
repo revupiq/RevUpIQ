@@ -64,8 +64,8 @@
                 <div><span class="user-card-label">Email:</span> @Model.AuthUser?.Email</div>
                 <div><span class="user-card-label">Location:</span> @Model.Profile.Country, @Model.Profile.State</div>
                 <div><span class="user-card-label">Description:</span> @Model.Profile.Description</div>
-                <div><span class="user-card-label">Created:</span> @Model.AuthUser?.Created_At</div>
-                <div><span class="user-card-label">Last Sign In:</span> @Model.AuthUser?.Last_Sign_In_At</div>
+                <div><span class="user-card-label">Created:</span> @DisplayTime.Format(Model.AuthUser?.Created_At)</div>
+                <div><span class="user-card-label">Last Login:</span> @DisplayTime.Format(Model.AuthUser?.Last_Sign_In_At, "Never")</div>
             </div>
         </div>
 

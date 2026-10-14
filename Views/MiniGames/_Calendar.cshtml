@@ -4,7 +4,7 @@
 @{
     DateTime? selected = DateTime.TryParse(Model.Date, out var dt) ? dt.Date : (DateTime?)null;
 
-    var monthBase = (DateTime)(ViewData["CalendarMonthBase"] ?? DateTime.Today);
+    var monthBase = (DateTime)(ViewData["CalendarMonthBase"] ?? DisplayTime.Today);
     var baseDate = selected ?? monthBase;
 
     var year = baseDate.Year;
@@ -31,7 +31,7 @@
         {
             var date = new DateTime(year, month, day);
             var isSelected = selected.HasValue && date.Date == selected.Value;
-            var isToday = date.Date == DateTime.Today;
+            var isToday = date.Date == DisplayTime.Today;
             var isActive = flags.ContainsKey(day) && flags[day];
 
             <div class="calendar-day filter-date

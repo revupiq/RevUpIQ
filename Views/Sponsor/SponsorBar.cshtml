@@ -21,7 +21,7 @@
                     <label>Year</label>
                     <select name="Year" id="yearSelect">
                         @{
-                            var currentYear = DateTime.UtcNow.Year;
+                            var currentYear = DisplayTime.Now.DateTime.Year;
                             var selectedYear = Model?.Year > 0 ? Model.Year : currentYear;
 
                             for (int y = currentYear - 1; y <= currentYear + 2; y++)
@@ -38,7 +38,7 @@
                         @{
                             var selectedWeek = (Model?.Week_Number ?? 0) > 0
                                 ? Model.Week_Number
-                                : System.Globalization.ISOWeek.GetWeekOfYear(DateTime.UtcNow);
+                                : System.Globalization.ISOWeek.GetWeekOfYear(DisplayTime.Now.DateTime);
 
                             var weeksInYear = System.Globalization.ISOWeek.GetWeeksInYear(selectedYear);
 

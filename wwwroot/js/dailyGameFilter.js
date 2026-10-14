@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return { y, m };
     }
 
-    let cursor = parseYM(selectedDate) || { y: new Date().getFullYear(), m: new Date().getMonth() + 1 };
+    let cursor = parseYM(selectedDate) || parseYM(AdminTime.today());
 
     function shiftCursor(delta) {
         cursor.m += delta;

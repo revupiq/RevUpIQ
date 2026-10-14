@@ -14,6 +14,6 @@
 
     <!-- RIGHT COLUMN -->
     <span style="padding-right:16px;color:var(--light-blue);font-size:.9rem;">
-        Subscribed at: @Model.UserDivision.Subscribed_At.ToString("yyyy-MM-dd")
+        Subscribed at: @DisplayTime.Format(Model.UserDivision.Subscribed_At)
     </span>
 </div>

@@ -9,7 +9,7 @@
         <div class="leaderboard-filter-row">
             <div class="game-mode-grid">
 
-                <button type="button" class="game-mode-item filter-mode" data-filter-name="GameMode"
+                <button type="button" class="game-mode-item filter-mode selected" data-filter-name="GameMode"
                     data-mode="@GameModeType.All">
                     <div class="game-mode-icon-wrap">
                         <img src="~/images/combined_icon.png" alt="All Games" />
@@ -71,8 +71,14 @@
             </div>
 
             <!-- Division dropdown -->
+            <div class="leaderboard-filter-section leaderboard-filter-date">
+                <label for="leaderboardDate">Date</label>
+                <input type="date" id="leaderboardDate" class="leaderboard-date"
+                       value="@ViewData["LeaderboardToday"]" max="@ViewData["LeaderboardToday"]" required />
+            </div>
             <div class="leaderboard-filter-section leaderboard-filter-division">
-                <select class="division-select">
+                <select class="division-select" aria-label="Division">
+                    <option value="0">All divisions</option>
                     @foreach (var d in Model)
                     {
                         <option value="@d.Id">@d.Name</option>
@@ -81,6 +87,7 @@
             </div>
 
         </div>
+        <p class="leaderboard-date-hint">Daily shows the selected day. Weekly and monthly show the week or month containing that date. Game days start at midnight UTC−7.</p>
 
     </div>
 </div>

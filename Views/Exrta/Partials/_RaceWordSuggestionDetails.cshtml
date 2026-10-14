@@ -47,11 +47,11 @@
             </div>
 
             <div>
-                <span class="race-card-label">Created:</span> @Model.Created_At
+                <span class="race-card-label">Created:</span> @DisplayTime.Format(Model.Created_At)
             </div>
 
             <div>
-                <span class="race-card-label">Updated:</span> @Model.Updated_At
+                <span class="race-card-label">Updated:</span> @DisplayTime.Format(Model.Updated_At)
             </div>
         </div>
 

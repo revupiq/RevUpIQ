@@ -13,6 +13,7 @@ namespace RevUpIQ.Admin.Models.Users
         public string Id { get; set; } = "";
         public string? Email { get; set; }
         public string? Phone { get; set; }
+        public string? Username { get; set; }
         public DateTime Created_At { get; set; }
         public DateTime? Last_Sign_In_At { get; set; }
 

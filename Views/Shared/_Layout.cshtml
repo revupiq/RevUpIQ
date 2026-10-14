@@ -15,8 +15,9 @@
     <link rel="stylesheet" href="~/css/leagues.css" />
     <link rel="stylesheet" href="~/css/support-categories.css" />
 
+    <script src="~/js/admin-time.js" asp-append-version="true"></script>
     <script src="~/js/miniGameSelector.js"></script>
-    <script src="~/js/dailyGameFilter.js"></script>
+    <script src="~/js/dailyGameFilter.js" asp-append-version="true"></script>
     <script src="~/js/user-game-history.js"></script>
     <script src="~/js/user-profile.js"></script>
     <script src="~/js/ban-user-modal.js"></script>
@@ -61,6 +62,7 @@
     </div>
 
     @RenderSection("Scripts", required: false)
+    <p style="text-align:center;color:var(--white);font-size:12px;padding:16px;">All timestamps are shown in UTC−7.</p>
 
 </body>
 

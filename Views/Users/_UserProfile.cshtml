@@ -35,7 +35,7 @@
 
         var bannedUntil = Model.AuthUser?.Banned_Until;
         var isBanned = bannedUntil.HasValue && bannedUntil.Value.ToUniversalTime() > DateTime.UtcNow;
-        var bannedUntilView = bannedUntil.HasValue ? bannedUntil.Value.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + "  UTC" : "undefined";
+        var bannedUntilView = DisplayTime.Format(bannedUntil, "undefined");
         var banStatusView = isBanned ? "BANNED" : "ACTIVE";
 
         <form method="post" action="/Users/UpdateProfile" class="users-container" style="margin-top:100px;">
@@ -176,14 +176,14 @@
 
             <div class="user-row profile-row">
                 <span>Joined</span>
-                <span class="row-value">@profile.Created_At.ToString("yyyy-MM-dd")</span>
+                <span class="row-value">@DisplayTime.Format(profile.Created_At)</span>
                 <span></span>
                 <span></span>
             </div>
 
             <div class="user-row profile-row">
                 <span>Updated</span>
-                <span class="row-value">@profile.Updated_At.ToString("yyyy-MM-dd")</span>
+                <span class="row-value">@DisplayTime.Format(profile.Updated_At)</span>
                 <span></span>
                 <span></span>
             </div>

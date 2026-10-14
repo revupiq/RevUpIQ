@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RevUpIQ.Admin.Infrastructure;
 using RevUpIQ.Admin.Models.MiniGames;
 using Supabase;
 using static Supabase.Postgrest.Constants;
@@ -20,7 +21,7 @@ namespace RevUpIQ.Admin.Controllers
             var model = new DailyGameFilter(
                 id,
                 GameModeType.RaceWord,
-                DateTime.Today.ToString("yyyy-MM-dd"));
+                DisplayTime.Today.ToString("yyyy-MM-dd"));
 
             Console.WriteLine($"[DailyGameFilter] Mode={model.Mode}, Date={model.Date}, DivisionId={model.Id}");
             return PartialView("_DailyGameFilter", model);

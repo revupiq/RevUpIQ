@@ -1,7 +1,7 @@
 @using RevUpIQ.Admin.Models.Users
 @model UsersListViewModel
 
-<link rel="stylesheet" href="~/css/users.css" />
+<link rel="stylesheet" href="~/css/users.css" asp-append-version="true" />
 
 @{
     ViewData["Title"] = "Users";
@@ -9,7 +9,7 @@
 
 <h1 style="text-align:center; margin-top:20px;">Users</h1>
 
-<div class="users-container">
+<div class="users-container users-list-container">
     <div class="users-toolbar">
         <input type="text"
                id="userSearch"
@@ -24,10 +24,11 @@
     </div>
 
     <div class="user-header">
+        <span>Username</span>
         <span>Email</span>
         <span>Phone</span>
         <span>Created</span>
-        <span>Last Sign In</span>
+        <span>Last Login (UTC−7)</span>
         <span>Profile</span>
         <span></span>
     </div>
@@ -38,10 +39,11 @@
             {
                 <div class="user-row"
                      onclick="location.href='@Url.Action("UserDetails", new { id = user.Id })'">
+                    <span>@(string.IsNullOrWhiteSpace(user.Username) ? "—" : user.Username)</span>
                     <span>@(user.Email ?? "—")</span>
                     <span>@(user.Phone ?? "—")</span>
-                    <span>@user.Created_At.ToString("yyyy-MM-dd")</span>
-                    <span>@(user.Last_Sign_In_At?.ToString("yyyy-MM-dd HH:mm") ?? "Never")</span>
+                    <span>@DisplayTime.Format(user.Created_At)</span>
+                    <span>@DisplayTime.Format(user.Last_Sign_In_At, "Never")</span>
                     <span>
                         <span class="profile-badge @(user.HasProfile ? "has-profile" : "no-profile")">
                             @(user.HasProfile ? "Yes" : "No")
@@ -88,11 +90,17 @@
     </div>
 </div>
 
+<p class="users-time-note">All timestamps are shown in UTC−7.</p>
+
 @await Html.PartialAsync("_DeleteUserModal")
 
 <script>
+let usersSearchRequest;
 async function filterUsers() {
     const query = document.getElementById("userSearch").value.trim();
+    usersSearchRequest?.abort();
+    const request = new AbortController();
+    usersSearchRequest = request;
 
     if (!query) {
         document.getElementById("normalWrap").style.display = "block";
@@ -101,8 +109,19 @@ async function filterUsers() {
     }
 
     const profile = document.getElementById("profileFilter").value;
-    const res = await fetch(`/Users/SearchUsers?q=${encodeURIComponent(query)}&profile=${profile}`);
-    const users = await res.json();
+
+    let users;
+    try {
+        const res = await fetch(
+            `/Users/SearchUsers?q=${encodeURIComponent(query)}&profile=${profile}`,
+            { signal: request.signal });
+        if (!res.ok) throw new Error("Unable to search users.");
+        users = await res.json();
+    } catch (error) {
+        if (error.name !== "AbortError") console.error(error);
+        return;
+    }
+    if (usersSearchRequest !== request) return;
 
     document.getElementById("normalWrap").style.display = "none";
     document.getElementById("searchWrap").style.display = "block";
@@ -115,19 +134,35 @@ async function filterUsers() {
         row.className = "user-row";
         row.onclick = () => location.href = `/Users/UserDetails/${u.id}`;
 
-        row.innerHTML = `
-            <span>${u.email ?? "—"}</span>
-            <span>${u.phone ?? "—"}</span>
-            <span>${u.created_At.substring(0,10)}</span>
-            <span>${u.last_Sign_In_At ? u.last_Sign_In_At.substring(0,16) : "Never"}</span>
-            <span><span class="profile-badge ${u.hasProfile ? "has-profile" : "no-profile"}">${u.hasProfile ? "Yes" : "No"}</span></span>
-            <span><button type="button" class="user-delete-btn">Delete</button></span>
-        `;
+        const addCell = text => {
+            const cell = document.createElement("span");
+            cell.textContent = text;
+            row.appendChild(cell);
+        };
 
-        const btn = row.querySelector(".user-delete-btn");
+        addCell(u.username?.trim() || "—");
+        addCell(u.email ?? "—");
+        addCell(u.phone ?? "—");
+        addCell(AdminTime.format(u.created_At));
+        addCell(AdminTime.format(u.last_Sign_In_At, "Never"));
+
+        const badgeCell = document.createElement("span");
+        const badge = document.createElement("span");
+        badge.className = "profile-badge " + (u.hasProfile ? "has-profile" : "no-profile");
+        badge.textContent = u.hasProfile ? "Yes" : "No";
+        badgeCell.appendChild(badge);
+        row.appendChild(badgeCell);
+
+        const btnCell = document.createElement("span");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "user-delete-btn";
+        btn.textContent = "Delete";
         btn.dataset.id = u.id;
         btn.dataset.email = u.email || u.phone || "";
         btn.onclick = e => deleteUser(e, btn);
+        btnCell.appendChild(btn);
+        row.appendChild(btnCell);
 
         container.appendChild(row);
     });
@@ -157,4 +192,3 @@ function deleteUser(event, btn) {
     );
 }
 </script>
-

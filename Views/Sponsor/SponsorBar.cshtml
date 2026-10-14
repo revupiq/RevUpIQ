@@ -1,4 +1,5 @@
 @using System.Text.Json
+@using RevUpIQ.Admin.Models.Division
 @model RevUpIQ.Admin.Models.Sponsors.SponsorBarEntry
 
 <link rel="stylesheet" href="~/css/sponsor-bar.css" />
@@ -7,6 +8,10 @@
 @{
     var weekStatus = ViewBag.WeekStatus as List<bool> ?? new List<bool>();
     var weekStatusJson = JsonSerializer.Serialize(weekStatus);
+
+    var divisions = ViewBag.Divisions as List<DivisionDto> ?? new List<DivisionDto>();
+    var selectedDivision = ViewBag.DivisionId as long?;
+    var fallbackExists = ViewBag.FallbackExists as bool? ?? false;
 }
 
 <div class="sponsor-edit-container">
@@ -15,6 +20,27 @@
 
         <form method="post" enctype="multipart/form-data" action="/SponsorBar/Edit" id="sponsorForm">
             <input type="hidden" id="sponsorIdInput" name="sponsorId" value="@(Model?.Sponsor_Id ?? Guid.Empty)" />
+
+            <div class="edit-form-group">
+                <label>Division</label>
+                <select name="DivisionId" id="divisionSelect">
+                    <option value="" selected="@(!selectedDivision.HasValue)">All divisions (default)</option>
+                    @foreach (var d in divisions)
+                    {
+                        <option value="@d.Id" selected="@(selectedDivision == d.Id)">@d.Name</option>
+                    }
+                </select>
+                <small style="opacity:.75;">
+                    An ad set for a specific division replaces the &ldquo;All divisions&rdquo; ad for players in that division.
+                </small>
+                @if (fallbackExists)
+                {
+                    <small style="color:#f5b041;">
+                        This division has no ad of its own this week &mdash; its players currently see the
+                        &ldquo;All divisions&rdquo; ad. Save here to give it its own.
+                    </small>
+                }
+            </div>
 
             <div class="edit-form-group-row">
                 <div class="edit-form-group">
@@ -114,6 +140,7 @@
         const form = document.getElementById("sponsorForm");
         const sponsorIdInput = document.getElementById("sponsorIdInput");
 
+        const divisionSelect = document.getElementById("divisionSelect");
         const yearSelect = document.getElementById("yearSelect");
         const weekSelect = document.getElementById("weekSelect");
 
@@ -159,7 +186,10 @@
             const w = parseInt(weekSelect.value, 10);
             const date = isoWeekToDate(y, w);
             const iso = date.toISOString().split("T")[0];
-            window.location.href = `/SponsorBar/ByDate?date=${iso}`;
+            const division = divisionSelect && divisionSelect.value
+                ? `&divisionId=${encodeURIComponent(divisionSelect.value)}`
+                : "";
+            window.location.href = `/SponsorBar/ByDate?date=${iso}${division}`;
         }
 
         function colorWeekOptions() {
@@ -213,6 +243,7 @@
         }
 
         yearSelect.addEventListener("change", goToByDate);
+        if (divisionSelect) divisionSelect.addEventListener("change", goToByDate);
 
         weekSelect.addEventListener("change", function () {
             updateWeekSelectClass();

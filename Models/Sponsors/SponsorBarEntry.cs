@@ -24,5 +24,9 @@ namespace RevUpIQ.Admin.Models.Sponsors
 
         [Column("week_number")]
         public int Week_Number { get; set; }
+
+        // null = shown in every division
+        [Column("division_id")]
+        public long? Division_Id { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RevUpIQ.Admin.Models.Division;
 using RevUpIQ.Admin.Models.Sponsors;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,55 +21,58 @@ namespace RevUpIQ.Admin.Controllers
             _supabase = supabase;
         }
 
-        public async Task<IActionResult> Index()
+        // divisionId: null = the ad shown in every division; otherwise that division's own ad
+        public async Task<IActionResult> Index(long? divisionId = null)
         {
-            var sponsorId = await GetActiveSponsorBarId(null, null);
-
-            SponsorBarEntry model;
-
-            if (sponsorId.HasValue)
-                model = await GetSponsorBarById(sponsorId.Value) ?? new SponsorBarEntry();
-            else
-                model = new SponsorBarEntry();
-
             var now = DateTime.UtcNow;
-            var weekStatus = await WeeksStatus(now.Year);
-            ViewBag.WeekStatus = weekStatus;
+            return await ShowWeek(now.Year, ISOWeek.GetWeekOfYear(now), divisionId);
+        }
+
+        public async Task<IActionResult> ByDate(DateTime date, long? divisionId = null)
+        {
+            return await ShowWeek(date.Year, ISOWeek.GetWeekOfYear(date), divisionId);
+        }
+
+        private async Task<IActionResult> ShowWeek(int year, int week, long? divisionId)
+        {
+            // Exactly this scope: the admin edits this division's own ad, not the fallback
+            var model = await FindEntry(year, week, divisionId)
+                        ?? new SponsorBarEntry { Year = year, Week_Number = week, Division_Id = divisionId };
+
+            ViewBag.WeekStatus = await WeeksStatus(year, divisionId);
+            ViewBag.DivisionId = divisionId;
+            ViewBag.Divisions = await LoadDivisions();
+            ViewBag.FallbackExists = divisionId.HasValue && model.Sponsor_Id == Guid.Empty
+                && await FindEntry(year, week, null) != null;
 
             return View("~/Views/Sponsor/SponsorBar.cshtml", model);
         }
 
-        public async Task<IActionResult> ByDate(DateTime date)
+        private async Task<List<DivisionDto>> LoadDivisions()
         {
-            var year = date.Year;
-            var week = ISOWeek.GetWeekOfYear(date);
+            var result = await _supabase.From<DivisionDto>().Get();
+            return result.Models.OrderBy(d => d.SortIndex).ThenBy(d => d.Id).ToList();
+        }
 
-            var sponsorId = await GetActiveSponsorBarId(year, week);
+        private async Task<SponsorBarEntry?> FindEntry(int year, int week, long? divisionId)
+        {
+            var rows = await _supabase
+                .From<SponsorBarEntry>()
+                .Filter("year", Supabase.Postgrest.Constants.Operator.Equals, year)
+                .Get();
 
-            SponsorBarEntry model;
-
-            if (sponsorId.HasValue)
-                model = await GetSponsorBarById(sponsorId.Value) ?? new SponsorBarEntry { Year = year, Week_Number = week };
-            else
-                model = new SponsorBarEntry { Year = year, Week_Number = week };
-
-
-            var now = DateTime.UtcNow;
-            var weekStatus = await WeeksStatus(year);
-            ViewBag.WeekStatus = weekStatus;
-
-            return View("~/Views/Sponsor/SponsorBar.cshtml", model);
+            return rows.Models.FirstOrDefault(x => x.Week_Number == week && x.Division_Id == divisionId);
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> Edit(Guid sponsorId, int Year, int Week_Number, string Text, string Link_Url, IFormFile? ImageFile)
+        public async Task<IActionResult> Edit(Guid sponsorId, int Year, int Week_Number, string Text, string Link_Url, IFormFile? ImageFile, long? DivisionId = null)
         {
             var all = await _supabase.From<SponsorBarEntry>().Get();
             var entry = all.Models.FirstOrDefault(x => x.Sponsor_Id == sponsorId);
 
             if (entry == null)
-                return RedirectToAction(nameof(ByDate), new { date = ISOWeek.ToDateTime(Year, Week_Number, DayOfWeek.Monday) });
+                return RedirectToAction(nameof(ByDate), new { date = ISOWeek.ToDateTime(Year, Week_Number, DayOfWeek.Monday), divisionId = DivisionId });
 
             var imageUrl = entry.Image_Url;
 
@@ -92,22 +96,15 @@ namespace RevUpIQ.Admin.Controllers
 
             await _supabase.From<SponsorBarEntry>().Update(entry);
 
-            return RedirectToAction(nameof(ByDate), new { date = ISOWeek.ToDateTime(Year, Week_Number, DayOfWeek.Monday) });
+            return RedirectToAction(nameof(ByDate), new { date = ISOWeek.ToDateTime(Year, Week_Number, DayOfWeek.Monday), divisionId = entry.Division_Id });
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(int Year, int Week_Number, string Text, string Link_Url, IFormFile? ImageFile)
+        public async Task<IActionResult> Create(int Year, int Week_Number, string Text, string Link_Url, IFormFile? ImageFile, long? DivisionId = null)
         {
-            var existingId = await GetActiveSponsorBarId(Year, Week_Number);
-
-            if (existingId.HasValue)
+            // Only this scope counts as "already exists" (a division may override the all-divisions ad)
             {
-                var resExisting = await _supabase
-                    .From<SponsorBarEntry>()
-                    .Filter("sponsor_id", Supabase.Postgrest.Constants.Operator.Equals, existingId.Value.ToString())
-                    .Get();
-
-                var existing = resExisting.Models.FirstOrDefault();
+                var existing = await FindEntry(Year, Week_Number, DivisionId);
                 if (existing != null)
                 {
                     var imageUrl = existing.Image_Url;
@@ -133,7 +130,7 @@ namespace RevUpIQ.Admin.Controllers
                     await _supabase.From<SponsorBarEntry>().Update(existing);
 
                     var dateExisting = ISOWeek.ToDateTime(Year, Week_Number, DayOfWeek.Monday);
-                    return RedirectToAction(nameof(ByDate), new { date = dateExisting });
+                    return RedirectToAction(nameof(ByDate), new { date = dateExisting, divisionId = DivisionId });
                 }
             }
 
@@ -158,13 +155,14 @@ namespace RevUpIQ.Admin.Controllers
                 Link_Url = Link_Url ?? "",
                 Image_Url = newImageUrl,
                 Year = Year,
-                Week_Number = Week_Number
+                Week_Number = Week_Number,
+                Division_Id = DivisionId
             };
 
             await _supabase.From<SponsorBarEntry>().Insert(entry);
 
             var dateNew = ISOWeek.ToDateTime(Year, Week_Number, DayOfWeek.Monday);
-            return RedirectToAction(nameof(ByDate), new { date = dateNew });
+            return RedirectToAction(nameof(ByDate), new { date = dateNew, divisionId = DivisionId });
         }
 
 
@@ -199,16 +197,14 @@ namespace RevUpIQ.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<List<bool>> WeeksStatus(int year)
+        public async Task<List<bool>> WeeksStatus(int year, long? divisionId = null)
         {
+            var args = new Dictionary<string, object> { ["p_year"] = year };
+            if (divisionId.HasValue)
+                args["p_division_id"] = divisionId.Value;
+
             var result = await _supabase
-                .Rpc<List<SponsorWeekStatus>>(
-                    "get_sponsor_weeks_status",
-                    new Dictionary<string, object>
-                    {
-                        ["p_year"] = year
-                    }
-                );
+                .Rpc<List<SponsorWeekStatus>>("get_sponsor_weeks_status", args);
 
             return result.Select(x => x.Has_Data).ToList();
         }

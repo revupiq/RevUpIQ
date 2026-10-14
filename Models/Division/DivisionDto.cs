@@ -20,5 +20,8 @@ namespace RevUpIQ.Admin.Models.Division
 
         [Column("sort_index")]
         public int SortIndex { get; set; }
+
+        [Column("is_active")]
+        public bool IsActive { get; set; } = true;
     }
 }

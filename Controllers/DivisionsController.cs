@@ -37,11 +37,16 @@ namespace RevUpIQ.Admin.Controllers
             if (model.PurchaseIcon != null && model.PurchaseIcon.Length > 0)
                 purchaseIconUrl = await UploadIconAsync(model.PurchaseIcon);
 
+            // New divisions go to the end instead of colliding at sort_index 0
+            var existing = (await _supabase.From<DivisionDto>().Get()).Models;
+            var nextIndex = existing.Count == 0 ? 0 : existing.Max(d => d.SortIndex) + 1;
+
             await _supabase.From<DivisionDto>().Insert(new DivisionDto
             {
                 Name = model.Name,
                 LogoUrl = logoUrl,
-                PurchaseIconUrl = purchaseIconUrl
+                PurchaseIconUrl = purchaseIconUrl,
+                SortIndex = nextIndex
             });
 
             return RedirectToAction("Index", "Home");
@@ -88,6 +93,28 @@ namespace RevUpIQ.Admin.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetActive(int id, bool isActive)
+        {
+            if (id <= 0)
+                return BadRequest("Invalid division id.");
+
+            var result = await _supabase.From<DivisionDto>()
+                .Where(d => d.Id == id)
+                .Get();
+
+            if (result.Models.FirstOrDefault() == null)
+                return NotFound();
+
+            await _supabase.From<DivisionDto>()
+                .Where(d => d.Id == id)
+                .Set(d => d.IsActive, isActive)
+                .Update();
+
+            return RedirectToAction("Details", new { id });
+        }
+
+        [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
 
@@ -115,6 +142,41 @@ namespace RevUpIQ.Admin.Controllers
             await update.Update();
 
             return RedirectToAction("Details", new { id = model.Id });
+        }
+
+        // Saves the whole display order at once (drag & drop and the arrow buttons).
+        // Position 1 is the first division players see, so sort_index is 0..n-1 in order.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reorder([FromBody] ReorderDivisionsRequest request)
+        {
+            var ids = request?.Ids;
+            if (ids == null || ids.Count == 0 || ids.Distinct().Count() != ids.Count)
+                return BadRequest(new { error = "Invalid order." });
+
+            var all = (await _supabase.From<DivisionDto>().Get()).Models;
+
+            // Must be the complete set, so a stale page can't drop or duplicate a division
+            if (all.Count != ids.Count || !all.Select(d => d.Id).ToHashSet().SetEquals(ids))
+                return Conflict(new { error = "The division list changed. Reload the page and try again." });
+
+            for (var position = 0; position < ids.Count; position++)
+            {
+                var current = all.First(d => d.Id == ids[position]);
+                if (current.SortIndex == position) continue;
+
+                await _supabase.From<DivisionDto>()
+                    .Where(d => d.Id == ids[position])
+                    .Set(d => d.SortIndex, position)
+                    .Update();
+            }
+
+            return Ok();
+        }
+
+        public class ReorderDivisionsRequest
+        {
+            public List<int> Ids { get; set; } = new();
         }
 
         [HttpPost]

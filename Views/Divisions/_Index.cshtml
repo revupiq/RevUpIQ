@@ -2,18 +2,44 @@
 
 <h1 class="division-title">Divisions</h1>
 
-<div class="admin-page-center">
-    <div class="division-grid">
+@{
+    // Same order players see in the app: lowest sort_index first
+    var ordered = Model.OrderBy(x => x.SortIndex).ThenBy(x => x.Id).ToList();
+    var hasTies = ordered.GroupBy(x => x.SortIndex).Any(g => g.Count() > 1);
+    var position = 0;
+}
 
-@foreach (var d in Model.OrderByDescending(x => x.SortIndex))
+<div class="admin-page-center">
+    @Html.AntiForgeryToken()
+
+    <p class="division-order-help">
+        Drag a division to change the order players see. Number 1 is shown first in the app.
+    </p>
+
+    @if (hasTies)
+    {
+        <p class="division-order-warning">
+            Some divisions share the same order position, so players may see them in an arbitrary order.
+            Drag any division (or use the arrows) and the full order will be saved.
+        </p>
+    }
+
+    <div class="division-grid" id="divisionGrid">
+
+@foreach (var d in ordered)
 {
+    position++;
     <a asp-controller="Divisions"
        asp-action="Details"
        asp-route-id="@d.Id"
-       class="division-link">
+       class="division-link"
+       data-division-id="@d.Id"
+       draggable="true">
 
         <div class="admin-card-small division-card"
              data-id="@d.Id">
+
+            <span class="division-order-badge" title="Order shown to players">@position</span>
 
             <div class="division-sort-controls">
                 <button type="button"
@@ -39,6 +65,10 @@
                 <span class="division-name">
                     @d.Name
                 </span>
+                @if (!d.IsActive)
+                {
+                    <span class="division-status">Inactive</span>
+                }
             </div>
 
         </div>
@@ -48,6 +78,7 @@
 
 <a asp-controller="Divisions"
    asp-action="Create"
+   draggable="false"
    class="admin-card-small division-create-card">
     + Add New Division
 </a>

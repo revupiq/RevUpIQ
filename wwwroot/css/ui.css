@@ -172,6 +172,14 @@ h1 {
     font-weight: 600;
 }
 
+.division-status {
+    padding: 3px 8px;
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .division-sort-controls {
     position: absolute;
     top: 10px;
@@ -437,4 +445,60 @@ h1 {
     margin: 0 0 16px 0;
     font-size: 13px;
     color: var(--light-blue);
+}
+
+/* Division order number + drag & drop */
+.division-order-help {
+    text-align: center;
+    margin: 6px 0 0 0;
+    opacity: 0.75;
+    width: 100%;
+}
+
+.division-order-warning {
+    max-width: 760px;
+    margin: 10px auto 0 auto;
+    padding: 10px 14px;
+    border: 1px solid #f5b041;
+    border-radius: 10px;
+    color: #f5b041;
+    font-size: 14px;
+    text-align: center;
+}
+
+.division-order-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 8px;
+    background: var(--yellow, #f4b400);
+    color: #000;
+    font-weight: 800;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.division-link[draggable="true"] { cursor: grab; }
+
+.division-link.is-dragging { opacity: 0.4; }
+
+.division-link.is-drop-before .division-card { box-shadow: -6px 0 0 0 var(--yellow, #f4b400); }
+.division-link.is-drop-after .division-card { box-shadow: 6px 0 0 0 var(--yellow, #f4b400); }
+
+.division-grid.is-saving { opacity: 0.6; pointer-events: none; }
+
+/* Keep the page background filling the whole viewport on short pages */
+html {
+    background-color: var(--background);
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    margin-bottom: 0;
 }

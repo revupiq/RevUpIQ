@@ -11,6 +11,14 @@
         <h1 class="division-details-title">@Model?.Name</h1>
 
         <div class="division-details-actions">
+            <form asp-controller="Divisions" asp-action="SetActive" method="post">
+                <input type="hidden" name="id" value="@Model?.Id" />
+                <input type="hidden" name="isActive" value="@(Model!.IsActive ? "false" : "true")" />
+                <button type="submit" class="admin-button">
+                    @(Model.IsActive ? "Deactivate Division" : "Reactivate Division")
+                </button>
+            </form>
+
             <button id="openEdit" type="button" class="admin-button">
                 Rename Division
             </button>
@@ -28,6 +36,11 @@
     </div>
 
     <div class="division-details-body">
+
+        <p class="division-section-hint">
+            Status: <strong>@(Model!.IsActive ? "Active" : "Inactive")</strong>.
+            Deactivating preserves the division and its data. You can reactivate it at any time.
+        </p>
 
         <section class="division-section">
             <h2 class="division-section-title">Icons</h2>

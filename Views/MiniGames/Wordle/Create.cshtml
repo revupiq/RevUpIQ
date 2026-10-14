@@ -28,6 +28,8 @@
             </div>
         </div>
 
+        @await Html.PartialAsync("~/Views/MiniGames/Wordle/_WordCheck.cshtml")
+
         <button type="submit"
                 class="admin-button save-btn"
                 disabled>
@@ -163,9 +165,14 @@ document.addEventListener("DOMContentLoaded", function () {
             method: "POST",
             body: formData
         })
-        .then(res => {
-            if (res.ok) window.history.back();
-            else alert("Error creating RaceWord.");
+        .then(async res => {
+            if (!res.ok) { alert("Error creating RaceWord."); return; }
+
+            const data = await res.json().catch(() => null);
+            if (data && data.addedToDictionary) {
+                alert('"' + word + '" was not found in the dictionary, so it was added to the custom dictionary. Players will be able to guess it.');
+            }
+            window.history.back();
         })
         .catch(() => alert("Error creating RaceWord."));
     });

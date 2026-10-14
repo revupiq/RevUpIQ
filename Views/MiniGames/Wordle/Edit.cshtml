@@ -35,6 +35,8 @@
                 </div>
             </div>
 
+            @await Html.PartialAsync("~/Views/MiniGames/Wordle/_WordCheck.cshtml")
+
             <button type="submit" class="admin-button save-btn" disabled>Save Changes</button>
         </form>
     }
@@ -120,7 +122,12 @@ if(word.length!==expectedLength())return;
 targetInput.value=word;
 const formData=new FormData(form);
 fetch(form.action,{method:"POST",body:formData})
-.then(res=>{if(res.ok)window.history.back();else alert("Error saving RaceWord.");})
+.then(async res=>{
+if(!res.ok){alert("Error saving RaceWord.");return;}
+const data=await res.json().catch(()=>null);
+if(data&&data.addedToDictionary){alert('"'+word+'" was not found in the dictionary, so it was added to the custom dictionary. Players will be able to guess it.');}
+window.history.back();
+})
 .catch(()=>alert("Error saving RaceWord."));
 });
 });

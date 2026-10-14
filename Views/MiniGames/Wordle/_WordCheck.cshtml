@@ -1,0 +1,77 @@
+<div id="wordCheck" class="word-check" role="status" aria-live="polite"></div>
+
+<style>
+    .word-check { margin-top: 16px; min-height: 22px; text-align: center; font-weight: 700; }
+    .word-check.ok { color: #2ecc71; }
+    .word-check.warn { color: #f5b041; }
+    .word-check.muted { opacity: .7; font-weight: 500; }
+</style>
+
+<script>
+(function () {
+    const box = document.getElementById('wordCheck');
+    let timer = null;
+    let lastWord = '';
+    let seq = 0;
+
+    function currentWord() {
+        return Array.from(document.querySelectorAll('.wordle-cell'))
+            .map(c => (c.value || '').trim().toUpperCase()).join('');
+    }
+
+    function show(text, cls) {
+        box.textContent = text;
+        box.className = 'word-check' + (cls ? ' ' + cls : '');
+    }
+
+    async function check() {
+        const cells = document.querySelectorAll('.wordle-cell');
+        const word = currentWord();
+
+        if (!cells.length || word.length !== cells.length) {
+            lastWord = '';
+            show('', '');
+            return;
+        }
+
+        if (word === lastWord) return;
+        lastWord = word;
+
+        const mine = ++seq;
+        show('Checking dictionary…', 'muted');
+
+        try {
+            const res = await fetch('/MiniGames/CheckRaceWord?word=' + encodeURIComponent(word));
+            const data = await res.json();
+            if (mine !== seq) return;   // a newer word was typed meanwhile
+
+            if (data.status === 'InDictionary') {
+                show('✓ In the dictionary', 'ok');
+            } else if (data.status === 'InCustom') {
+                show('✓ In the custom dictionary', 'ok');
+            } else if (data.status === 'NotFound' || data.status === 'Unverified') {
+                show('⚠ Not found in the dictionary — it will be added to the custom dictionary when you save so players can guess it.', 'warn');
+            } else {
+                show('', '');
+            }
+        } catch {
+            if (mine === seq) show('Could not check the dictionary right now.', 'muted');
+        }
+    }
+
+    function schedule() {
+        clearTimeout(timer);
+        timer = setTimeout(check, 350);
+    }
+
+    // The letter cells are rebuilt when the length changes, so listen on the document
+    document.addEventListener('input', e => {
+        if (e.target && e.target.classList && e.target.classList.contains('wordle-cell')) schedule();
+    });
+    document.addEventListener('change', e => {
+        if (e.target && e.target.id === 'wordLengthSelect') { lastWord = ''; schedule(); }
+    });
+
+    window.addEventListener('load', schedule);
+})();
+</script>

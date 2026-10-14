@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using RevUpIQ.Admin.Models.MiniGames;
+using RevUpIQ.Admin.Infrastructure;
 using Supabase;
 using static Supabase.Postgrest.Constants;
 
@@ -364,7 +365,7 @@ namespace RevUpIQ.Admin.Controllers
 
             await _supabase.From<RaceWordDailyDto>().Insert(raceWord);
 
-            return Ok();
+            return Json(await EnsureWordIsPlayableAsync(model.TargetWord));
         }
 
         [HttpPost]
@@ -381,7 +382,37 @@ namespace RevUpIQ.Admin.Controllers
             existing.TargetWord = model.TargetWord;
             await _supabase.From<RaceWordDailyDto>().Update(existing);
 
-            return Ok();
+            return Json(await EnsureWordIsPlayableAsync(model.TargetWord));
+        }
+
+        // Live check used by the create/edit forms while the admin types the word
+        [HttpGet]
+        public async Task<IActionResult> CheckRaceWord(string word)
+        {
+            var w = WordDictionaryClient.Normalize(word);
+            if (w == null)
+                return Json(new { status = "invalid" });
+
+            var status = await WordDictionaryClient.CheckAsync(w);
+            return Json(new { status = status.ToString() });
+        }
+
+        // Players must pass the app's dictionary check to submit a guess, including
+        // the correct answer. If the word is in neither dictionary it is added to the
+        // custom dictionary so the daily game can always be won.
+        private async Task<object> EnsureWordIsPlayableAsync(string? targetWord)
+        {
+            var w = WordDictionaryClient.Normalize(targetWord);
+            if (w == null)
+                return new { addedToDictionary = false, status = "invalid" };
+
+            var status = await WordDictionaryClient.CheckAsync(w);
+
+            if (status is WordDictionaryStatus.InDictionary or WordDictionaryStatus.InCustom)
+                return new { addedToDictionary = false, status = status.ToString() };
+
+            var added = await WordDictionaryClient.AddToCustomAsync(w);
+            return new { addedToDictionary = added, status = status.ToString(), word = w };
         }
 
         #endregion

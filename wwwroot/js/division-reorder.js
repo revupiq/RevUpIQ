@@ -46,7 +46,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!res.ok) {
                 const data = await res.json().catch(() => null);
-                throw new Error((data && data.error) || "Could not save the new order.");
+
+                if (data && data.error) throw new Error(data.error);
+
+                // An empty 400 means the page's security token is stale, which happens
+                // when the app was restarted while this page was open.
+                if (res.status === 400) {
+                    throw new Error("This page is out of date (the app was restarted). Reload the page and try again.");
+                }
+
+                throw new Error("Could not save the new order (error " + res.status + ").");
             }
 
             // Reload so the page (and any ties warning) reflects what was saved

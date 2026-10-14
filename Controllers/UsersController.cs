@@ -287,7 +287,34 @@ namespace RevUpIQ.Admin.Controllers
             if (!res.IsSuccessStatusCode)
                 return StatusCode((int)res.StatusCode, body);
 
-            return Ok();
+            // banned_until only blocks new sign-ins. End the user's existing sessions so
+            // a player who is already signed in is cut off too.
+            var signedOut = await SignOutUserAsync(http, request.UserId);
+
+            return Ok(new { signedOut });
+        }
+
+        private static async Task<bool> SignOutUserAsync(HttpClient http, string userId)
+        {
+            if (!Guid.TryParse(userId, out var id))
+                return false;
+
+            try
+            {
+                var payload = System.Text.Json.JsonSerializer.Serialize(new { p_user_id = id });
+                using var content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
+
+                var res = await http.PostAsync(
+                    $"{ApiClientFactory.BaseUrl.TrimEnd('/')}/rest/v1/rpc/admin_sign_out_user", content);
+
+                Console.WriteLine($"admin_sign_out_user response: {(int)res.StatusCode}");
+                return res.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"admin_sign_out_user failed: {ex.Message}");
+                return false;
+            }
         }
 
         [HttpPost]

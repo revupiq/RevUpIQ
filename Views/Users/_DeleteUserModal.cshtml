@@ -1,0 +1,220 @@
+<style>
+    .del-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.7);
+        z-index: 1100;
+    }
+
+    .del-modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 440px;
+        max-width: calc(100vw - 32px);
+        background: #0b1a33;
+        color: #fff;
+        border: 1px solid #1f3a6b;
+        border-radius: 14px;
+        z-index: 1101;
+        box-shadow: 0 20px 60px rgba(0,0,0,.75);
+    }
+
+    .del-modal-header {
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #1f3a6b;
+    }
+
+    .del-modal-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+    }
+
+    .del-modal-close {
+        background: none;
+        border: none;
+        color: #9fb3d9;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    .del-modal-body {
+        padding: 20px;
+    }
+
+    .del-modal-target {
+        font-weight: 700;
+        word-break: break-all;
+        background: #000b19;
+        border: 1px solid #1f3a6b;
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 14px;
+    }
+
+    .del-modal-desc {
+        font-size: .9rem;
+        color: #c5d0ea;
+        margin-bottom: 8px;
+    }
+
+    .del-modal-list {
+        margin: 0 0 14px 18px;
+        padding: 0;
+        font-size: .85rem;
+        color: #9fb3d9;
+    }
+
+    .del-modal-warning {
+        font-size: .85rem;
+        font-weight: 600;
+        color: #ff6b6b;
+        margin-bottom: 18px;
+    }
+
+    .del-modal-error {
+        display: none;
+        font-size: .85rem;
+        color: #ffb3b3;
+        background: rgba(255,107,107,.12);
+        border: 1px solid rgba(255,107,107,.4);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 14px;
+        word-break: break-word;
+    }
+
+    .del-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .del-modal-actions button {
+        padding: 9px 18px;
+        border-radius: 8px;
+        border: 1px solid #1f3a6b;
+        background: #11264a;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .del-modal-actions .del-modal-confirm {
+        background: #c0392b;
+        border-color: #c0392b;
+    }
+
+    .del-modal-actions button:disabled {
+        opacity: .6;
+        cursor: default;
+    }
+</style>
+
+<div id="del-modal-backdrop" class="del-modal-backdrop"></div>
+
+<div id="del-modal" class="del-modal" role="dialog" aria-modal="true" aria-labelledby="del-modal-title">
+    <div class="del-modal-header">
+        <span id="del-modal-title" class="del-modal-title">Delete user</span>
+        <button type="button" id="del-modal-close" class="del-modal-close" aria-label="Close">×</button>
+    </div>
+
+    <div class="del-modal-body">
+        <div class="del-modal-desc">You are about to permanently delete:</div>
+        <div id="del-modal-target" class="del-modal-target"></div>
+
+        <div class="del-modal-desc">This will remove:</div>
+        <ul class="del-modal-list">
+            <li>The authentication account</li>
+            <li>The profile, divisions and game history</li>
+            <li>Support tickets, suggestions and owned leagues</li>
+        </ul>
+
+        <div class="del-modal-warning">This cannot be undone.</div>
+
+        <div id="del-modal-error" class="del-modal-error"></div>
+
+        <div class="del-modal-actions">
+            <button type="button" id="del-modal-cancel">Cancel</button>
+            <button type="button" id="del-modal-confirm" class="del-modal-confirm">Delete user</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const backdrop = document.getElementById('del-modal-backdrop');
+        const modal = document.getElementById('del-modal');
+        const target = document.getElementById('del-modal-target');
+        const errorBox = document.getElementById('del-modal-error');
+        const confirmBtn = document.getElementById('del-modal-confirm');
+        const cancelBtn = document.getElementById('del-modal-cancel');
+
+        let current = null;
+        let busy = false;
+
+        function close() {
+            if (busy) return;
+            backdrop.style.display = 'none';
+            modal.style.display = 'none';
+            current = null;
+        }
+
+        // user: { id, label }, onDeleted: called after the user was deleted
+        window.openDeleteUserModal = function (user, onDeleted) {
+            current = { user, onDeleted };
+            target.textContent = user.label || user.id;
+            errorBox.style.display = 'none';
+            confirmBtn.disabled = false;
+            cancelBtn.disabled = false;
+            confirmBtn.textContent = 'Delete user';
+            backdrop.style.display = 'block';
+            modal.style.display = 'block';
+        };
+
+        confirmBtn.addEventListener('click', async () => {
+            if (!current || busy) return;
+
+            busy = true;
+            confirmBtn.disabled = true;
+            cancelBtn.disabled = true;
+            confirmBtn.textContent = 'Deleting…';
+            errorBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/Users/DeleteUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: current.user.id })
+                });
+
+                if (!res.ok) {
+                    throw new Error(await res.text() || ('Request failed (' + res.status + ')'));
+                }
+
+                const done = current.onDeleted;
+                busy = false;
+                close();
+                if (done) done();
+            } catch (err) {
+                busy = false;
+                confirmBtn.disabled = false;
+                cancelBtn.disabled = false;
+                confirmBtn.textContent = 'Try again';
+                errorBox.textContent = 'Failed to delete user: ' + err.message;
+                errorBox.style.display = 'block';
+            }
+        });
+
+        cancelBtn.addEventListener('click', close);
+        document.getElementById('del-modal-close').addEventListener('click', close);
+        backdrop.addEventListener('click', close);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    })();
+</script>

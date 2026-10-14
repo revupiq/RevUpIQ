@@ -8,5 +8,6 @@ namespace RevUpIQ.Admin.Models.Users
         public int Page { get; set; }
         public int PerPage { get; set; }
         public bool HasNextPage { get; set; }
+        public string Profile { get; set; } = "all";
     }
 }

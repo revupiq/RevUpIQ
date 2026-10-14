@@ -7,24 +7,32 @@
     ViewData["Title"] = "Users";
 }
 
-<div class="users-search">
-    <input type="text"
-           id="userSearch"
-           placeholder="Search by email or phone"
-           onkeyup="filterUsers()" />
-</div>
-
 <h1 style="text-align:center; margin-top:20px;">Users</h1>
 
-<div id="normalWrap">
-    <div class="users-container">
-        <div class="user-header">
-            <span>Email</span>
-            <span>Phone</span>
-            <span>Created</span>
-            <span>Last Sign In</span>
-        </div>
+<div class="users-container">
+    <div class="users-toolbar">
+        <input type="text"
+               id="userSearch"
+               placeholder="Search by email or phone"
+               onkeyup="filterUsers()" />
 
+        <select id="profileFilter" onchange="onProfileFilterChange()">
+            <option value="all" selected="@(Model.Profile == "all")">All users</option>
+            <option value="with" selected="@(Model.Profile == "with")">With profile</option>
+            <option value="without" selected="@(Model.Profile == "without")">Without profile</option>
+        </select>
+    </div>
+
+    <div class="user-header">
+        <span>Email</span>
+        <span>Phone</span>
+        <span>Created</span>
+        <span>Last Sign In</span>
+        <span>Profile</span>
+        <span></span>
+    </div>
+
+    <div id="normalWrap">
         <div id="normalList">
             @foreach (var user in Model.Users)
             {
@@ -34,41 +42,44 @@
                     <span>@(user.Phone ?? "—")</span>
                     <span>@user.Created_At.ToString("yyyy-MM-dd")</span>
                     <span>@(user.Last_Sign_In_At?.ToString("yyyy-MM-dd HH:mm") ?? "Never")</span>
+                    <span>
+                        <span class="profile-badge @(user.HasProfile ? "has-profile" : "no-profile")">
+                            @(user.HasProfile ? "Yes" : "No")
+                        </span>
+                    </span>
+                    <span>
+                        <button type="button" class="user-delete-btn"
+                                data-id="@user.Id" data-email="@(user.Email ?? user.Phone)"
+                                onclick="deleteUser(event, this)">Delete</button>
+                    </span>
                 </div>
+            }
+        </div>
+
+        <div class="users-pagination">
+            @if (Model.Page > 1)
+            {
+                <a asp-action="UsersList"
+                   asp-route-page="@(Model.Page - 1)"
+                   asp-route-perPage="@Model.PerPage"
+                   asp-route-profile="@Model.Profile"
+                   class="page-link page-link-prev">« Previous</a>
+            }
+
+            <span class="page-info">Page @Model.Page</span>
+
+            @if (Model.HasNextPage)
+            {
+                <a asp-action="UsersList"
+                   asp-route-page="@(Model.Page + 1)"
+                   asp-route-perPage="@Model.PerPage"
+                   asp-route-profile="@Model.Profile"
+                   class="page-link page-link-next">Next »</a>
             }
         </div>
     </div>
 
-    <div class="users-pagination">
-        @if (Model.Page > 1)
-        {
-            <a asp-action="UsersList"
-               asp-route-page="@(Model.Page - 1)"
-               asp-route-perPage="@Model.PerPage"
-               class="page-link page-link-prev">« Previous</a>
-        }
-
-        <span class="page-info">Page @Model.Page</span>
-
-        @if (Model.HasNextPage)
-        {
-            <a asp-action="UsersList"
-               asp-route-page="@(Model.Page + 1)"
-               asp-route-perPage="@Model.PerPage"
-               class="page-link page-link-next">Next »</a>
-        }
-    </div>
-</div>
-
-<div id="searchWrap" style="display:none;">
-    <div class="users-container">
-        <div class="user-header">
-            <span>Email</span>
-            <span>Phone</span>
-            <span>Created</span>
-            <span>Last Sign In</span>
-        </div>
-
+    <div id="searchWrap" style="display:none;">
         <div id="searchResults"></div>
 
         <div class="users-pagination">
@@ -77,6 +88,7 @@
     </div>
 </div>
 
+@await Html.PartialAsync("_DeleteUserModal")
 
 <script>
 async function filterUsers() {
@@ -88,7 +100,8 @@ async function filterUsers() {
         return;
     }
 
-    const res = await fetch(`/Users/SearchUsers?q=${encodeURIComponent(query)}`);
+    const profile = document.getElementById("profileFilter").value;
+    const res = await fetch(`/Users/SearchUsers?q=${encodeURIComponent(query)}&profile=${profile}`);
     const users = await res.json();
 
     document.getElementById("normalWrap").style.display = "none";
@@ -107,13 +120,41 @@ async function filterUsers() {
             <span>${u.phone ?? "—"}</span>
             <span>${u.created_At.substring(0,10)}</span>
             <span>${u.last_Sign_In_At ? u.last_Sign_In_At.substring(0,16) : "Never"}</span>
+            <span><span class="profile-badge ${u.hasProfile ? "has-profile" : "no-profile"}">${u.hasProfile ? "Yes" : "No"}</span></span>
+            <span><button type="button" class="user-delete-btn">Delete</button></span>
         `;
+
+        const btn = row.querySelector(".user-delete-btn");
+        btn.dataset.id = u.id;
+        btn.dataset.email = u.email || u.phone || "";
+        btn.onclick = e => deleteUser(e, btn);
 
         container.appendChild(row);
     });
 
     document.getElementById("searchInfo").innerText =
         `Results: ${users.length}`;
+}
+
+function onProfileFilterChange() {
+    const profile = document.getElementById("profileFilter").value;
+    const query = document.getElementById("userSearch").value.trim();
+
+    if (query) {
+        filterUsers();
+        return;
+    }
+
+    location.href = `@Url.Action("UsersList")?profile=${profile}`;
+}
+
+function deleteUser(event, btn) {
+    event.stopPropagation();
+
+    openDeleteUserModal(
+        { id: btn.dataset.id, label: btn.dataset.email || btn.dataset.id },
+        () => btn.closest(".user-row").remove()
+    );
 }
 </script>
 

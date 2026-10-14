@@ -15,13 +15,16 @@ namespace RevUpIQ.Admin.Controllers
         }
 
 
-        public async Task<IActionResult> UsersList(int page = 1, int perPage = 50)
+        public async Task<IActionResult> UsersList(int page = 1, int perPage = 50, string profile = "all")
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"UsersList called. Page={page}, PerPage={perPage}");
+            Console.WriteLine($"UsersList called. Page={page}, PerPage={perPage}, Profile={profile}");
             Console.ResetColor();
 
+            profile = NormalizeProfileFilter(profile);
+
             List<AuthUser> users = new();
+            bool hasNextPage;
 
             using var http = new HttpClient();
             http.BaseAddress = new Uri(ApiClientFactory.BaseUrl);
@@ -31,22 +34,38 @@ namespace RevUpIQ.Admin.Controllers
 
             try
             {
-                var response = await http.GetAsync($"auth/v1/admin/users?page={page}&per_page={perPage}");
-
-                if (response.IsSuccessStatusCode)
+                if (profile == "all")
                 {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var data = System.Text.Json.JsonSerializer.Deserialize<AuthUsersResponse>(
-                        json,
-                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                    );
-                    users = data?.Users ?? new List<AuthUser>();
+                    users = await FetchAuthUsersPageAsync(http, page, perPage);
+                    hasNextPage = users.Count == perPage;
+                    await MarkProfilesAsync(users);
+                }
+                else
+                {
+                    // Filtering needs every user, so load them all and page in memory
+                    var all = new List<AuthUser>();
+                    const int chunk = 1000;
+                    for (var p = 1; ; p++)
+                    {
+                        var batch = await FetchAuthUsersPageAsync(http, p, chunk);
+                        all.AddRange(batch);
+                        if (batch.Count < chunk) break;
+                    }
+
+                    await MarkProfilesAsync(all);
+
+                    var wantProfile = profile == "with";
+                    var filtered = all.Where(u => u.HasProfile == wantProfile).ToList();
+
+                    users = filtered.Skip((page - 1) * perPage).Take(perPage).ToList();
+                    hasNextPage = filtered.Count > page * perPage;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                hasNextPage = false;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Supabase failed — ignoring and using fake data.");
+                Console.WriteLine($"Supabase failed — {ex.Message}");
                 Console.ResetColor();
             }
 
@@ -54,49 +73,64 @@ namespace RevUpIQ.Admin.Controllers
             Console.WriteLine($"Users fetched: {users.Count}");
             Console.ResetColor();
 
-            // Filter out users that have no profile row (single lightweight query)
-            try
-            {
-                var userGuids = users
-                    .Where(u => Guid.TryParse(u.Id, out _))
-                    .Select(u => Guid.Parse(u.Id))
-                    .ToList();
-
-                if (userGuids.Any())
-                {
-                    var profileResult = await _supabase
-                        .From<Profile>()
-                        .Select("id")
-                        .Filter("id", Supabase.Postgrest.Constants.Operator.In, userGuids)
-                        .Get();
-
-                    var profileIds = profileResult.Models
-                        .Select(p => p.Id.ToString())
-                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                    users = users.Where(u => profileIds.Contains(u.Id)).ToList();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"Profile filter failed — showing all users. {ex.Message}");
-                Console.ResetColor();
-            }
-
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Users with profiles: {users.Count}");
-            Console.ResetColor();
-
             var vm = new UsersListViewModel
             {
                 Users = users,
                 Page = page,
                 PerPage = perPage,
-                HasNextPage = users.Count == perPage
+                HasNextPage = hasNextPage,
+                Profile = profile
             };
 
             return View(vm);
+        }
+
+        private static string NormalizeProfileFilter(string? profile) =>
+            (profile ?? "").Trim().ToLowerInvariant() switch
+            {
+                "with" => "with",
+                "without" => "without",
+                _ => "all"
+            };
+
+        private static async Task<List<AuthUser>> FetchAuthUsersPageAsync(HttpClient http, int page, int perPage)
+        {
+            var response = await http.GetAsync($"auth/v1/admin/users?page={page}&per_page={perPage}");
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            var data = System.Text.Json.JsonSerializer.Deserialize<AuthUsersResponse>(
+                json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+
+            return data?.Users ?? new List<AuthUser>();
+        }
+
+        // Sets HasProfile on each user by checking which ids exist in the profiles table
+        private async Task MarkProfilesAsync(List<AuthUser> users)
+        {
+            var guids = users
+                .Where(u => Guid.TryParse(u.Id, out _))
+                .Select(u => Guid.Parse(u.Id))
+                .ToList();
+
+            var profileIds = new HashSet<Guid>();
+
+            foreach (var group in guids.Chunk(100))
+            {
+                var result = await _supabase
+                    .From<Profile>()
+                    .Select("id")
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.In, group.ToList())
+                    .Get();
+
+                foreach (var p in result.Models)
+                    profileIds.Add(p.Id);
+            }
+
+            foreach (var u in users)
+                u.HasProfile = Guid.TryParse(u.Id, out var id) && profileIds.Contains(id);
         }
 
         [HttpGet]
@@ -341,32 +375,12 @@ namespace RevUpIQ.Admin.Controllers
             return result.Models.ToList();
         }
         [HttpGet]
-        public async Task<IActionResult> SearchUsers(string q)
+        public async Task<IActionResult> SearchUsers(string q, string profile = "all")
         {
             if (string.IsNullOrWhiteSpace(q))
                 return Json(new List<AuthUser>());
 
             var ids = await SearchUserIds(q);
-
-            // Filter to only IDs that have a profile row
-            if (ids.Any())
-            {
-                try
-                {
-                    var profileResult = await _supabase
-                        .From<Profile>()
-                        .Select("id")
-                        .Filter("id", Supabase.Postgrest.Constants.Operator.In, ids)
-                        .Get();
-
-                    var profileIds = profileResult.Models
-                        .Select(p => p.Id)
-                        .ToHashSet();
-
-                    ids = ids.Where(id => profileIds.Contains(id)).ToList();
-                }
-                catch { }
-            }
 
             var users = new List<AuthUser>();
 
@@ -391,6 +405,12 @@ namespace RevUpIQ.Admin.Controllers
                     users.Add(user);
             }
 
+            await MarkProfilesAsync(users);
+
+            profile = NormalizeProfileFilter(profile);
+            if (profile != "all")
+                users = users.Where(u => u.HasProfile == (profile == "with")).ToList();
+
             return Json(users);
         }
         public async Task<List<Guid>> SearchUserIds(string search)
@@ -404,6 +424,109 @@ namespace RevUpIQ.Admin.Controllers
             return response.Select(x => x["user_id"]).ToList();
         }
 
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> DeleteUser([FromBody] BanUserRequest request)
+        {
+            if (request == null || !Guid.TryParse(request.UserId, out var userId))
+                return BadRequest();
+
+            try
+            {
+                // Service-role client so RLS can't block the cleanup
+                var supabase = new Supabase.Client(
+                    ApiClientFactory.BaseUrl,
+                    ApiClientFactory.ServiceRole
+                );
+                await supabase.InitializeAsync();
+
+                // Support tickets and their messages
+                var tickets = await supabase
+                    .From<YourApp.Models.Support.Ticket>()
+                    .Where(t => t.UserId == userId)
+                    .Get();
+
+                var ticketIds = tickets.Models.Select(t => t.Id).ToList();
+                if (ticketIds.Any())
+                {
+                    await supabase
+                        .From<YourApp.Models.Support.TicketMessage>()
+                        .Filter("ticket_id", Supabase.Postgrest.Constants.Operator.In, ticketIds)
+                        .Delete();
+                }
+
+                await supabase
+                    .From<YourApp.Models.Support.TicketMessage>()
+                    .Where(m => m.SenderId == userId)
+                    .Delete();
+
+                await supabase
+                    .From<YourApp.Models.Support.Ticket>()
+                    .Where(t => t.UserId == userId)
+                    .Delete();
+
+                // Suggestions submitted by the user
+                await supabase
+                    .From<RevUpIQ.Admin.Models.MiniGames.TriviaSubmission>()
+                    .Where(s => s.Creator_Id == userId)
+                    .Delete();
+
+                await supabase
+                    .From<RevUpIQ.Admin.Models.MiniGames.PhotoGuessSubmission>()
+                    .Where(s => s.Creator_Id == userId)
+                    .Delete();
+
+                await supabase
+                    .From<RevUpIQ.Admin.Models.MiniGames.RaceWordSubmission>()
+                    .Where(s => s.Creator_Id == userId)
+                    .Delete();
+
+                // Leagues owned by the user
+                await supabase
+                    .From<RevUpIQ.Admin.Models.Leagues.LeagueDto>()
+                    .Where(l => l.OwnerId == userId)
+                    .Delete();
+
+                // Game data, divisions, profile
+                await supabase
+                    .From<UserGamePlay>()
+                    .Where(g => g.User_Id == userId)
+                    .Delete();
+
+                await supabase
+                    .From<UserDivision>()
+                    .Where(d => d.User_Id == userId)
+                    .Delete();
+
+                await supabase
+                    .From<Profile>()
+                    .Where(p => p.Id == userId)
+                    .Delete();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DeleteUser data cleanup failed: {ex.Message}");
+                return StatusCode(500, $"Failed to delete user data: {ex.Message}");
+            }
+
+            // Finally remove the auth account
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ApiClientFactory.ServiceRole);
+            http.DefaultRequestHeaders.Add("apikey", ApiClientFactory.ServiceRole);
+
+            var url = $"{ApiClientFactory.BaseUrl.TrimEnd('/')}/auth/v1/admin/users/{userId}";
+            var res = await http.DeleteAsync(url);
+            var body = await res.Content.ReadAsStringAsync();
+
+            Console.WriteLine($"DeleteUser response: {(int)res.StatusCode} {res.ReasonPhrase}");
+
+            if (!res.IsSuccessStatusCode)
+                return StatusCode((int)res.StatusCode, body);
+
+            return Ok();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]

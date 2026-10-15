@@ -1,3 +1,24 @@
+// Reloads just the profile panel (ban status, tour, etc.) without a page refresh.
+async function refreshUserProfilePanel(userId) {
+    const container = document.getElementById('user-profile-container');
+    if (!container || !userId) return;
+
+    const res = await fetch('/Users/UserProfile?id=' + encodeURIComponent(userId), {
+        cache: 'no-store',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    if (!res.ok) throw new Error('Could not refresh the profile');
+
+    container.innerHTML = await res.text();
+}
+
+function hideBanModal() {
+    const backdrop = document.getElementById('ban-modal-backdrop');
+    const modal = document.getElementById('ban-modal');
+    if (backdrop) backdrop.style.display = 'none';
+    if (modal) modal.style.display = 'none';
+}
+
 document.addEventListener('click', function (e) {
 
     const profileEditBtn = e.target.closest('[data-profile-edit]');
@@ -67,6 +88,8 @@ document.addEventListener('click', function (e) {
 
         if (!userId || !duration) return;
 
+        confirmBtn.disabled = true;
+
         fetch('/Users/BanUser', {
             method: 'POST',
             headers: {
@@ -78,14 +101,14 @@ document.addEventListener('click', function (e) {
                 duration: duration,
                 unit: unit
             })
-        }).then(() => {
-            const backdrop = document.getElementById('ban-modal-backdrop');
-            const modal = document.getElementById('ban-modal');
-            if (!backdrop || !modal) return;
-
-            backdrop.style.display = 'none';
-            modal.style.display = 'none';
-            location.reload();
+        }).then(res => {
+            if (!res.ok) throw new Error('Ban failed');
+            hideBanModal();
+            return refreshUserProfilePanel(userId);
+        }).catch(() => {
+            alert('Could not ban this user. Please try again.');
+        }).finally(() => {
+            confirmBtn.disabled = false;
         });
 
         return;
@@ -113,7 +136,7 @@ document.addEventListener('click', function (e) {
             body: new URLSearchParams({ userId })
         }).then(res => {
             if (!res.ok) throw new Error('Reset failed');
-            location.reload();
+            return refreshUserProfilePanel(userId);
         }).catch(() => {
             resetTourBtn.disabled = false;
             alert('Could not reset the tour. Please try again.');
@@ -127,6 +150,8 @@ document.addEventListener('click', function (e) {
         const userId = unbanBtn.dataset.userId;
         if (!userId) return;
 
+        unbanBtn.disabled = true;
+
         fetch('/Users/UnbanUser', {
             method: 'POST',
             headers: {
@@ -134,8 +159,12 @@ document.addEventListener('click', function (e) {
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({ userId: userId })
-        }).then(() => {
-            location.reload();
+        }).then(res => {
+            if (!res.ok) throw new Error('Unban failed');
+            return refreshUserProfilePanel(userId);
+        }).catch(() => {
+            unbanBtn.disabled = false;
+            alert('Could not unban this user. Please try again.');
         });
 
         return;

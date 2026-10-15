@@ -99,6 +99,27 @@
             </div>
 
             <div class="user-row profile-row">
+                <span>Lobby tour</span>
+                <span class="row-value">
+                    <span>@(profile.Tour_Completed_At.HasValue
+                        ? "Completed " + DisplayTime.Format(profile.Tour_Completed_At)
+                        : "Not seen yet")</span>
+                </span>
+                <span></span>
+                <span class="row-actions">
+                    @if (profile.Tour_Completed_At.HasValue)
+                    {
+                        <button type="button" class="admin-button"
+                                style="padding:4px 10px; font-size:12px;"
+                                title="Show the first-time lobby tour to this player again"
+                                data-reset-tour data-user-id="@profile.Id">
+                            Reset tour
+                        </button>
+                    }
+                </span>
+            </div>
+
+            <div class="user-row profile-row">
                 <span>Banned Until</span>
                 <span class="row-value">
                     <span>@(isBanned? bannedUntilView : "undefined")</span>

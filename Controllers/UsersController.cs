@@ -600,6 +600,42 @@ namespace RevUpIQ.Admin.Controllers
             return Ok();
         }
 
+        // Clears the "tour seen" flag so the player gets the first-time lobby tour again
+        [HttpPost]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetTour(Guid userId)
+        {
+            if (userId == Guid.Empty)
+                return BadRequest();
+
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ApiClientFactory.ServiceRole);
+            http.DefaultRequestHeaders.Add("apikey", ApiClientFactory.ServiceRole);
+
+            var url = $"{ApiClientFactory.BaseUrl.TrimEnd('/')}/rest/v1/profiles?id=eq.{userId}";
+            using var content = new StringContent(
+                "{\"tour_completed_at\":null}", System.Text.Encoding.UTF8, "application/json");
+            using var msg = new HttpRequestMessage(HttpMethod.Patch, url) { Content = content };
+            msg.Headers.Add("Prefer", "return=representation");
+
+            var res = await http.SendAsync(msg);
+            var body = await res.Content.ReadAsStringAsync();
+
+            if (!res.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"ResetTour failed: {(int)res.StatusCode} {body}");
+                return StatusCode(500);
+            }
+
+            // "[]" means no profile row matched this user
+            if (body.Trim() == "[]")
+                return NotFound();
+
+            return Ok();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateFreeAccount(Guid userId, bool isFree)

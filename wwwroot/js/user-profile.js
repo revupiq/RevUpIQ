@@ -91,6 +91,37 @@ document.addEventListener('click', function (e) {
         return;
     }
 
+    const resetTourBtn = e.target.closest('[data-reset-tour]');
+    if (resetTourBtn) {
+        const userId = resetTourBtn.dataset.userId;
+        if (!userId) return;
+
+        if (!confirm('Reset the lobby tour for this player? They will see it again the next time they open the lobby.')) {
+            return;
+        }
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        resetTourBtn.disabled = true;
+
+        fetch('/Users/ResetTour', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(token ? { 'RequestVerificationToken': token } : {})
+            },
+            body: new URLSearchParams({ userId })
+        }).then(res => {
+            if (!res.ok) throw new Error('Reset failed');
+            location.reload();
+        }).catch(() => {
+            resetTourBtn.disabled = false;
+            alert('Could not reset the tour. Please try again.');
+        });
+
+        return;
+    }
+
     const unbanBtn = e.target.closest('[data-unban-user]');
     if (unbanBtn) {
         const userId = unbanBtn.dataset.userId;

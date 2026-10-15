@@ -65,6 +65,11 @@ namespace RevUpIQ.Admin.Models.Users
         public string? X_Url { get; set; }
 
 
+        // Set when the player finished or skipped the first-time lobby tour
+        [Column("tour_completed_at")]
+        public DateTime? Tour_Completed_At { get; set; }
+
+
         [Column("created_at")]
         public DateTime Created_At { get; set; }
 

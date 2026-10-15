@@ -188,6 +188,38 @@
                 <span></span>
             </div>
 
+            @{
+                // Links players added in the app (Profile Settings > Social)
+                var socialLinks = new (string Label, string? Url)[]
+                {
+                    ("Facebook", profile.Facebook_Url),
+                    ("Instagram", profile.Instagram_Url),
+                    ("X", profile.X_Url),
+                };
+            }
+
+            @foreach (var link in socialLinks)
+            {
+                var hasLink = !string.IsNullOrWhiteSpace(link.Url)
+                    && link.Url!.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+
+                <div class="user-row profile-row">
+                    <span>@link.Label</span>
+                    <span class="row-value">
+                        @if (hasLink)
+                        {
+                            <a href="@link.Url" target="_blank" rel="noopener noreferrer">@link.Url</a>
+                        }
+                        else
+                        {
+                            <span class="view">undefined</span>
+                        }
+                    </span>
+                    <span></span>
+                    <span></span>
+                </div>
+            }
+
             <div class="user-row profile-row" data-editable>
                 <span>Description</span>
                 <span class="row-value">

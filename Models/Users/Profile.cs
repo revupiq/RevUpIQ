@@ -53,6 +53,18 @@ namespace RevUpIQ.Admin.Models.Users
         public string? Description { get; set; }
 
 
+        [Column("facebook_url")]
+        public string? Facebook_Url { get; set; }
+
+
+        [Column("instagram_url")]
+        public string? Instagram_Url { get; set; }
+
+
+        [Column("x_url")]
+        public string? X_Url { get; set; }
+
+
         [Column("created_at")]
         public DateTime Created_At { get; set; }
 

@@ -1,0 +1,106 @@
+@using RevUpIQ.Admin.Controllers
+@using RevUpIQ.Admin.Models.NotificationBar
+@model NotificationBarForm
+@{
+    var isNew = !Model.Id.HasValue;
+    ViewData["Title"] = isNew ? "New Notification" : "Edit Notification";
+}
+
+<link rel="stylesheet" href="~/css/notification-bar.css" asp-append-version="true" />
+
+<div class="notif-page">
+    <div class="notif-header">
+        <h2 class="notif-title">@ViewData["Title"]</h2>
+        <a asp-action="Index" class="notif-btn">Back to list</a>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="notif-banner error notif-summary"></div>
+
+    <form asp-action="Save" method="post" class="notif-form" novalidate>
+        <input type="hidden" asp-for="Id" />
+
+        <div class="notif-field">
+            <label class="notif-label" asp-for="Message">Message</label>
+            <textarea asp-for="Message" class="notif-input notif-textarea" rows="3"
+                      maxlength="@NotificationBarController.MaxMessageLength"
+                      placeholder="e.g. Double points this weekend for every Dirt Late Model race!"></textarea>
+            <span class="notif-hint"><span id="msgCount">0</span> / @NotificationBarController.MaxMessageLength</span>
+            <span asp-validation-for="Message" class="notif-error"></span>
+        </div>
+
+        <div class="notif-row">
+            <div class="notif-field notif-grow">
+                <label class="notif-label" asp-for="LinkUrl">Link (optional)</label>
+                <input asp-for="LinkUrl" type="url" class="notif-input" maxlength="2048"
+                       placeholder="https://example.com/page" />
+                <span class="notif-hint">Opens in the phone's browser when the user taps the button.</span>
+                <span asp-validation-for="LinkUrl" class="notif-error"></span>
+            </div>
+
+            <div class="notif-field">
+                <label class="notif-label" asp-for="LinkLabel">Button text (optional)</label>
+                <input asp-for="LinkLabel" class="notif-input" maxlength="@NotificationBarController.MaxLabelLength"
+                       placeholder="Click Here" />
+                <span class="notif-hint">Empty shows &ldquo;Click Here&rdquo;.</span>
+                <span asp-validation-for="LinkLabel" class="notif-error"></span>
+            </div>
+        </div>
+
+        <div class="notif-row">
+            <div class="notif-field notif-grow">
+                <label class="notif-label" asp-for="StartsAt">On date</label>
+                <input asp-for="StartsAt" type="datetime-local" class="notif-input" />
+                <span asp-validation-for="StartsAt" class="notif-error"></span>
+            </div>
+
+            <div class="notif-field notif-grow">
+                <label class="notif-label" asp-for="EndsAt">Off date</label>
+                <input asp-for="EndsAt" type="datetime-local" class="notif-input" />
+                <span asp-validation-for="EndsAt" class="notif-error"></span>
+            </div>
+        </div>
+        <span class="notif-hint">Times are UTC−7, like the rest of the panel.</span>
+
+        <label class="notif-toggle">
+            <input asp-for="IsActive" type="checkbox" />
+            <span>Active &mdash; users see it between the on and off dates</span>
+        </label>
+
+        <div class="notif-field">
+            <span class="notif-label">Preview</span>
+            <div class="notif-preview">
+                <span class="notif-preview-icon" aria-hidden="true">!</span>
+                <span class="notif-preview-text" id="previewText"></span>
+                <span class="notif-preview-btn" id="previewBtn"></span>
+                <span class="notif-preview-close" aria-hidden="true">&times;</span>
+            </div>
+        </div>
+
+        <div class="notif-footer">
+            <a asp-action="Index" class="notif-btn">Cancel</a>
+            <button type="submit" class="notif-btn notif-btn-primary">@(isNew ? "Create notification" : "Save changes")</button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    const form = document.querySelector('.notif-form');
+    const message = form.elements['Message'];
+    const link = form.elements['LinkUrl'];
+    const label = form.elements['LinkLabel'];
+    const count = document.getElementById('msgCount');
+    const previewText = document.getElementById('previewText');
+    const previewBtn = document.getElementById('previewBtn');
+
+    function update() {
+        count.textContent = message.value.length;
+        previewText.textContent = message.value.trim() || 'Your message appears here.';
+        previewBtn.textContent = label.value.trim() || 'Click Here';
+        previewBtn.style.display = link.value.trim() ? '' : 'none';
+    }
+
+    [message, link, label].forEach(el => el.addEventListener('input', update));
+    update();
+})();
+</script>

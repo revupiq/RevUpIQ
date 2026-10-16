@@ -1,0 +1,85 @@
+@using RevUpIQ.Admin.Models.NotificationBar
+@model List<NotificationBarRow>
+@{
+    ViewData["Title"] = "Notification Bar";
+    var now = DateTimeOffset.UtcNow;
+    var liveCount = Model.Count(n => n.StatusAt(now) == NotificationBarStatus.Live);
+}
+
+<link rel="stylesheet" href="~/css/notification-bar.css" asp-append-version="true" />
+
+<div class="notif-page">
+    <div class="notif-header">
+        <h2 class="notif-title">Notification Bar</h2>
+        <a asp-action="Create" class="notif-btn notif-btn-primary">+ New notification</a>
+    </div>
+
+    <p class="notif-intro">
+        Messages shown in a bar at the top of every user's lobby in the app, while the
+        notification is <b>active</b> and the current time is between its on and off dates.
+        Users can close the bar; a closed notification stays hidden for them.
+        @if (liveCount > 1)
+        {
+            <span>When several are live, the app shows the newest one first.</span>
+        }
+    </p>
+
+    @if (TempData["Message"] is string flash)
+    {
+        <div class="notif-banner ok" role="status">@flash</div>
+    }
+    @if (TempData["Error"] is string flashError)
+    {
+        <div class="notif-banner error" role="alert">@flashError</div>
+    }
+    @if (ViewBag.Error is string loadError)
+    {
+        <div class="notif-banner error" role="alert">@loadError</div>
+    }
+
+    @if (Model.Count == 0 && ViewBag.Error == null)
+    {
+        <div class="notif-empty">No notifications yet. Create one to show it to every user.</div>
+    }
+
+    <div class="notif-list">
+        @foreach (var n in Model)
+        {
+            var status = n.StatusAt(now);
+            <div class="notif-card @(status == NotificationBarStatus.Live ? "live" : "")">
+                <div class="notif-card-top">
+                    <span class="notif-chip @status.ToString().ToLowerInvariant()">@status</span>
+                    <span class="notif-dates">
+                        <span><b>On</b> @DisplayTime.Format(n.Starts_At)</span>
+                        <span><b>Off</b> @DisplayTime.Format(n.Ends_At)</span>
+                    </span>
+                </div>
+
+                <p class="notif-message">@n.Message</p>
+
+                @if (!string.IsNullOrEmpty(n.Link_Url))
+                {
+                    <div class="notif-link">
+                        <span class="notif-link-label">@(string.IsNullOrEmpty(n.Link_Label) ? "Click Here" : n.Link_Label)</span>
+                        <a href="@n.Link_Url" target="_blank" rel="noopener noreferrer">@n.Link_Url</a>
+                    </div>
+                }
+
+                <div class="notif-actions">
+                    <a asp-action="Edit" asp-route-id="@n.Id" class="notif-btn">Edit</a>
+
+                    <form asp-action="SetActive" method="post">
+                        <input type="hidden" name="id" value="@n.Id" />
+                        <input type="hidden" name="active" value="@(n.Is_Active ? "false" : "true")" />
+                        <button type="submit" class="notif-btn">@(n.Is_Active ? "Deactivate" : "Activate")</button>
+                    </form>
+
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this notification? This cannot be undone.');">
+                        <input type="hidden" name="id" value="@n.Id" />
+                        <button type="submit" class="notif-btn notif-btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

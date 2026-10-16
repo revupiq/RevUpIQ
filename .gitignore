@@ -1,0 +1,4 @@
+# Build output stays on this computer; the Dockerfile builds from source
+bin/
+obj/
+publish/

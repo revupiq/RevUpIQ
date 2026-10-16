@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using RevUpIQ.Admin.Controllers;
 using RevUpIQ.Admin.Models.Users;
 using Supabase;
@@ -7,6 +8,7 @@ using YourApp.Models.Support;
 
 namespace YourApp.Controllers
 {
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public sealed class SupportController : Controller
     {
         private readonly Client _supabase;
@@ -16,13 +18,47 @@ namespace YourApp.Controllers
             _supabase = supabase;
         }
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public Task<IActionResult> Index(string? q, string status = "open")
         {
-            var tickets = (await _supabase
+            if (status == "closed")
+                return Task.FromResult<IActionResult>(RedirectToAction(nameof(Closed), new { q }));
+            if (status == "all")
+                return Task.FromResult<IActionResult>(RedirectToAction(nameof(All), new { q }));
+            return LoadTickets("open", q);
+        }
+
+        [HttpGet]
+        public Task<IActionResult> Closed(string? q) => LoadTickets("closed", q);
+
+        [HttpGet]
+        public Task<IActionResult> All(string? q) => LoadTickets("all", q);
+
+        private async Task<IActionResult> LoadTickets(string status, string? q)
+        {
+            q = q?.Trim() ?? "";
+            if (q.Length > 200)
+                return BadRequest("Search must be 200 characters or fewer.");
+
+            var query = _supabase
                 .From<Ticket>()
-                .Where(t => t.Status == "open")
-                .Order("created_at", Supabase.Postgrest.Constants.Ordering.Descending)
-                .Get()).Models.ToList();
+                .Filter("status", Supabase.Postgrest.Constants.Operator.In,
+                    status == "all" ? new List<string> { "open", "closed" } : new List<string> { status })
+                .Order(status == "open" ? "created_at" : "updated_at", Supabase.Postgrest.Constants.Ordering.Descending);
+
+            var tickets = new List<Ticket>();
+            if (!string.IsNullOrEmpty(q))
+            {
+                var search = await _supabase.Rpc("search_admin_support_tickets", new { p_query = q, p_status = status });
+                using var doc = JsonDocument.Parse(search.Content ?? "[]");
+                var ids = doc.RootElement.EnumerateArray()
+                    .Select(row => row.GetProperty("id").GetGuid()).ToList();
+                if (ids.Count > 0)
+                    tickets = (await query.Filter("id", Supabase.Postgrest.Constants.Operator.In, ids).Get()).Models.ToList();
+            }
+            else
+            {
+                tickets = (await query.Get()).Models.ToList();
+            }
 
             var userController = new UsersController(_supabase);
 
@@ -31,17 +67,20 @@ namespace YourApp.Controllers
                 users[uid] = await userController.LoadUserProfileAsync(uid.ToString());
 
             var unreadCounts = new Dictionary<Guid, int>();
-            foreach (var t in tickets)
-                unreadCounts[t.Id] = await UnreadUserMessageCount(t.Id);
+            if (status != "closed")
+                foreach (var t in tickets.Where(t => t.Status == "open"))
+                    unreadCounts[t.Id] = await UnreadUserMessageCount(t.Id);
 
             var model = new SupportTicketsIndexViewModel
             {
                 Tickets = tickets,
                 Users = users,
-                UnreadUserCounts = unreadCounts
+                UnreadUserCounts = unreadCounts,
+                StatusFilter = status,
+                SearchQuery = q
             };
 
-            return View(model);
+            return View("Index", model);
         }
 
         #region Categories

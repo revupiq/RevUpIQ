@@ -5,9 +5,14 @@
     ViewData["Title"] = "Support Ticket";
 }
 
-<link rel="stylesheet" href="~/css/support.css" asp-append-version="true" />
+<div class="stx-page-heading">
+    <a class="stx-back" asp-controller="Support" asp-action="@(Model.Ticket.Status == "closed" ? "Closed" : "Index")">
+        <span aria-hidden="true">←</span> Back to @(Model.Ticket.Status == "closed" ? "Closed Tickets" : "Active Tickets")
+    </a>
+    <h1 class="stx-title">Support Ticket</h1>
+</div>
 
-<h1 class="stx-title">Support Ticket</h1>
+<link rel="stylesheet" href="~/css/support.css" asp-append-version="true" />
 
 <div class="stx-section">
     <div class="stx-top" style="align-items:center;">
@@ -114,7 +119,7 @@
                 var isAdmin = m.SenderRole == "admin";
                 <div class="stx-bubble @(isAdmin ? "stx-bubble-admin" : "stx-bubble-user")">
                     <small class="stx-bubble-meta">
-                        @(isAdmin ? "Admin" : "User") • @DisplayTime.Format(m.CreatedAt)
+                        @(isAdmin ? "Admin" : "User") • @DisplayTime.Format(m.CreatedAt) (UTC−7)
                     </small>
                     <div class="stx-bubble-body">@m.Body</div>
                 </div>
@@ -161,7 +166,7 @@ else
         const small = document.createElement("small");
         small.className = "stx-bubble-meta";
         small.textContent =
-            (isAdmin ? "Admin" : "User") + " • " + AdminTime.format(msg.createdAt);
+            (isAdmin ? "Admin" : "User") + " • " + AdminTime.format(msg.createdAt) + " (UTC−7)";
 
         const body = document.createElement("div");
         body.className = "stx-bubble-body";

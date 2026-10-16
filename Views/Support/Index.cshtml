@@ -1,80 +1,116 @@
 @using YourApp.Models.Support
-@using RevUpIQ.Admin.Models.Users
 @model SupportTicketsIndexViewModel
-
-<link rel="stylesheet" href="~/css/support-tickets.css" />
-
-<h1>Support</h1>
-
-<div id="support-categories-container">[waiting]</div>
-
-@if (Model.Tickets == null || !Model.Tickets.Any())
-{
-    <p>No active tickets.</p>
+@{
+    var title = Model.ShowClosed ? "Closed Tickets" : Model.ShowAll ? "All Tickets" : "Active Tickets";
+    ViewData["Title"] = title;
 }
-else
-{
-    <div class="admin-card-small support-tickets">
-        @foreach (var t in Model.Tickets)
+<link rel="stylesheet" href="~/css/support-tickets.css" asp-append-version="true" />
+
+<div class="support-page">
+    <header class="support-page-header">
+        <div>
+            <p class="support-eyebrow">CUSTOMER SUPPORT</p>
+            <h1>Support inbox</h1>
+            <p class="support-description">Review conversations, respond to users, and browse previous tickets.</p>
+        </div>
+    </header>
+
+    <form asp-controller="Support" asp-action="Index" method="get" class="support-toolbar">
+        <div class="support-search-field">
+            <label for="supportSearch">Search tickets</label>
+            <input type="search" id="supportSearch" name="q" value="@Model.SearchQuery"
+                   maxlength="200" placeholder="Username, subject, or message" />
+        </div>
+        <div class="support-status-field">
+            <label for="supportStatus">Ticket status</label>
+            <select id="supportStatus" name="status" onchange="this.form.requestSubmit()">
+                <option value="open" selected="@(Model.StatusFilter == "open")">Open tickets</option>
+                <option value="closed" selected="@(Model.ShowClosed)">Closed tickets</option>
+                <option value="all" selected="@(Model.ShowAll)">All tickets</option>
+            </select>
+        </div>
+        <button type="submit" class="admin-button support-search-button">Search</button>
+        @if (!string.IsNullOrEmpty(Model.SearchQuery))
         {
-            Model.Users.TryGetValue(t.UserId, out var user);
-            var unread = Model.UnreadUserCounts.TryGetValue(t.Id, out var c) ? c : 0;
-
-            <a asp-controller="Support"
-               asp-action="Ticket"
-               asp-route-id="@t.Id">
-
-                <div class="support-ticket-left">
-                    <img
-                        class="support-ticket-avatar"
-                        src="@(string.IsNullOrWhiteSpace(user?.Profile?.Profile_Photo_Url)
-                                ? "/images/default-avatar.png"
-                                : user.Profile.Profile_Photo_Url)" />
-
-                    <div class="support-ticket-info">
-                        <strong>@(t.Subject ?? "No subject")</strong>
-
-                        <small>
-                            @(user?.Profile?.Full_Name
-                              ?? user?.Profile?.Username
-                              ?? "Unknown user")
-                        </small>
-
-                        @if (!string.IsNullOrWhiteSpace(user?.Profile?.Country)
-                            || !string.IsNullOrWhiteSpace(user?.Profile?.State))
-                        {
-                            <small>
-                                @(user?.Profile?.Country)
-                                @(string.IsNullOrWhiteSpace(user?.Profile?.State)
-                                    ? ""
-                                    : $", {user.Profile.State}")
-                            </small>
-                        }
-                    </div>
-                </div>
-
-                <div class="support-ticket-right">
-                    @if (unread > 0)
-                    {
-                        <span class="support-ticket-unread">
-                            @unread
-                        </span>
-                    }
-
-                    <small>@DisplayTime.Format(t.CreatedAt)</small>
-                </div>
-            </a>
+            <a class="support-clear" asp-controller="Support" asp-action="@(Model.ShowClosed ? "Closed" : Model.ShowAll ? "All" : "Index")">Clear</a>
         }
-    </div>
-}
+    </form>
+
+    <section class="support-results" aria-labelledby="supportResultsTitle">
+        <div class="support-results-heading">
+            <h2 id="supportResultsTitle">@title</h2>
+            <span class="support-result-count">@Model.Tickets.Count @(Model.Tickets.Count == 1 ? "ticket" : "tickets")</span>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.SearchQuery))
+        {
+            <p class="support-search-summary">Results for “@Model.SearchQuery”</p>
+        }
+        @if (!Model.Tickets.Any())
+        {
+            <div class="support-empty">
+                <span class="support-empty-icon" aria-hidden="true">✉</span>
+                <h3>@(!string.IsNullOrEmpty(Model.SearchQuery) ? "No matching tickets" : Model.ShowClosed ? "No closed tickets yet" : Model.ShowAll ? "No support tickets yet" : "You're all caught up")</h3>
+                <p>@(!string.IsNullOrEmpty(Model.SearchQuery) ? "Try another username or word, or select All tickets." : Model.StatusFilter == "open" ? "There are no open tickets. Previous conversations are in Closed tickets." : "Tickets will appear here when they are available.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="support-ticket-list">
+                @foreach (var t in Model.Tickets)
+                {
+                    Model.Users.TryGetValue(t.UserId, out var user);
+                    var profile = user?.Profile;
+                    var unread = Model.UnreadUserCounts.GetValueOrDefault(t.Id);
+                    <a class="support-ticket-card" asp-controller="Support" asp-action="Ticket" asp-route-id="@t.Id">
+                        <img class="support-ticket-avatar" alt=""
+                             src="@(string.IsNullOrWhiteSpace(profile?.Profile_Photo_Url) ? "/images/default-avatar.png" : profile.Profile_Photo_Url)" />
+                        <div class="support-ticket-info">
+                            <strong>@(string.IsNullOrWhiteSpace(t.Subject) ? "No subject" : t.Subject)</strong>
+                            <small>@(profile?.Full_Name ?? profile?.Username ?? "Unknown user")
+                                @if (!string.IsNullOrWhiteSpace(profile?.Username))
+                                {
+                                    <span> · @("@" + profile.Username)</span>
+                                }
+                            </small>
+                            @if (!string.IsNullOrWhiteSpace(profile?.Country))
+                            {
+                                <small>@profile.Country@(string.IsNullOrWhiteSpace(profile.State) ? "" : $", {profile.State}")</small>
+                            }
+                        </div>
+                        <div class="support-ticket-right">
+                            <span class="support-status-badge @(t.Status == "open" ? "is-open" : "is-closed")">@(t.Status == "open" ? "Open" : "Closed")</span>
+                            @if (unread > 0)
+                            {
+                                <span class="support-ticket-unread">@unread unread</span>
+                            }
+                            <small>@(t.Status == "closed" ? "Updated" : "Created") @DisplayTime.Format(t.Status == "closed" ? t.UpdatedAt : t.CreatedAt) (UTC−7)</small>
+                        </div>
+                        <span class="support-ticket-arrow" aria-hidden="true">→</span>
+                    </a>
+                }
+            </div>
+        }
+    </section>
+
+    <details class="support-settings">
+        <summary>Support settings <span>Warning message and ticket categories</span></summary>
+        <div id="support-categories-container">Loading settings…</div>
+    </details>
+</div>
 
 <script>
-    fetch('/Support/CategoriesDropdown')
-        .then(r => {
-            console.log("CategoriesDropdown response:", r.status, r.statusText);
-            return r.text();
-        })
-        .then(html => {
-            document.getElementById("support-categories-container").innerHTML = html;
-        });
+    const supportSettings = document.querySelector('.support-settings');
+    let supportSettingsLoaded = false;
+    supportSettings.addEventListener('toggle', async () => {
+        if (!supportSettings.open || supportSettingsLoaded) return;
+        const host = document.getElementById('support-categories-container');
+        try {
+            const response = await fetch('/Support/CategoriesDropdown');
+            if (!response.ok) throw new Error();
+            host.innerHTML = await response.text();
+            supportSettingsLoaded = true;
+        } catch {
+            host.textContent = 'Unable to load settings. Close and reopen this section to try again.';
+        }
+    });
 </script>

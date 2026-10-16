@@ -41,3 +41,14 @@ are displayed. Future dates are rejected by the admin endpoint.
 Run `supabase db query --linked --file supabase/tests/admin_leaderboard_date.sql`
 to compare historical scores against stored game results across game modes,
 periods, and division filters, and verify RPC permissions.
+
+# Admin support search
+
+Apply `migrations/202610140004_admin_support_search.sql` before deploying the
+Support inbox search. `search_admin_support_tickets` matches a literal substring
+against usernames, subjects, and message text, ignoring case, with open/closed/all
+status filters. Execute access is restricted to `service_role`.
+
+Run `supabase db query --linked --file supabase/tests/admin_support_search.sql`
+to verify username, subject, and message searches, status filters, no-match
+results, and permissions against existing tickets without changing them.

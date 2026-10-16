@@ -43,7 +43,7 @@
     min-width: 0;
 }
 
-.users-list-container .user-row span,
+.users-list-container .user-row > span,
 .users-list-container .user-header span {
     min-width: 0;
     overflow-wrap: anywhere;
@@ -68,25 +68,25 @@
         margin-bottom: 12px;
     }
 
-    .users-list-container .user-row span {
+    .users-list-container .user-row > span {
         display: grid;
         grid-template-columns: 90px minmax(0, 1fr);
         gap: 12px;
         text-align: left;
     }
 
-    .users-list-container .user-row span::before {
+    .users-list-container .user-row > span::before {
         color: #bfc6ff;
         font-weight: 400;
     }
 
-    .users-list-container .user-row span:nth-child(1)::before { content: "Username"; }
-    .users-list-container .user-row span:nth-child(2)::before { content: "Email"; }
-    .users-list-container .user-row span:nth-child(3)::before { content: "Phone"; }
-    .users-list-container .user-row span:nth-child(4)::before { content: "Created"; }
-    .users-list-container .user-row span:nth-child(5)::before { content: "Last Login"; }
-    .users-list-container .user-row span:nth-child(6)::before { content: "Profile"; }
-    .users-list-container .user-row span:nth-child(7)::before { content: ""; }
+    .users-list-container .user-row > span:nth-child(1)::before { content: "Username"; }
+    .users-list-container .user-row > span:nth-child(2)::before { content: "Email"; }
+    .users-list-container .user-row > span:nth-child(3)::before { content: "Phone"; }
+    .users-list-container .user-row > span:nth-child(4)::before { content: "Created"; }
+    .users-list-container .user-row > span:nth-child(5)::before { content: "Last Login"; }
+    .users-list-container .user-row > span:nth-child(6)::before { content: "Profile"; }
+    .users-list-container .user-row > span:nth-child(7)::before { content: ""; }
 }
 
 .users-time-note {

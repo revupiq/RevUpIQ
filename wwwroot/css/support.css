@@ -1,3 +1,36 @@
+.stx-page-heading {
+    width: calc(100% - 32px);
+    max-width: 790px;
+    margin: 28px auto 18px;
+}
+
+.stx-back,
+.stx-back:visited {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    border: 1px solid #294865;
+    border-radius: 10px;
+    background: #071e32;
+    color: #c9e4ff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.stx-back:hover {
+    background: #0d2b46;
+    border-color: #75bfff;
+    color: #fff;
+}
+
+.stx-back:focus-visible {
+    outline: 2px solid #75bfff;
+    outline-offset: 3px;
+}
+
 .stx-title {
     margin: 0 0 18px 0;
     font-size: 22px;

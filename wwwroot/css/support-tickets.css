@@ -2,7 +2,113 @@
 /* SUPPORT TICKETS – HOME */
 /* ========================= */
 
+.support-page {
+    width: calc(100% - 40px);
+    max-width: 1120px;
+    margin: 40px auto 60px;
+    color: var(--white);
+}
+
+.support-eyebrow { color: #75bfff; font-size: 12px; letter-spacing: 2px; margin: 0 0 12px; }
+.support-page h1 { font-size: 32px; margin: 0 0 10px; }
+.support-description, .support-search-summary { color: #a9bdd2; line-height: 1.6; }
+.support-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 14px;
+    padding: 20px;
+    margin: 28px 0;
+    border: 1px solid #173957;
+    border-radius: 16px;
+    background: #071e32;
+}
+.support-search-field { flex: 1 1 280px; min-width: 0; }
+.support-status-field { flex: 0 1 190px; min-width: 0; }
+.support-toolbar label { display: block; margin-bottom: 8px; color: #b8cbe0; font-size: 13px; }
+.support-toolbar input, .support-toolbar select,
+.support-settings .admin-input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid #294865;
+    border-radius: 10px;
+    background: #031321;
+    color: #fff;
+    font: inherit;
+    color-scheme: dark;
+}
+.support-toolbar input:focus, .support-toolbar select:focus { outline: 2px solid #75bfff; outline-offset: 2px; }
+.support-search-button { padding: 12px 20px; }
+.support-clear { padding: 12px 0; color: #8ac6ff; }
+.support-results-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 20px; }
+.support-results-heading h2 { margin: 0; font-size: 22px; }
+.support-result-count { padding: 5px 10px; border-radius: 20px; background: #102c44; color: #acc7df; font-size: 12px; }
+.support-empty { text-align: center; padding: 44px 24px; background: #071e32; border: 1px dashed #294865; border-radius: 16px; }
+.support-empty-icon { display: inline-block; font-size: 32px; color: #75bfff; margin-bottom: 8px; }
+.support-empty h3 { font-size: 20px; margin: 8px 0; }
+.support-empty p { color: #a9bdd2; line-height: 1.6; max-width: 480px; margin: 12px auto 0; }
+.support-ticket-list { display: grid; gap: 12px; }
+.support-ticket-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid #173957;
+    border-radius: 14px;
+    background: #071e32;
+    color: inherit;
+    text-decoration: none;
+}
+.support-ticket-card:hover, .support-ticket-card:focus-visible { border-color: #75bfff; background: #0a263e; }
+.support-ticket-card .support-ticket-info { flex: 1; min-width: 0; overflow-wrap: anywhere; gap: 6px; }
+.support-ticket-card .support-ticket-info small { color: #a9bdd2; }
+.support-ticket-card .support-ticket-avatar { width: 44px; height: 44px; flex-shrink: 0; }
+.support-ticket-card .support-ticket-right { font-size: 13px; color: #a9bdd2; }
+.support-status-badge { border-radius: 20px; padding: 4px 10px; font-size: 12px; }
+.support-status-badge.is-open { background: #0b3c35; color: #78e0bc; }
+.support-status-badge.is-closed { background: #23344a; color: #c1cde0; }
+.support-ticket-arrow { color: #75bfff; }
+.support-settings { margin-top: 32px; border: 1px solid #173957; background: #071e32; border-radius: 14px; }
+.support-settings summary { padding: 20px; cursor: pointer; font-weight: 600; }
+.support-settings summary span { margin-left: 12px; color: #a9bdd2; font-size: 13px; font-weight: 400; }
+.support-settings #support-categories-container { padding: 0 20px 20px; }
+.support-settings .support-notice-editor, .support-settings .scx-container { max-width: none; margin: 12px 0 24px; }
+.support-settings .admin-label { color: #b8cbe0; }
+.support-settings .scx-button { text-align: left; }
+.support-settings .scx-menu { color: #fff; }
+
+@media (max-width: 600px) {
+    .support-page { width: calc(100% - 28px); margin-top: 28px; }
+    .support-toolbar { padding: 16px; }
+    .support-search-field, .support-status-field { flex-basis: 100%; }
+    .support-search-button { flex: 1; }
+    .support-ticket-card { flex-wrap: wrap; padding: 16px; gap: 12px; }
+    .support-ticket-card .support-ticket-info { flex-basis: calc(100% - 60px); }
+    .support-ticket-card .support-ticket-right { width: 100%; align-items: flex-start; text-align: left; }
+    .support-ticket-arrow { display: none; }
+    .support-settings summary span { display: block; margin: 8px 0 0; }
+    .support-settings .support-notice-editor-row, .support-settings .scx-add { flex-wrap: wrap; }
+}
+
 /* Container card must stack rows vertically */
+.support-ticket-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.support-ticket-nav a {
+    text-decoration: none;
+}
+
+.support-ticket-nav a[aria-current="page"] {
+    outline: 2px solid var(--light-blue);
+    outline-offset: 2px;
+}
+
 .admin-card-small.support-tickets {
     display: flex;
     flex-direction: column;

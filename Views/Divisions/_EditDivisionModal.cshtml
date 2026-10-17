@@ -42,6 +42,8 @@
             Deactivating preserves the division and its data. You can reactivate it at any time.
         </p>
 
+        <div class="division-main">
+
         <section class="division-section">
             <h2 class="division-section-title">Icons</h2>
             <p class="division-section-hint">
@@ -96,6 +98,65 @@
 
             </div>
         </section>
+
+        <section class="division-section" id="store-ids">
+            <h2 class="division-section-title">Store IDs</h2>
+            <p class="division-section-hint">
+                The subscription the app sells for this division. Each ID must match Google Play Console
+                (one subscription with the base plans "monthly-plan" and "yearly-plan") or App Store Connect.
+                Leave a field empty if that product doesn't exist yet.
+            </p>
+
+            @if (TempData["StoreIdsMessage"] is string storeIdsMessage)
+            {
+                <div class="division-store-message ok" role="status">@storeIdsMessage</div>
+            }
+            @if (TempData["StoreIdsError"] is string storeIdsError)
+            {
+                <div class="division-store-message error" role="alert">@storeIdsError</div>
+            }
+
+            <form asp-controller="Divisions"
+                  asp-action="UpdateStoreIds"
+                  method="post"
+                  class="division-store-form">
+
+                <input type="hidden" name="id" value="@Model!.Id" />
+
+                <label for="googleProductIdInput">Google Play subscription ID</label>
+                <input type="text"
+                       id="googleProductIdInput"
+                       name="googleProductId"
+                       value="@Model.GoogleProductId"
+                       class="admin-input"
+                       placeholder="e.g. pavement_sub"
+                       autocomplete="off" />
+
+                <label for="appleProductIdMonthlyInput">App Store monthly product ID</label>
+                <input type="text"
+                       id="appleProductIdMonthlyInput"
+                       name="appleProductIdMonthly"
+                       value="@Model.AppleProductIdMonthly"
+                       class="admin-input"
+                       placeholder="e.g. pavement_monthly"
+                       autocomplete="off" />
+
+                <label for="appleProductIdAnnualInput">App Store annual product ID</label>
+                <input type="text"
+                       id="appleProductIdAnnualInput"
+                       name="appleProductIdAnnual"
+                       value="@Model.AppleProductIdAnnual"
+                       class="admin-input"
+                       placeholder="e.g. pavement_annual"
+                       autocomplete="off" />
+
+                <button type="submit" class="admin-button">
+                    Save Store IDs
+                </button>
+            </form>
+        </section>
+
+        </div>
 
         <section class="division-background">
             <h2 class="division-section-title">Background</h2>

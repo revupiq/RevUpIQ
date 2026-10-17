@@ -18,6 +18,28 @@ namespace RevUpIQ.Admin.Models.Users
 
         [Column("subscribed_at")]
         public DateTime Subscribed_At { get; set; }
+
+        // "monthly" or "annual"
+        [Column("subscription_type")]
+        public string? Subscription_Type { get; set; }
+
+        // Raw store token the app saved at purchase; see StoreReceipt
+        [Column("purchase_token")]
+        public string? Purchase_Token { get; set; }
+
+        // Store expiry time; empty until purchases are verified on the server
+        [Column("ends_at")]
+        public DateTime? Ends_At { get; set; }
+
+        // Renewal state from the stores (null until verified on the server)
+        [Column("auto_renew_enabled")]
+        public bool? Auto_Renew_Enabled { get; set; }
+
+        [Column("billing_issue")]
+        public bool? Billing_Issue { get; set; }
+
+        [Column("trial_ends_at")]
+        public DateTime? Trial_Ends_At { get; set; }
     }
 }
 

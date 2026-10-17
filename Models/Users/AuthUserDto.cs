@@ -21,6 +21,9 @@ namespace RevUpIQ.Admin.Models.Users
 
         // Filled in by the admin panel, not part of the Supabase auth payload
         public bool HasProfile { get; set; }
+
+        // "Trial", "Subscribed", "Canceling", "Billing Issue" or "Inactive" (see SubscriptionStatus)
+        public string SubscriptionStatus { get; set; } = "Inactive";
     }
 
 }

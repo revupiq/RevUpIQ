@@ -1,6 +1,14 @@
 @using RevUpIQ.Admin.Models.Users
 @model UserDivisionViewModel
 
+@{
+    var now = DateTime.UtcNow;
+    var state = SubscriptionStatus.For(Model.UserDivision, now);
+    var plan = string.Equals(Model.UserDivision.Subscription_Type, "annual", StringComparison.OrdinalIgnoreCase)
+        ? "Annual"
+        : "Monthly";
+}
+
 <div class="user-row">
     <!-- LEFT COLUMN -->
     <span style="display:flex;align-items:center;gap:10px;padding-left:16px;">
@@ -13,7 +21,10 @@
     </span>
 
     <!-- RIGHT COLUMN -->
-    <span style="padding-right:16px;color:var(--light-blue);font-size:.9rem;">
-        Subscribed at: @DisplayTime.Format(Model.UserDivision.Subscribed_At)
+    <span style="padding-right:16px;color:var(--light-blue);font-size:.9rem;display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <span class="status-badge @SubscriptionStatus.CssClass(state)">@SubscriptionStatus.Label(state)</span>
+        <span>@plan · @SubscriptionStatus.Source(Model.UserDivision)</span>
+        <span>@SubscriptionStatus.DateText(Model.UserDivision, now)</span>
+        <span>Subscribed at: @DisplayTime.Format(Model.UserDivision.Subscribed_At)</span>
     </span>
 </div>

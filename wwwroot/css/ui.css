@@ -260,6 +260,34 @@ h1 {
     flex: 1 1 480px;
 }
 
+/* Icons and store IDs stacked in one column beside the background */
+.division-main {
+    flex: 1 1 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.division-main > .division-section {
+    flex: none;
+}
+
+.division-store-form {
+    max-width: 480px;
+}
+
+.division-store-message {
+    max-width: 480px;
+    box-sizing: border-box;
+    margin: 0 0 16px 0;
+    padding: 10px 12px;
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 8px;
+}
+
+.division-store-message.ok { border-color: #2ecc71; color: #a8f0c6; }
+.division-store-message.error { border-color: #c0392b; color: #ffb3b3; }
+
 .division-section-title {
     font-size: 18px;
     font-weight: 700;
@@ -420,13 +448,15 @@ h1 {
     cursor: pointer;
 }
 
-.division-modal-form label {
+.division-modal-form label,
+.division-store-form label {
     display: block;
     margin-bottom: 6px;
     font-weight: 600;
 }
 
-.division-modal-form .admin-input {
+.division-modal-form .admin-input,
+.division-store-form .admin-input {
     display: block;
     width: 100%;
     box-sizing: border-box;

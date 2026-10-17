@@ -32,8 +32,8 @@
 
 .users-list-container .user-header,
 .users-list-container .user-row {
-    /* username, email, phone, created, last login, profile, delete */
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) repeat(3, minmax(0, 2fr)) minmax(0, 1fr) minmax(84px, 1fr);
+    /* username, email, phone, created, last login, profile, status, delete */
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) repeat(3, minmax(0, 2fr)) minmax(0, 1fr) minmax(110px, 1fr) minmax(84px, 1fr);
     gap: 12px;
 }
 
@@ -86,7 +86,8 @@
     .users-list-container .user-row > span:nth-child(4)::before { content: "Created"; }
     .users-list-container .user-row > span:nth-child(5)::before { content: "Last Login"; }
     .users-list-container .user-row > span:nth-child(6)::before { content: "Profile"; }
-    .users-list-container .user-row > span:nth-child(7)::before { content: ""; }
+    .users-list-container .user-row > span:nth-child(7)::before { content: "Status"; }
+    .users-list-container .user-row > span:nth-child(8)::before { content: ""; }
 }
 
 .users-time-note {
@@ -245,3 +246,38 @@
 }
 
 .users-list-container .user-delete-btn { white-space: nowrap; }
+
+/* Subscription status: Subscribed, Trial, Canceling, Billing Issue, Inactive */
+.status-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-badge.status-subscribed {
+    background: rgba(46, 204, 113, 0.18);
+    color: #2ecc71;
+}
+
+.status-badge.status-trial {
+    background: rgba(245, 185, 66, 0.18);
+    color: #f5b942;
+}
+
+.status-badge.status-canceling {
+    background: rgba(255, 140, 66, 0.18);
+    color: #ff8c42;
+}
+
+.status-badge.status-billing-issue {
+    background: rgba(255, 107, 107, 0.18);
+    color: #ff6b6b;
+}
+
+.status-badge.status-inactive {
+    background: rgba(154, 164, 199, 0.18);
+    color: #9aa4c7;
+}

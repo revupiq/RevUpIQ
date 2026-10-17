@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RevUpIQ.Admin.Models.Division;
@@ -31,6 +32,19 @@ namespace RevUpIQ.Admin.Controllers
             if (!ModelState.IsValid || model.Logo == null || model.Logo.Length == 0)
                 return View(model);
 
+            var google = CleanStoreId(model.GoogleProductId);
+            var appleMonthly = CleanStoreId(model.AppleProductIdMonthly);
+            var appleAnnual = CleanStoreId(model.AppleProductIdAnnual);
+
+            var existing = (await _supabase.From<DivisionDto>().Get()).Models;
+
+            var storeIdError = ValidateStoreIds(null, google, appleMonthly, appleAnnual, existing);
+            if (storeIdError != null)
+            {
+                ViewData["Error"] = storeIdError + " Choose the logo again before submitting.";
+                return View(model);
+            }
+
             var logoUrl = await UploadIconAsync(model.Logo);
 
             string? purchaseIconUrl = null;
@@ -38,7 +52,6 @@ namespace RevUpIQ.Admin.Controllers
                 purchaseIconUrl = await UploadIconAsync(model.PurchaseIcon);
 
             // New divisions go to the end instead of colliding at sort_index 0
-            var existing = (await _supabase.From<DivisionDto>().Get()).Models;
             var nextIndex = existing.Count == 0 ? 0 : existing.Max(d => d.SortIndex) + 1;
 
             await _supabase.From<DivisionDto>().Insert(new DivisionDto
@@ -46,7 +59,10 @@ namespace RevUpIQ.Admin.Controllers
                 Name = model.Name,
                 LogoUrl = logoUrl,
                 PurchaseIconUrl = purchaseIconUrl,
-                SortIndex = nextIndex
+                SortIndex = nextIndex,
+                GoogleProductId = google,
+                AppleProductIdMonthly = appleMonthly,
+                AppleProductIdAnnual = appleAnnual
             });
 
             return RedirectToAction("Index", "Home");
@@ -143,6 +159,86 @@ namespace RevUpIQ.Admin.Controllers
 
             return RedirectToAction("Details", new { id = model.Id });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStoreIds(int id, string? googleProductId,
+            string? appleProductIdMonthly, string? appleProductIdAnnual)
+        {
+            if (id <= 0)
+                return BadRequest("Invalid division id.");
+
+            var all = (await _supabase.From<DivisionDto>().Get()).Models;
+            var division = all.FirstOrDefault(d => d.Id == id);
+            if (division == null)
+                return NotFound();
+
+            var google = CleanStoreId(googleProductId);
+            var appleMonthly = CleanStoreId(appleProductIdMonthly);
+            var appleAnnual = CleanStoreId(appleProductIdAnnual);
+
+            var error = ValidateStoreIds(id, google, appleMonthly, appleAnnual, all);
+            if (error != null)
+            {
+                TempData["StoreIdsError"] = error;
+                return RedirectToAction("Details", "Divisions", new { id }, "store-ids");
+            }
+
+            // Whole-row update so a blank field is written as null and clears the ID
+            division.GoogleProductId = google;
+            division.AppleProductIdMonthly = appleMonthly;
+            division.AppleProductIdAnnual = appleAnnual;
+            await _supabase.From<DivisionDto>().Update(division);
+
+            TempData["StoreIdsMessage"] = "Store IDs saved.";
+            return RedirectToAction("Details", "Divisions", new { id }, "store-ids");
+        }
+
+        private static string? CleanStoreId(string? value) =>
+            string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+        // Returns an error message, or null when the IDs are fine to save.
+        // The iOS app tells annual from monthly by "annual"/"yearly" in the product ID, and
+        // resolves Apple purchases to a division by ID, so IDs must be unique across divisions.
+        private static string? ValidateStoreIds(int? divisionId, string? google,
+            string? appleMonthly, string? appleAnnual, IEnumerable<DivisionDto> all)
+        {
+            if (google != null && !Regex.IsMatch(google, "^[a-z0-9][a-z0-9._]*$"))
+                return "The Google Play ID can only use lowercase letters, numbers, underscores and periods, and must start with a letter or number.";
+
+            foreach (var appleId in new[] { appleMonthly, appleAnnual })
+            {
+                if (appleId != null && !Regex.IsMatch(appleId, "^[A-Za-z0-9._]+$"))
+                    return "App Store IDs can only use letters, numbers, underscores and periods.";
+            }
+
+            if (appleMonthly != null && IsAnnualId(appleMonthly))
+                return "The App Store monthly ID can't contain \"annual\" or \"yearly\", or the app records it as an annual plan.";
+
+            if (appleAnnual != null && !IsAnnualId(appleAnnual))
+                return "The App Store annual ID must contain \"annual\" or \"yearly\", or the app records it as a monthly plan.";
+
+            if (appleMonthly != null && appleMonthly == appleAnnual)
+                return "The App Store monthly and annual IDs must be different.";
+
+            foreach (var other in all.Where(d => d.Id != divisionId))
+            {
+                if (google != null && google == other.GoogleProductId)
+                    return $"The Google Play ID \"{google}\" is already used by {other.Name}.";
+
+                foreach (var appleId in new[] { appleMonthly, appleAnnual })
+                {
+                    if (appleId != null && (appleId == other.AppleProductIdMonthly || appleId == other.AppleProductIdAnnual))
+                        return $"The App Store ID \"{appleId}\" is already used by {other.Name}.";
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsAnnualId(string productId) =>
+            productId.Contains("annual", StringComparison.OrdinalIgnoreCase) ||
+            productId.Contains("yearly", StringComparison.OrdinalIgnoreCase);
 
         // Saves the whole display order at once (drag & drop and the arrow buttons).
         // Position 1 is the first division players see, so sort_index is 0..n-1 in order.

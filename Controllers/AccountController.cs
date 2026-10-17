@@ -1,15 +1,19 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RevUpIQ.Admin.Models;
 using System.Security.Claims;
 
 public class AccountController : Controller
 {
+    // The only pages reachable without signing in (see the fallback policy in Program.cs)
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult Login() => View();
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (model.Username == "admin" && model.Password == "Admin123")

@@ -1,4 +1,5 @@
-﻿@{
+﻿@model RevUpIQ.Admin.Models.Division.DivisionCreateViewModel
+@{
     ViewData["Title"] = "Create Division";
 }
 
@@ -17,10 +18,19 @@
               method="post"
               enctype="multipart/form-data">
 
+            @if (ViewData["Error"] is string error)
+            {
+                <div role="alert"
+                     style="margin-bottom:16px; padding:10px 12px; border:1px solid #c0392b; border-radius:8px; color:#ffb3b3;">
+                    @error
+                </div>
+            }
+
             <div style="margin-bottom:16px;">
                 <input type="text"
                        id="divisionName"
                        name="Name"
+                       value="@Model?.Name"
                        class="admin-input"
                        placeholder="Division Name"
                        required />
@@ -50,6 +60,57 @@
                        class="admin-input"
                        accept="image/*" />
             </div>
+
+            <fieldset style="margin:0 0 16px 0; padding:12px 14px; border:1px solid var(--mid-dark-blue); border-radius:8px;">
+                <legend style="padding:0 6px; font-size:14px; opacity:0.8;">
+                    Store IDs (optional) — used for the division's subscription
+                </legend>
+                <p style="margin:0 0 12px 0; font-size:13px; opacity:0.7;">
+                    Filled in from the name. They must match the IDs in Google Play Console and
+                    App Store Connect. You can change them later on the division page.
+                </p>
+
+                <label for="googleProductId"
+                       style="display:block; margin-bottom:6px; font-size:14px; opacity:0.8;">
+                    Google Play subscription ID
+                </label>
+                <input type="text"
+                       id="googleProductId"
+                       name="GoogleProductId"
+                       value="@Model?.GoogleProductId"
+                       class="admin-input store-id-input"
+                       data-suffix="_sub"
+                       placeholder="e.g. pavement_sub"
+                       autocomplete="off"
+                       style="margin-bottom:12px;" />
+
+                <label for="appleProductIdMonthly"
+                       style="display:block; margin-bottom:6px; font-size:14px; opacity:0.8;">
+                    App Store monthly product ID
+                </label>
+                <input type="text"
+                       id="appleProductIdMonthly"
+                       name="AppleProductIdMonthly"
+                       value="@Model?.AppleProductIdMonthly"
+                       class="admin-input store-id-input"
+                       data-suffix="_monthly"
+                       placeholder="e.g. pavement_monthly"
+                       autocomplete="off"
+                       style="margin-bottom:12px;" />
+
+                <label for="appleProductIdAnnual"
+                       style="display:block; margin-bottom:6px; font-size:14px; opacity:0.8;">
+                    App Store annual product ID
+                </label>
+                <input type="text"
+                       id="appleProductIdAnnual"
+                       name="AppleProductIdAnnual"
+                       value="@Model?.AppleProductIdAnnual"
+                       class="admin-input store-id-input"
+                       data-suffix="_annual"
+                       placeholder="e.g. pavement_annual"
+                       autocomplete="off" />
+            </fieldset>
 
             <button type="submit"
                     id="submitBtn"
@@ -83,5 +144,26 @@
 
         nameInput.addEventListener("input", toggleButton);
         logoInput.addEventListener("change", toggleButton);
+
+        // Suggest store IDs from the name ("Dirt Late Models" -> dirt_late_models_sub) until
+        // a field is edited by hand. Values coming back after an error count as edited.
+        const storeInputs = document.querySelectorAll(".store-id-input");
+        storeInputs.forEach(function (input) {
+            input.dataset.edited = input.value.trim() !== "" ? "true" : "false";
+            input.addEventListener("input", function () {
+                input.dataset.edited = "true";
+            });
+        });
+
+        nameInput.addEventListener("input", function () {
+            const slug = nameInput.value.trim().toLowerCase()
+                .replace(/[^a-z0-9]+/g, "_")
+                .replace(/^_+|_+$/g, "");
+
+            storeInputs.forEach(function (input) {
+                if (input.dataset.edited === "true") return;
+                input.value = slug ? slug + input.dataset.suffix : "";
+            });
+        });
     });
 </script>

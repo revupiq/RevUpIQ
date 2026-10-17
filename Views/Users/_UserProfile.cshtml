@@ -38,6 +38,10 @@
         var bannedUntilView = DisplayTime.Format(bannedUntil, "undefined");
         var banStatusView = isBanned ? "BANNED" : "ACTIVE";
 
+        var userDivisions = Model.Divisions ?? new List<UserDivision>();
+        var subscriptionState = SubscriptionStatus.ForUser(userDivisions, DateTime.UtcNow);
+        var activeDivisionCount = userDivisions.Count(d => DateTime.UtcNow < SubscriptionStatus.EndsAt(d));
+
         <form method="post" action="/Users/UpdateProfile" class="users-container" style="margin-top:100px;">
             @Html.AntiForgeryToken()
             <input type="hidden" name="Id" value="@profile.Id" />
@@ -77,6 +81,26 @@
                 <span>Email</span>
                 <span class="row-value">
                     <span>@emailView</span>
+                </span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="user-row profile-row">
+                <span>Subscription</span>
+                <span class="row-value">
+                    <span>
+                        <span class="status-badge @SubscriptionStatus.CssClass(subscriptionState)">
+                            @SubscriptionStatus.Label(subscriptionState)
+                        </span>
+                        @if (userDivisions.Count > 0)
+                        {
+                            <span style="margin-left:8px;color:var(--light-blue);font-size:.9rem;">
+                                @activeDivisionCount of @userDivisions.Count @(userDivisions.Count == 1 ? "division" : "divisions") active
+                                · @SubscriptionStatus.Sources(userDivisions)
+                            </span>
+                        }
+                    </span>
                 </span>
                 <span></span>
                 <span></span>

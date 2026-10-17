@@ -39,6 +39,7 @@ namespace RevUpIQ.Admin.Controllers
                     users = await FetchAuthUsersPageAsync(http, page, perPage);
                     hasNextPage = users.Count == perPage;
                     await MarkProfilesAsync(users);
+                    await MarkSubscriptionsAsync(users);
                 }
                 else
                 {
@@ -59,6 +60,7 @@ namespace RevUpIQ.Admin.Controllers
 
                     users = filtered.Skip((page - 1) * perPage).Take(perPage).ToList();
                     hasNextPage = filtered.Count > page * perPage;
+                    await MarkSubscriptionsAsync(users);
                 }
             }
             catch (Exception ex)
@@ -135,6 +137,40 @@ namespace RevUpIQ.Admin.Controllers
                 u.HasProfile = hasId && profileUsernames.ContainsKey(id);
                 if (u.HasProfile)
                     u.Username = profileUsernames[id];
+            }
+        }
+
+        // Sets SubscriptionStatus on each user from their user_divisions rows
+        private async Task MarkSubscriptionsAsync(List<AuthUser> users)
+        {
+            var guids = users
+                .Where(u => Guid.TryParse(u.Id, out _))
+                .Select(u => Guid.Parse(u.Id))
+                .ToList();
+
+            var byUser = new Dictionary<Guid, List<UserDivision>>();
+
+            foreach (var group in guids.Chunk(100))
+            {
+                var result = await _supabase
+                    .From<UserDivision>()
+                    .Filter("user_id", Supabase.Postgrest.Constants.Operator.In, group.ToList())
+                    .Get();
+
+                foreach (var d in result.Models)
+                {
+                    if (!byUser.TryGetValue(d.User_Id, out var list))
+                        byUser[d.User_Id] = list = new List<UserDivision>();
+                    list.Add(d);
+                }
+            }
+
+            var now = DateTime.UtcNow;
+            foreach (var u in users)
+            {
+                var rows = (Guid.TryParse(u.Id, out var id) ? byUser.GetValueOrDefault(id) : null)
+                    ?? new List<UserDivision>();
+                u.SubscriptionStatus = SubscriptionStatus.Label(SubscriptionStatus.ForUser(rows, now));
             }
         }
 
@@ -478,6 +514,7 @@ namespace RevUpIQ.Admin.Controllers
             }
 
             await MarkProfilesAsync(users);
+            await MarkSubscriptionsAsync(users);
 
             profile = NormalizeProfileFilter(profile);
             if (profile != "all")
@@ -559,6 +596,58 @@ namespace RevUpIQ.Admin.Controllers
                     .From<RevUpIQ.Admin.Models.Leagues.LeagueDto>()
                     .Where(l => l.OwnerId == userId)
                     .Delete();
+
+                // Membership in other players' leagues (joined_users has no foreign key)
+                var userIdText = userId.ToString();
+                var memberOf = await supabase
+                    .From<RevUpIQ.Admin.Models.Leagues.LeagueDto>()
+                    .Filter("joined_users", Supabase.Postgrest.Constants.Operator.Contains, new List<string> { userIdText })
+                    .Get();
+
+                foreach (var league in memberOf.Models)
+                {
+                    var leagueId = league.Id;
+                    var remaining = league.JoinedUsers.Where(u => u != userIdText).ToArray();
+                    await supabase
+                        .From<RevUpIQ.Admin.Models.Leagues.LeagueDto>()
+                        .Where(l => l.Id == leagueId)
+                        .Set(l => l.JoinedUsers, remaining)
+                        .Update();
+                }
+
+                // League invites sent or received (no foreign key to the user either)
+                await supabase
+                    .From<RevUpIQ.Admin.Models.Leagues.LeagueInviteDto>()
+                    .Where(i => i.InviterId == userId)
+                    .Delete();
+
+                await supabase
+                    .From<RevUpIQ.Admin.Models.Leagues.LeagueInviteDto>()
+                    .Where(i => i.InviteeId == userId)
+                    .Delete();
+
+                // Profile and cover photos: the "<id>/" folder plus the older
+                // profile_<id>.jpg / cover_<id>.jpg names the app also uploads
+                var userImages = supabase.Storage.From("user-images");
+                var imageFiles = await userImages.List(userIdText) ?? new();
+                var imagePaths = imageFiles
+                    .Where(f => !string.IsNullOrEmpty(f.Name))
+                    .Select(f => $"{userIdText}/{f.Name}")
+                    .ToList();
+                imagePaths.Add($"profile_{userIdText}.jpg");
+                imagePaths.Add($"cover_{userIdText}.jpg");
+                await userImages.Remove(imagePaths);
+
+                // Photos from the user's Photo Guess suggestions ("<id>/" folder).
+                // Daily puzzles keep their own copies in the "photoguess" bucket.
+                var suggestionImages = supabase.Storage.From("photo_guess_images");
+                var suggestionFiles = await suggestionImages.List(userIdText) ?? new();
+                var suggestionPaths = suggestionFiles
+                    .Where(f => !string.IsNullOrEmpty(f.Name))
+                    .Select(f => $"{userIdText}/{f.Name}")
+                    .ToList();
+                if (suggestionPaths.Count > 0)
+                    await suggestionImages.Remove(suggestionPaths);
 
                 // Game data, divisions, profile
                 await supabase

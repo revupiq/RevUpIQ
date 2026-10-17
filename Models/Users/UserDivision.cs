@@ -27,9 +27,22 @@ namespace RevUpIQ.Admin.Models.Users
         [Column("purchase_token")]
         public string? Purchase_Token { get; set; }
 
-        // Store expiry time; empty until purchases are verified on the server
+        // When access ends. The store's expiry once verified; before that the database
+        // fills it with subscribed_at + 30/365 days, so check Verified_At before trusting it
         [Column("ends_at")]
         public DateTime? Ends_At { get; set; }
+
+        // Set only when Google Play or the App Store confirmed this subscription
+        [Column("verified_at")]
+        public DateTime? Verified_At { get; set; }
+
+        // "google" or "apple"
+        [Column("store")]
+        public string? Store { get; set; }
+
+        // Store's own state: active, canceled, in_grace_period, on_hold, expired, revoked...
+        [Column("store_status")]
+        public string? Store_Status { get; set; }
 
         // Renewal state from the stores (null until verified on the server)
         [Column("auto_renew_enabled")]

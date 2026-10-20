@@ -25,10 +25,12 @@ namespace RevUpIQ.Admin.Models.Division
         public bool IsActive { get; set; } = true;
 
         // Store subscription IDs the app buys for this division. On Google Play it is one
-        // subscription whose base plans are "monthly-plan" and "yearly-plan".
+        // subscription; the plan sold is its "yearly-plan" base plan.
         [Column("google_product_id")]
         public string? GoogleProductId { get; set; }
 
+        // Monthly is no longer sold and the admin doesn't edit it. Saved IDs stay so the
+        // backend can still match existing monthly subscribers' purchases to this division.
         [Column("apple_product_id_monthly")]
         public string? AppleProductIdMonthly { get; set; }
 

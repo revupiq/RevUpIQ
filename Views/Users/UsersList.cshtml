@@ -18,10 +18,17 @@
 
         <select id="profileFilter" onchange="onProfileFilterChange()">
             <option value="all" selected="@(Model.Profile == "all")">All users</option>
-            <option value="with" selected="@(Model.Profile == "with")">With profile</option>
-            <option value="without" selected="@(Model.Profile == "without")">Without profile</option>
+            <option value="complete" selected="@(Model.Profile == "complete")">Registration complete</option>
+            <option value="incomplete" selected="@(Model.Profile == "incomplete")">Registration incomplete</option>
+            <option value="unverified" selected="@(Model.Profile == "unverified")">Unverified (deleted after 24h)</option>
         </select>
+
+        <button id="openCreateUser" type="button" class="admin-button">
+            Create User
+        </button>
     </div>
+
+    <div id="createUserMessage" class="division-store-message ok users-create-message" role="status" hidden></div>
 
     <div class="user-header">
         <span>Username</span>
@@ -29,7 +36,7 @@
         <span>Phone</span>
         <span>Created</span>
         <span>Last Login (UTC−7)</span>
-        <span>Profile</span>
+        <span>Registration</span>
         <span>Status</span>
         <span></span>
     </div>
@@ -46,8 +53,8 @@
                     <span>@DisplayTime.Format(user.Created_At)</span>
                     <span>@DisplayTime.Format(user.Last_Sign_In_At, "Never")</span>
                     <span>
-                        <span class="profile-badge @(user.HasProfile ? "has-profile" : "no-profile")">
-                            @(user.HasProfile ? "Yes" : "No")
+                        <span class="registration-badge registration-@user.Registration.ToLowerInvariant().Replace(' ', '-')">
+                            @user.Registration
                         </span>
                     </span>
                     <span>
@@ -99,6 +106,7 @@
 <p class="users-time-note">All timestamps are shown in UTC−7.</p>
 
 @await Html.PartialAsync("_DeleteUserModal")
+@await Html.PartialAsync("_CreateUserModal")
 
 <script>
 let usersSearchRequest;
@@ -154,8 +162,9 @@ async function filterUsers() {
 
         const badgeCell = document.createElement("span");
         const badge = document.createElement("span");
-        badge.className = "profile-badge " + (u.hasProfile ? "has-profile" : "no-profile");
-        badge.textContent = u.hasProfile ? "Yes" : "No";
+        const registration = u.registration || "Unverified";
+        badge.className = "registration-badge registration-" + registration.toLowerCase().replace(/\s+/g, "-");
+        badge.textContent = registration;
         badgeCell.appendChild(badge);
         row.appendChild(badgeCell);
 

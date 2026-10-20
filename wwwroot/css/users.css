@@ -192,6 +192,45 @@
     color: #fff;
 }
 
+.users-toolbar .admin-button {
+    white-space: nowrap;
+}
+
+.users-create-message {
+    margin: 12px 26px 0;
+}
+
+/* User page: store sync for the player's subscriptions */
+.user-subscription-sync {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 26px 12px;
+}
+
+.user-subscription-sync p {
+    flex: 1 1 320px;
+    margin: 0;
+    color: var(--light-blue);
+    font-size: 14px;
+}
+
+.user-subscription-sync .admin-button {
+    white-space: nowrap;
+}
+
+.user-sync-message {
+    max-width: none;
+    margin: 0 26px 12px;
+}
+
+.user-sync-message ul {
+    margin: 6px 0 0;
+    padding-left: 20px;
+}
+
 .users-search select {
     padding: 10px;
     border-radius: 6px;
@@ -245,6 +284,32 @@
     color: #ff6b6b;
 }
 
+/* Registration stage: Unverified, Needs phone, Needs profile, Complete */
+.registration-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.registration-badge.registration-complete {
+    background: rgba(46, 204, 113, 0.18);
+    color: #2ecc71;
+}
+
+.registration-badge.registration-needs-phone,
+.registration-badge.registration-needs-profile {
+    background: rgba(245, 185, 66, 0.18);
+    color: #f5b942;
+}
+
+.registration-badge.registration-unverified {
+    background: rgba(154, 164, 199, 0.18);
+    color: #9aa4c7;
+}
+
 .users-list-container .user-delete-btn { white-space: nowrap; }
 
 /* Subscription status: Subscribed, Trial, Canceling, Billing Issue, Inactive */
@@ -280,4 +345,9 @@
 .status-badge.status-inactive {
     background: rgba(154, 164, 199, 0.18);
     color: #9aa4c7;
+}
+
+.status-badge.status-free {
+    background: rgba(0, 110, 255, 0.2);
+    color: #6fb0ff;
 }

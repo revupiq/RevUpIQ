@@ -1,0 +1,106 @@
+<div id="createUserModal" class="division-modal">
+    <div class="division-modal-box">
+
+        <button id="closeCreateUser" type="button" class="division-modal-close" aria-label="Close">
+            ✕
+        </button>
+
+        <h2 class="division-modal-title">Create User</h2>
+
+        <p class="division-modal-hint">
+            Players sign in to the app with a code sent to their email, so there's no password.
+            No email is sent now: tell the person to sign in with this address. They set up
+            their profile in the app.
+        </p>
+
+        <form id="createUserForm"
+              asp-controller="Users"
+              asp-action="CreateUser"
+              method="post"
+              class="division-modal-form">
+
+            <label for="createUserEmail">Email</label>
+            <input type="email"
+                   id="createUserEmail"
+                   name="email"
+                   class="admin-input"
+                   placeholder="name@example.com"
+                   autocomplete="off"
+                   required />
+
+            <label for="createUserPhone">Phone (optional)</label>
+            <input type="tel"
+                   id="createUserPhone"
+                   name="phone"
+                   class="admin-input"
+                   placeholder="+15551234567"
+                   autocomplete="off" />
+            <p class="division-modal-hint">
+                Include the country code. It's saved as verified, so the app won't ask them to verify it.
+            </p>
+
+            <div id="createUserError" class="division-store-message error" role="alert" hidden></div>
+
+            <button type="submit" class="admin-button">
+                Create Account
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const modal = document.getElementById("createUserModal");
+        const form = document.getElementById("createUserForm");
+        const error = document.getElementById("createUserError");
+        const submit = form.querySelector('button[type="submit"]');
+
+        function closeCreateUser() {
+            form.reset();
+            error.hidden = true;
+            modal.style.display = "none";
+        }
+
+        document.getElementById("openCreateUser").addEventListener("click", function () {
+            modal.style.display = "flex";
+            document.getElementById("createUserEmail").focus();
+        });
+
+        document.getElementById("closeCreateUser").addEventListener("click", closeCreateUser);
+
+        modal.addEventListener("click", function (e) {
+            if (e.target === modal) closeCreateUser();
+        });
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            error.hidden = true;
+            submit.disabled = true;
+
+            try {
+                const res = await fetch(form.action, { method: "POST", body: new FormData(form) });
+                if (!res.ok) {
+                    error.textContent = (await res.text()) || "Couldn't create the account. Please try again.";
+                    error.hidden = false;
+                    return;
+                }
+
+                const user = await res.json();
+                closeCreateUser();
+
+                // Confirm it and show the new account in the list
+                const message = document.getElementById("createUserMessage");
+                message.textContent = "Account created for " + user.email +
+                    ". They can now sign in to the app with this email.";
+                message.hidden = false;
+                document.getElementById("userSearch").value = user.email;
+                filterUsers();
+            } catch {
+                error.textContent = "Couldn't reach the server. Please try again.";
+                error.hidden = false;
+            } finally {
+                submit.disabled = false;
+            }
+        });
+    })();
+</script>

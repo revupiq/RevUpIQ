@@ -33,12 +33,11 @@ namespace RevUpIQ.Admin.Controllers
                 return View(model);
 
             var google = CleanStoreId(model.GoogleProductId);
-            var appleMonthly = CleanStoreId(model.AppleProductIdMonthly);
             var appleAnnual = CleanStoreId(model.AppleProductIdAnnual);
 
             var existing = (await _supabase.From<DivisionDto>().Get()).Models;
 
-            var storeIdError = ValidateStoreIds(null, google, appleMonthly, appleAnnual, existing);
+            var storeIdError = ValidateStoreIds(null, google, appleAnnual, existing);
             if (storeIdError != null)
             {
                 ViewData["Error"] = storeIdError + " Choose the logo again before submitting.";
@@ -61,7 +60,6 @@ namespace RevUpIQ.Admin.Controllers
                 PurchaseIconUrl = purchaseIconUrl,
                 SortIndex = nextIndex,
                 GoogleProductId = google,
-                AppleProductIdMonthly = appleMonthly,
                 AppleProductIdAnnual = appleAnnual
             });
 
@@ -163,7 +161,7 @@ namespace RevUpIQ.Admin.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStoreIds(int id, string? googleProductId,
-            string? appleProductIdMonthly, string? appleProductIdAnnual)
+            string? appleProductIdAnnual)
         {
             if (id <= 0)
                 return BadRequest("Invalid division id.");
@@ -174,19 +172,18 @@ namespace RevUpIQ.Admin.Controllers
                 return NotFound();
 
             var google = CleanStoreId(googleProductId);
-            var appleMonthly = CleanStoreId(appleProductIdMonthly);
             var appleAnnual = CleanStoreId(appleProductIdAnnual);
 
-            var error = ValidateStoreIds(id, google, appleMonthly, appleAnnual, all);
+            var error = ValidateStoreIds(id, google, appleAnnual, all);
             if (error != null)
             {
                 TempData["StoreIdsError"] = error;
                 return RedirectToAction("Details", "Divisions", new { id }, "store-ids");
             }
 
-            // Whole-row update so a blank field is written as null and clears the ID
+            // Whole-row update so a blank field is written as null and clears the ID.
+            // The saved monthly ID is written back unchanged (see DivisionDto).
             division.GoogleProductId = google;
-            division.AppleProductIdMonthly = appleMonthly;
             division.AppleProductIdAnnual = appleAnnual;
             await _supabase.From<DivisionDto>().Update(division);
 
@@ -201,36 +198,31 @@ namespace RevUpIQ.Admin.Controllers
         // The iOS app tells annual from monthly by "annual"/"yearly" in the product ID, and
         // resolves Apple purchases to a division by ID, so IDs must be unique across divisions.
         private static string? ValidateStoreIds(int? divisionId, string? google,
-            string? appleMonthly, string? appleAnnual, IEnumerable<DivisionDto> all)
+            string? appleAnnual, IEnumerable<DivisionDto> all)
         {
             if (google != null && !Regex.IsMatch(google, "^[a-z0-9][a-z0-9._]*$"))
                 return "The Google Play ID can only use lowercase letters, numbers, underscores and periods, and must start with a letter or number.";
 
-            foreach (var appleId in new[] { appleMonthly, appleAnnual })
-            {
-                if (appleId != null && !Regex.IsMatch(appleId, "^[A-Za-z0-9._]+$"))
-                    return "App Store IDs can only use letters, numbers, underscores and periods.";
-            }
-
-            if (appleMonthly != null && IsAnnualId(appleMonthly))
-                return "The App Store monthly ID can't contain \"annual\" or \"yearly\", or the app records it as an annual plan.";
+            if (appleAnnual != null && !Regex.IsMatch(appleAnnual, "^[A-Za-z0-9._]+$"))
+                return "App Store IDs can only use letters, numbers, underscores and periods.";
 
             if (appleAnnual != null && !IsAnnualId(appleAnnual))
                 return "The App Store annual ID must contain \"annual\" or \"yearly\", or the app records it as a monthly plan.";
 
-            if (appleMonthly != null && appleMonthly == appleAnnual)
-                return "The App Store monthly and annual IDs must be different.";
-
-            foreach (var other in all.Where(d => d.Id != divisionId))
+            foreach (var other in all)
             {
+                // Saved monthly IDs still match existing subscribers, this division's included
+                if (appleAnnual != null && appleAnnual == other.AppleProductIdMonthly)
+                    return $"The App Store ID \"{appleAnnual}\" is already used by {other.Name}'s monthly plan.";
+
+                if (other.Id == divisionId)
+                    continue;
+
                 if (google != null && google == other.GoogleProductId)
                     return $"The Google Play ID \"{google}\" is already used by {other.Name}.";
 
-                foreach (var appleId in new[] { appleMonthly, appleAnnual })
-                {
-                    if (appleId != null && (appleId == other.AppleProductIdMonthly || appleId == other.AppleProductIdAnnual))
-                        return $"The App Store ID \"{appleId}\" is already used by {other.Name}.";
-                }
+                if (appleAnnual != null && appleAnnual == other.AppleProductIdAnnual)
+                    return $"The App Store ID \"{appleAnnual}\" is already used by {other.Name}.";
             }
 
             return null;

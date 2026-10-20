@@ -56,6 +56,36 @@
                 <span>Divisions</span>
             </div>
 
+            <form class="user-subscription-sync"
+                  asp-controller="Users"
+                  asp-action="SyncSubscriptions"
+                  method="post"
+                  onsubmit="const b = this.querySelector('button'); b.disabled = true; b.textContent = 'Syncing…';">
+                <input type="hidden" name="userId" value="@profile.Id" />
+                <p>
+                    Subscription showing the wrong state? Ask Apple and Google for the current state
+                    of this player's purchases and update their access.
+                </p>
+                <button type="submit" class="admin-button">Sync with Apple / Google</button>
+            </form>
+
+            @if (TempData["SubscriptionSyncMessage"] is string syncMessage)
+            {
+                <div class="division-store-message ok user-sync-message" role="status">
+                    <strong>Store sync</strong>
+                    <ul>
+                        @foreach (var line in syncMessage.Split('\n'))
+                        {
+                            <li>@line</li>
+                        }
+                    </ul>
+                </div>
+            }
+            @if (TempData["SubscriptionSyncError"] is string syncError)
+            {
+                <div class="division-store-message error user-sync-message" role="alert">@syncError</div>
+            }
+
             <div id="user-division-container">
                 @foreach (var d in (Model.Divisions ?? new List<UserDivision>()).OrderByDescending(x => x.Subscribed_At))
                 {

@@ -5,12 +5,43 @@
     ViewData["Title"] = Model?.Name ?? "Division";
 }
 
-@await Html.PartialAsync("_EditDivisionModal", Model)
+<div class="division-details division-details-top">
+    <div class="division-details-header">
+        <h1 class="division-details-title">@Model?.Name</h1>
 
+        <div class="division-details-actions">
+            <form asp-controller="Divisions" asp-action="SetActive" method="post">
+                <input type="hidden" name="id" value="@Model?.Id" />
+                <input type="hidden" name="isActive" value="@(Model!.IsActive ? "false" : "true")" />
+                <button type="submit" class="admin-button">
+                    @(Model.IsActive ? "Deactivate Division" : "Reactivate Division")
+                </button>
+            </form>
+
+            <button id="openEdit" type="button" class="admin-button">
+                Rename Division
+            </button>
+
+            <form asp-controller="Divisions"
+                  asp-action="Delete"
+                  method="post"
+                  onsubmit="return confirm('Delete this division permanently?');">
+                <input type="hidden" name="id" value="@Model?.Id" />
+                <button type="submit" class="admin-button admin-button-danger">
+                    Delete Division
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Daily games sit right under the title so the game buttons are visible without scrolling;
+   the division's icons, store IDs and background follow below *@
+<div id="daily-game-filter-container">[waiting]</div>
 
 <div class="full-width-divider"></div>
 
-<div id="daily-game-filter-container">[waiting]</div>
+@await Html.PartialAsync("_EditDivisionModal", Model)
 
 <script>
     fetch('/MiniGames/DailyGameFilter?id=@Model.Id')

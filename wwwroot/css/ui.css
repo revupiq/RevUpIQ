@@ -232,6 +232,15 @@ h1 {
     margin-bottom: 28px;
 }
 
+/* Title bar above the daily games: no extra gap before the game buttons */
+.division-details-top {
+    margin-bottom: 0;
+}
+
+.division-details-top .division-details-header {
+    margin-bottom: 0;
+}
+
 .division-details-title {
     margin: 0;
 }
@@ -277,7 +286,7 @@ h1 {
 }
 
 .division-store-message {
-    max-width: 480px;
+    max-width: 560px;
     box-sizing: border-box;
     margin: 0 0 16px 0;
     padding: 10px 12px;
@@ -287,6 +296,108 @@ h1 {
 
 .division-store-message.ok { border-color: #2ecc71; color: #a8f0c6; }
 .division-store-message.error { border-color: #c0392b; color: #ffb3b3; }
+
+/* Saved store IDs as a read-only card; they're edited in the Store IDs modal */
+.division-store-card {
+    max-width: 560px;
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 12px;
+    background: var(--dark-blue);
+    overflow: hidden;
+}
+
+.division-store-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--mid-dark-blue);
+}
+
+.division-store-card-header .division-section-hint {
+    margin: 0;
+}
+
+.division-store-lock {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border: 1px solid rgba(255, 159, 16, 0.45);
+    border-radius: 999px;
+    background: rgba(255, 159, 16, 0.12);
+    color: var(--yellow);
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
+.division-store-values {
+    margin: 0;
+}
+
+.division-store-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+}
+
+.division-store-row + .division-store-row {
+    border-top: 1px solid rgba(31, 90, 142, 0.5);
+}
+
+.division-store-row dt {
+    display: flex;
+    flex-direction: column;
+}
+
+.division-store-name {
+    font-weight: 700;
+}
+
+.division-store-plan {
+    color: var(--light-blue);
+    font-size: 13px;
+}
+
+.division-store-row dd {
+    margin: 0;
+    min-width: 0;
+}
+
+.division-store-id {
+    display: inline-block;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 7px 12px;
+    border: 1px solid var(--mid-dark-blue);
+    border-radius: 6px;
+    background: var(--background);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+    user-select: all;
+}
+
+.division-store-id.is-empty {
+    border-style: dashed;
+    color: var(--dark-grey);
+    font-family: inherit;
+    font-style: italic;
+    user-select: none;
+}
+
+@media (max-width: 520px) {
+    .division-store-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+}
 
 .division-section-title {
     font-size: 18px;

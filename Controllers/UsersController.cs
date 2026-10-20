@@ -55,8 +55,7 @@ namespace RevUpIQ.Admin.Controllers
 
                     await MarkProfilesAsync(all);
 
-                    var wantProfile = profile == "with";
-                    var filtered = all.Where(u => u.HasProfile == wantProfile).ToList();
+                    var filtered = all.Where(u => MatchesRegistration(u, profile)).ToList();
 
                     users = filtered.Skip((page - 1) * perPage).Take(perPage).ToList();
                     hasNextPage = filtered.Count > page * perPage;
@@ -87,13 +86,24 @@ namespace RevUpIQ.Admin.Controllers
             return View(vm);
         }
 
+        // The Users list filter by registration stage ("with" and "without" are the
+        // old profile filter's values)
         private static string NormalizeProfileFilter(string? profile) =>
             (profile ?? "").Trim().ToLowerInvariant() switch
             {
-                "with" => "with",
-                "without" => "without",
+                "complete" or "with" => "complete",
+                "incomplete" or "without" => "incomplete",
+                "unverified" => "unverified",
                 _ => "all"
             };
+
+        private static bool MatchesRegistration(AuthUser user, string filter) => filter switch
+        {
+            "complete" => user.Registration == "Complete",
+            "incomplete" => user.Registration is "Needs phone" or "Needs profile",
+            "unverified" => user.Registration == "Unverified",
+            _ => true
+        };
 
         private static async Task<List<AuthUser>> FetchAuthUsersPageAsync(HttpClient http, int page, int perPage)
         {
@@ -117,30 +127,34 @@ namespace RevUpIQ.Admin.Controllers
                 .Select(u => Guid.Parse(u.Id))
                 .ToList();
 
-            var profileUsernames = new Dictionary<Guid, string?>();
+            var profiles = new Dictionary<Guid, Profile>();
 
             foreach (var group in guids.Chunk(100))
             {
                 var result = await _supabase
                     .From<Profile>()
-                    .Select("id,username")
+                    .Select("id,username,free_account")
                     .Filter("id", Supabase.Postgrest.Constants.Operator.In, group.ToList())
                     .Get();
 
                 foreach (var p in result.Models)
-                    profileUsernames[p.Id] = p.Username;
+                    profiles[p.Id] = p;
             }
 
             foreach (var u in users)
             {
                 var hasId = Guid.TryParse(u.Id, out var id);
-                u.HasProfile = hasId && profileUsernames.ContainsKey(id);
+                u.HasProfile = hasId && profiles.ContainsKey(id);
                 if (u.HasProfile)
-                    u.Username = profileUsernames[id];
+                {
+                    u.Username = profiles[id].Username;
+                    u.FreeAccount = profiles[id].Free_Account;
+                }
             }
         }
 
-        // Sets SubscriptionStatus on each user from their user_divisions rows
+        // Sets SubscriptionStatus on each user from their user_divisions rows; a free
+        // account shows "Free" (run MarkProfilesAsync first)
         private async Task MarkSubscriptionsAsync(List<AuthUser> users)
         {
             var guids = users
@@ -170,7 +184,9 @@ namespace RevUpIQ.Admin.Controllers
             {
                 var rows = (Guid.TryParse(u.Id, out var id) ? byUser.GetValueOrDefault(id) : null)
                     ?? new List<UserDivision>();
-                u.SubscriptionStatus = SubscriptionStatus.Label(SubscriptionStatus.ForUser(rows, now));
+                u.SubscriptionStatus = u.FreeAccount
+                    ? "Free"
+                    : SubscriptionStatus.Label(SubscriptionStatus.ForUser(rows, now));
             }
         }
 
@@ -226,6 +242,79 @@ namespace RevUpIQ.Admin.Controllers
 
             return PartialView("_UserDivision", vm);
         }
+
+        // Asks Apple / Google for the current state of every store purchase on record for this
+        // player and updates their access. The verify-subscription function does the work: it
+        // extends renewed subscriptions and ends expired, refunded or transferred ones.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SyncSubscriptions(Guid userId)
+        {
+            try
+            {
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+                http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ApiClientFactory.ServiceRole);
+                http.DefaultRequestHeaders.Add("apikey", ApiClientFactory.ServiceRole);
+
+                var payload = System.Text.Json.JsonSerializer.Serialize(new { action = "refresh", userId });
+                using var content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
+
+                var res = await http.PostAsync(
+                    $"{ApiClientFactory.BaseUrl.TrimEnd('/')}/functions/v1/verify-subscription", content);
+                var body = await res.Content.ReadAsStringAsync();
+
+                if (!res.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"SyncSubscriptions response: {(int)res.StatusCode} {body}");
+                    TempData["SubscriptionSyncError"] =
+                        $"The sync didn't run (the server answered {(int)res.StatusCode}). Try again in a minute.";
+                    return RedirectToAction("UserDetails", new { id = userId });
+                }
+
+                var divisionNames = (await _supabase.From<RevUpIQ.Admin.Models.Division.DivisionDto>().Get())
+                    .Models.ToDictionary(d => d.Id, d => d.Name);
+
+                using var doc = System.Text.Json.JsonDocument.Parse(body);
+                var lines = new List<string>();
+                foreach (var row in doc.RootElement.GetProperty("results").EnumerateArray())
+                {
+                    var divisionId = row.GetProperty("division_id").GetInt32();
+                    var name = divisionNames.TryGetValue(divisionId, out var n) ? n : $"Division {divisionId}";
+                    var error = row.TryGetProperty("error", out var e) ? e.GetString() : null;
+                    lines.Add($"{name}: {SyncResultText(row.GetProperty("result").GetString(), error)}");
+                }
+
+                // Rows without a stored purchase (or ones the store can't be asked about) are skipped
+                TempData["SubscriptionSyncMessage"] = lines.Count > 0
+                    ? string.Join("\n", lines)
+                    : "No store purchase on record could be checked for this player. If they did subscribe, " +
+                      "ask them to tap Restore Purchases on the app's subscription page.";
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException
+                                           or System.Text.Json.JsonException or KeyNotFoundException
+                                           or InvalidOperationException)
+            {
+                Console.WriteLine($"SyncSubscriptions failed: {ex.Message}");
+                TempData["SubscriptionSyncError"] = "The sync couldn't reach the server. Try again in a minute.";
+            }
+
+            return RedirectToAction("UserDetails", new { id = userId });
+        }
+
+        // One result per stored purchase, from refreshRows in supabase/functions/_shared/sync.ts
+        private static string SyncResultText(string? result, string? error) => result switch
+        {
+            "ok" => "updated from the store.",
+            "gone" => "the store says it ended, so access was removed.",
+            "other_account" => "the purchase belongs to another account, so it was removed from this player.",
+            "not_found" => "the store doesn't recognise this purchase. Nothing changed.",
+            "unknown_product" => "the purchase doesn't match this division's Store IDs. Nothing changed.",
+            "no_user" => "the purchase couldn't be matched to this player. Nothing changed.",
+            _ => string.IsNullOrEmpty(error)
+                ? "couldn't be checked. Nothing changed."
+                : $"couldn't be checked ({error}). Nothing changed."
+        };
 
         [HttpGet]
         public async Task<IActionResult> UserGameHistory(string id, int? divisionId = null)
@@ -288,6 +377,75 @@ namespace RevUpIQ.Admin.Controllers
             if (vm == null) return Content(string.Empty);
 
             return PartialView("_UserProfile", vm);
+        }
+
+        // Creates a sign-in account from the Users page. The app signs players in with a
+        // code sent to their email, so no password is set; the player adds a profile in the app.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUser(string? email, string? phone)
+        {
+            email = email?.Trim();
+            phone = phone?.Replace(" ", "").Replace("-", "").Trim();
+
+            if (string.IsNullOrEmpty(email) || !System.Net.Mail.MailAddress.TryCreate(email, out _))
+                return BadRequest("Enter a valid email address.");
+
+            if (!string.IsNullOrEmpty(phone) &&
+                !System.Text.RegularExpressions.Regex.IsMatch(phone, @"^\+[1-9]\d{6,14}$"))
+                return BadRequest("Enter the phone number with its country code, e.g. +15551234567.");
+
+            // Both are saved as confirmed: the player can sign in with the email straight away,
+            // and a verified phone means the app doesn't ask them to verify one
+            var payload = new Dictionary<string, object> { ["email"] = email, ["email_confirm"] = true };
+            if (!string.IsNullOrEmpty(phone))
+            {
+                payload["phone"] = phone;
+                payload["phone_confirm"] = true;
+            }
+
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ApiClientFactory.ServiceRole);
+            http.DefaultRequestHeaders.Add("apikey", ApiClientFactory.ServiceRole);
+
+            using var content = new StringContent(
+                System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+
+            var res = await http.PostAsync($"{ApiClientFactory.BaseUrl.TrimEnd('/')}/auth/v1/admin/users", content);
+            var body = await res.Content.ReadAsStringAsync();
+
+            if (!res.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"CreateUser response: {(int)res.StatusCode} {body}");
+                return StatusCode((int)res.StatusCode, CreateUserError(body));
+            }
+
+            using var created = System.Text.Json.JsonDocument.Parse(body);
+            return Ok(new { id = created.RootElement.GetProperty("id").GetString(), email });
+        }
+
+        // GoTrue errors look like {"error_code": "email_exists", "msg": "..."}
+        private static string CreateUserError(string body)
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(body);
+                var root = doc.RootElement;
+                var code = root.TryGetProperty("error_code", out var c) ? c.GetString() : null;
+
+                if (code == "email_exists")
+                    return "An account with this email already exists.";
+                if (code == "phone_exists")
+                    return "An account with this phone number already exists.";
+                if (root.TryGetProperty("msg", out var msg) && !string.IsNullOrWhiteSpace(msg.GetString()))
+                    return msg.GetString()!;
+            }
+            catch (System.Text.Json.JsonException)
+            {
+            }
+
+            return "Couldn't create the account. Please try again.";
         }
 
         [HttpPost]
@@ -518,7 +676,7 @@ namespace RevUpIQ.Admin.Controllers
 
             profile = NormalizeProfileFilter(profile);
             if (profile != "all")
-                users = users.Where(u => u.HasProfile == (profile == "with")).ToList();
+                users = users.Where(u => MatchesRegistration(u, profile)).ToList();
 
             return Json(users);
         }

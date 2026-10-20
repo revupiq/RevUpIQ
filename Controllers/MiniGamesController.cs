@@ -273,6 +273,300 @@ namespace RevUpIQ.Admin.Controllers
         }
         #endregion
 
+        #region Trivia Import
+        // Bulk adds trivia questions for one division from a CSV file or a Google Sheet:
+        // Preview checks every row and shows what will happen, Import adds the ready ones.
+        // The app shows one question per division per day, so a day that already has a
+        // question is skipped rather than given a second one.
+
+        private const int MaxImportBytes = 2_000_000;
+        private const int MaxImportRows = 1000;
+
+        // Header names accepted for each field, compared without case, spaces or punctuation
+        private static readonly Dictionary<string, string> TriviaImportColumns = new()
+        {
+            ["date"] = "date", ["gamedate"] = "date", ["day"] = "date",
+            ["question"] = "question",
+            ["correctanswer"] = "real", ["correct"] = "real", ["realanswer"] = "real",
+            ["rightanswer"] = "real", ["answer"] = "real",
+            ["wronganswer1"] = "wrong1", ["wrong1"] = "wrong1", ["answer1"] = "wrong1", ["answera"] = "wrong1",
+            ["wronganswer2"] = "wrong2", ["wrong2"] = "wrong2", ["answer2"] = "wrong2", ["answerb"] = "wrong2",
+            ["wronganswer3"] = "wrong3", ["wrong3"] = "wrong3", ["answer3"] = "wrong3", ["answerc"] = "wrong3",
+        };
+
+        // ISO dates, US month/day dates (Google Sheets and Excel in US locales) and written-out months
+        private static readonly string[] ImportDateFormats =
+        {
+            "yyyy-MM-dd", "yyyy-M-d", "yyyy/MM/dd", "yyyy/M/d",
+            "M/d/yyyy", "MM/dd/yyyy", "M/d/yy",
+            "MMMM d, yyyy", "MMM d, yyyy", "d MMMM yyyy", "d MMM yyyy", "d-MMM-yyyy", "d-MMM-yy",
+        };
+
+        [HttpGet]
+        public async Task<IActionResult> ImportTrivia(int divisionId)
+        {
+            var vm = await NewTriviaImportAsync(divisionId);
+            return vm == null ? NotFound() : View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(MaxImportBytes + 100_000)]
+        public async Task<IActionResult> PreviewTriviaImport(int divisionId, IFormFile? file, string? sheetUrl)
+        {
+            var vm = await NewTriviaImportAsync(divisionId);
+            if (vm == null) return NotFound();
+
+            string? text = null;
+            if (file != null && file.Length > 0)
+            {
+                vm.Source = file.FileName;
+                if (file.Length > MaxImportBytes)
+                    vm.Error = "That file is too big. Split it into files under 2 MB.";
+                else
+                {
+                    using var reader = new StreamReader(file.OpenReadStream(), System.Text.Encoding.UTF8, true);
+                    text = await reader.ReadToEndAsync();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(sheetUrl))
+            {
+                vm.Source = "Google Sheet";
+                (text, vm.Error) = await DownloadGoogleSheetAsync(sheetUrl.Trim());
+            }
+            else
+                vm.Error = "Choose a CSV file or paste a Google Sheet link.";
+
+            if (text != null)
+            {
+                (vm.Rows, vm.Error) = ReadTriviaRows(CsvTable.Parse(text));
+                if (vm.Error == null)
+                    await CheckTriviaRowsAsync(divisionId, vm.Rows);
+            }
+
+            return View("ImportTrivia", vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportTriviaRows(int divisionId, string? rowsJson)
+        {
+            var vm = await NewTriviaImportAsync(divisionId);
+            if (vm == null) return NotFound();
+
+            // The preview's ready rows, checked again: the form can be edited, and another
+            // admin may have scheduled a question on one of these days since the preview
+            try
+            {
+                vm.Rows = System.Text.Json.JsonSerializer.Deserialize<List<TriviaImportRow>>(rowsJson ?? "") ?? new();
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                vm.Error = "The preview couldn't be read. Preview the file again.";
+                return View("ImportTrivia", vm);
+            }
+
+            await CheckTriviaRowsAsync(divisionId, vm.Rows);
+            var ready = vm.Ready;
+            if (ready.Count > 0)
+            {
+                await _supabase.From<TriviaDailyDto>().Insert(ready.Select(r => new TriviaDailyDto
+                {
+                    DivisionId = divisionId,
+                    GameDate = DateTime.ParseExact(r.Date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+                    Question = r.Question,
+                    RealAnswer = r.RealAnswer,
+                    Answer1 = r.Answer1,
+                    Answer2 = r.Answer2,
+                    Answer3 = r.Answer3,
+                }).ToList());
+
+                foreach (var r in ready)
+                    r.Status = "Imported";
+            }
+
+            vm.Imported = ready.Count;
+            return View("ImportTrivia", vm);
+        }
+
+        [HttpGet]
+        public IActionResult TriviaImportTemplate()
+        {
+            var day = DisplayTime.Today.AddDays(1);
+            var csv =
+                "date,question,correct_answer,wrong_answer_1,wrong_answer_2,wrong_answer_3\r\n" +
+                $"{day:yyyy-MM-dd},Type the question here,The correct answer,A wrong answer,Another wrong answer,A third wrong answer\r\n" +
+                $"{day.AddDays(1):yyyy-MM-dd},\"Questions with commas, like this one, go in quotes\",Correct,Wrong,Wrong too,Also wrong\r\n";
+            return File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", "trivia-import-template.csv");
+        }
+
+        private async Task<TriviaImportViewModel?> NewTriviaImportAsync(int divisionId)
+        {
+            var division = (await _supabase.From<RevUpIQ.Admin.Models.Division.DivisionDto>()
+                .Where(d => d.Id == divisionId)
+                .Get()).Models.FirstOrDefault();
+
+            return division == null
+                ? null
+                : new TriviaImportViewModel { DivisionId = divisionId, DivisionName = division.Name };
+        }
+
+        // Maps the header to fields and returns one TriviaImportRow per non-blank row
+        private static (List<TriviaImportRow> Rows, string? Error) ReadTriviaRows(List<string[]> table)
+        {
+            var rows = new List<TriviaImportRow>();
+            if (table.Count == 0)
+                return (rows, "The file is empty.");
+
+            var columns = new Dictionary<string, int>();
+            for (var i = 0; i < table[0].Length; i++)
+            {
+                var key = new string(table[0][i].Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+                if (TriviaImportColumns.TryGetValue(key, out var field))
+                    columns.TryAdd(field, i);
+            }
+
+            var missing = new[] { "date", "question", "real", "wrong1", "wrong2", "wrong3" }
+                .Where(f => !columns.ContainsKey(f))
+                .Select(f => f switch
+                {
+                    "real" => "correct_answer",
+                    "wrong1" => "wrong_answer_1",
+                    "wrong2" => "wrong_answer_2",
+                    "wrong3" => "wrong_answer_3",
+                    _ => f
+                })
+                .ToList();
+            if (missing.Count > 0)
+                return (rows, $"The first row must name the columns. Missing: {string.Join(", ", missing)}. " +
+                              "Download the template to see the layout.");
+
+            string Cell(string[] row, string field) =>
+                columns[field] < row.Length ? row[columns[field]].Trim() : "";
+
+            for (var i = 1; i < table.Count; i++)
+            {
+                if (table[i].All(string.IsNullOrWhiteSpace))
+                    continue;
+
+                rows.Add(new TriviaImportRow
+                {
+                    Row = i + 1,
+                    Date = Cell(table[i], "date"),
+                    Question = Cell(table[i], "question"),
+                    RealAnswer = Cell(table[i], "real"),
+                    Answer1 = Cell(table[i], "wrong1"),
+                    Answer2 = Cell(table[i], "wrong2"),
+                    Answer3 = Cell(table[i], "wrong3"),
+                });
+            }
+
+            if (rows.Count == 0)
+                return (rows, "The file has a header but no questions.");
+            if (rows.Count > MaxImportRows)
+                return (new List<TriviaImportRow>(), $"The file has {rows.Count} questions; import at most {MaxImportRows} at a time.");
+
+            return (rows, null);
+        }
+
+        // Sets each row's Status and Note: Error with the reason, Skipped when the day already
+        // has a question for this division, otherwise Ready
+        private async Task CheckTriviaRowsAsync(int divisionId, List<TriviaImportRow> rows)
+        {
+            var today = DisplayTime.Today;
+            long division = divisionId;
+            var taken = (await _supabase.From<TriviaDailyDto>()
+                    .Select("id,game_date")
+                    .Where(t => t.DivisionId == division)
+                    .Filter("game_date", Operator.GreaterThanOrEqual, today.ToString("yyyy-MM-dd"))
+                    .Get())
+                .Models.Select(t => t.GameDate.Date)
+                .ToHashSet();
+
+            var dates = new HashSet<DateTime>();
+            foreach (var r in rows)
+            {
+                r.Status = "Error";
+                r.Question = r.Question.Trim();
+                r.RealAnswer = r.RealAnswer.Trim();
+                r.Answer1 = r.Answer1.Trim();
+                r.Answer2 = r.Answer2.Trim();
+                r.Answer3 = r.Answer3.Trim();
+
+                if (!DateTime.TryParseExact(r.Date.Trim(), ImportDateFormats, System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var date))
+                {
+                    r.Note = "The date must look like 2026-11-05 or 11/5/2026.";
+                    continue;
+                }
+
+                r.Date = date.ToString("yyyy-MM-dd");
+                var answers = new[] { r.RealAnswer, r.Answer1, r.Answer2, r.Answer3 };
+
+                if (date < today)
+                    r.Note = "The date is in the past.";
+                else if (r.Question.Length == 0)
+                    r.Note = "The question is empty.";
+                else if (answers.Any(a => a.Length == 0))
+                    r.Note = "Every question needs a correct answer and three wrong answers.";
+                else if (answers.Distinct(StringComparer.OrdinalIgnoreCase).Count() < 4)
+                    r.Note = "Two of the answers are the same.";
+                else if (!dates.Add(date))
+                    r.Note = "Another row in this file uses the same date.";
+                else if (taken.Contains(date))
+                {
+                    r.Status = "Skipped";
+                    r.Note = "This day already has a question.";
+                }
+                else
+                {
+                    r.Status = "Ready";
+                    r.Note = null;
+                }
+            }
+        }
+
+        // Only Google Sheets links are fetched, and the address is rebuilt from the sheet's
+        // id, so a pasted link can't point the server anywhere else
+        private static async Task<(string? Text, string? Error)> DownloadGoogleSheetAsync(string link)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(link,
+                @"^https://docs\.google\.com/spreadsheets/d/(e/)?([A-Za-z0-9_-]+)");
+            if (!match.Success)
+                return (null, "Paste a Google Sheets link, starting with https://docs.google.com/spreadsheets/d/");
+
+            var gid = System.Text.RegularExpressions.Regex.Match(link, @"[#&?]gid=(\d+)");
+            var url = match.Groups[1].Success
+                ? $"https://docs.google.com/spreadsheets/d/e/{match.Groups[2].Value}/pub?output=csv"
+                : $"https://docs.google.com/spreadsheets/d/{match.Groups[2].Value}/export?format=csv";
+            if (gid.Success)
+                url += $"&gid={gid.Groups[1].Value}";
+
+            const string notShared =
+                "Google didn't share that sheet. In Google Sheets choose Share → General access → " +
+                "\"Anyone with the link\" (Viewer), or download it as a CSV file and upload that instead.";
+            try
+            {
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+                using var res = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                var type = res.Content.Headers.ContentType?.MediaType ?? "";
+                if (!res.IsSuccessStatusCode || type.Contains("html"))
+                    return (null, notShared);
+                if (res.Content.Headers.ContentLength > MaxImportBytes)
+                    return (null, "That sheet is too big. Split it into sheets under 2 MB.");
+
+                var text = await res.Content.ReadAsStringAsync();
+                return text.Length > MaxImportBytes
+                    ? (null, "That sheet is too big. Split it into sheets under 2 MB.")
+                    : (text, null);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                return (null, "Google Sheets couldn't be reached. Try again, or upload the sheet as a CSV file.");
+            }
+        }
+        #endregion
+
         #region Photo Guess Actions
         [HttpPost]
         public async Task<IActionResult> CreatePhotoGuess(int DivisionId, PhotoGuessItem model, string Date, IFormFile? ImageFile)

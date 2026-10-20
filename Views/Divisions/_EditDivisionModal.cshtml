@@ -7,34 +7,6 @@
 
 <div class="division-details">
 
-    <div class="division-details-header">
-        <h1 class="division-details-title">@Model?.Name</h1>
-
-        <div class="division-details-actions">
-            <form asp-controller="Divisions" asp-action="SetActive" method="post">
-                <input type="hidden" name="id" value="@Model?.Id" />
-                <input type="hidden" name="isActive" value="@(Model!.IsActive ? "false" : "true")" />
-                <button type="submit" class="admin-button">
-                    @(Model.IsActive ? "Deactivate Division" : "Reactivate Division")
-                </button>
-            </form>
-
-            <button id="openEdit" type="button" class="admin-button">
-                Rename Division
-            </button>
-
-            <form asp-controller="Divisions"
-                  asp-action="Delete"
-                  method="post"
-                  onsubmit="return confirm('Delete this division permanently?');">
-                <input type="hidden" name="id" value="@Model?.Id" />
-                <button type="submit" class="admin-button admin-button-danger">
-                    Delete Division
-                </button>
-            </form>
-        </div>
-    </div>
-
     <div class="division-details-body">
 
         <p class="division-section-hint">
@@ -100,12 +72,6 @@
         </section>
 
         <section class="division-section" id="store-ids">
-            <h2 class="division-section-title">Store IDs</h2>
-            <p class="division-section-hint">
-                The subscription the app sells for this division. Each ID must match Google Play Console
-                (one subscription with the base plans "monthly-plan" and "yearly-plan") or App Store Connect.
-                Leave a field empty if that product doesn't exist yet.
-            </p>
 
             @if (TempData["StoreIdsMessage"] is string storeIdsMessage)
             {
@@ -116,44 +82,56 @@
                 <div class="division-store-message error" role="alert">@storeIdsError</div>
             }
 
-            <form asp-controller="Divisions"
-                  asp-action="UpdateStoreIds"
-                  method="post"
-                  class="division-store-form">
+            @{
+                var storeIds = new[]
+                {
+                    ("Google Play", "Annual subscription", Model!.GoogleProductId),
+                    ("App Store", "Annual", Model.AppleProductIdAnnual),
+                };
+            }
 
-                <input type="hidden" name="id" value="@Model!.Id" />
+            <div class="division-store-card">
+                <div class="division-store-card-header">
+                    <div>
+                        <h2 class="division-section-title">
+                            Store IDs
+                            <span class="division-store-lock" title="Edit Store IDs asks you to confirm every change">
+                                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                                    <path fill="currentColor" d="M4 7V5a4 4 0 1 1 8 0v2h.5A1.5 1.5 0 0 1 14 8.5v6A1.5 1.5 0 0 1 12.5 16h-9A1.5 1.5 0 0 1 2 14.5v-6A1.5 1.5 0 0 1 3.5 7H4Zm2 0h4V5a2 2 0 1 0-4 0v2Z" />
+                                </svg>
+                                Locked
+                            </span>
+                        </h2>
+                        <p class="division-section-hint">The subscription the app sells for this division.</p>
+                    </div>
 
-                <label for="googleProductIdInput">Google Play subscription ID</label>
-                <input type="text"
-                       id="googleProductIdInput"
-                       name="googleProductId"
-                       value="@Model.GoogleProductId"
-                       class="admin-input"
-                       placeholder="e.g. pavement_sub"
-                       autocomplete="off" />
+                    <button id="openStoreIds" type="button" class="admin-button">
+                        Edit Store IDs
+                    </button>
+                </div>
 
-                <label for="appleProductIdMonthlyInput">App Store monthly product ID</label>
-                <input type="text"
-                       id="appleProductIdMonthlyInput"
-                       name="appleProductIdMonthly"
-                       value="@Model.AppleProductIdMonthly"
-                       class="admin-input"
-                       placeholder="e.g. pavement_monthly"
-                       autocomplete="off" />
-
-                <label for="appleProductIdAnnualInput">App Store annual product ID</label>
-                <input type="text"
-                       id="appleProductIdAnnualInput"
-                       name="appleProductIdAnnual"
-                       value="@Model.AppleProductIdAnnual"
-                       class="admin-input"
-                       placeholder="e.g. pavement_annual"
-                       autocomplete="off" />
-
-                <button type="submit" class="admin-button">
-                    Save Store IDs
-                </button>
-            </form>
+                <dl class="division-store-values">
+                    @foreach (var (store, plan, value) in storeIds)
+                    {
+                        <div class="division-store-row">
+                            <dt>
+                                <span class="division-store-name">@store</span>
+                                <span class="division-store-plan">@plan</span>
+                            </dt>
+                            <dd>
+                                @if (string.IsNullOrWhiteSpace(value))
+                                {
+                                    <span class="division-store-id is-empty">Not set</span>
+                                }
+                                else
+                                {
+                                    <code class="division-store-id">@value</code>
+                                }
+                            </dd>
+                        </div>
+                    }
+                </dl>
+            </div>
         </section>
 
         </div>
@@ -213,6 +191,56 @@
 
             <button type="submit" class="admin-button">
                 Save Name
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<div id="storeIdsModal" class="division-modal">
+    <div class="division-modal-box">
+
+        <button id="closeStoreIds" type="button" class="division-modal-close" aria-label="Close">
+            ✕
+        </button>
+
+        <h2 class="division-modal-title">Edit Store IDs</h2>
+
+        <p class="division-modal-hint">
+            Each ID must match Google Play Console (one subscription with the base plan
+            "yearly-plan") or App Store Connect. Leave a field empty if that product doesn't
+            exist yet. You'll be asked to confirm before anything is saved.
+        </p>
+
+        <form asp-controller="Divisions"
+              asp-action="UpdateStoreIds"
+              method="post"
+              id="storeIdsForm"
+              class="division-store-form"
+              data-division-name="@Model.Name">
+
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <label for="googleProductIdInput">Google Play subscription ID</label>
+            <input type="text"
+                   id="googleProductIdInput"
+                   name="googleProductId"
+                   value="@Model.GoogleProductId"
+                   class="admin-input"
+                   placeholder="e.g. pavement_sub"
+                   autocomplete="off" />
+
+            <label for="appleProductIdAnnualInput">App Store annual product ID</label>
+            <input type="text"
+                   id="appleProductIdAnnualInput"
+                   name="appleProductIdAnnual"
+                   value="@Model.AppleProductIdAnnual"
+                   class="admin-input"
+                   placeholder="e.g. pavement_annual"
+                   autocomplete="off" />
+
+            <button type="submit" class="admin-button">
+                Save Store IDs
             </button>
         </form>
     </div>

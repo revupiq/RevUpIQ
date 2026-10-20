@@ -58,6 +58,61 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // ---------- Store IDs (locked on the page, edited in a modal) ----------
+
+    const storeIdsModal = document.getElementById("storeIdsModal");
+    const storeIdsForm = document.getElementById("storeIdsForm");
+    const openStoreIdsBtn = document.getElementById("openStoreIds");
+    const closeStoreIdsBtn = document.getElementById("closeStoreIds");
+
+    if (storeIdsModal && storeIdsForm) {
+        // Closing drops unsaved edits so the modal reopens with the saved IDs
+        function closeStoreIds() {
+            storeIdsForm.reset();
+            storeIdsModal.style.display = "none";
+        }
+
+        if (openStoreIdsBtn) {
+            openStoreIdsBtn.addEventListener("click", function () {
+                storeIdsModal.style.display = "flex";
+            });
+        }
+
+        if (closeStoreIdsBtn) closeStoreIdsBtn.addEventListener("click", closeStoreIds);
+
+        storeIdsModal.addEventListener("click", function (e) {
+            if (e.target === storeIdsModal) closeStoreIds();
+        });
+
+        // Lists each changed ID (old -> new) and saves only after the admin confirms
+        storeIdsForm.addEventListener("submit", function (e) {
+            const changes = [];
+
+            storeIdsForm.querySelectorAll("input.admin-input").forEach(function (input) {
+                const before = input.defaultValue.trim();
+                const after = input.value.trim();
+                if (before === after) return;
+
+                const label = storeIdsForm.querySelector('label[for="' + input.id + '"]').textContent.trim();
+                changes.push(label + ":\n    " + (before || "(not set)") + "  →  " + (after || "REMOVED"));
+            });
+
+            if (changes.length === 0) {
+                e.preventDefault();
+                closeStoreIds();
+                return;
+            }
+
+            const divisionName = storeIdsForm.dataset.divisionName || "this division";
+            const message =
+                "Change the store IDs for " + divisionName + "?\n\n" +
+                changes.join("\n\n") +
+                "\n\nThe app uses these IDs to sell this division's subscription.";
+
+            if (!confirm(message)) e.preventDefault();
+        });
+    }
+
     // ---------- Image uploads (file picker or drag & drop) ----------
 
     // Posts a file to the server, reloads the page on success.

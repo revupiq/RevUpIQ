@@ -1,0 +1,155 @@
+@model RevUpIQ.Admin.Models.MiniGames.TriviaImportViewModel
+
+<link rel="stylesheet" href="~/css/trivia-import.css" asp-append-version="true" />
+
+@{
+    ViewData["Title"] = "Import Trivia";
+    var previewing = Model.Imported == null;
+}
+
+<div class="trivia-import">
+    <a class="trivia-import-back" asp-controller="Divisions" asp-action="Details" asp-route-id="@Model.DivisionId">
+        ← Back to @Model.DivisionName
+    </a>
+
+    <h1>Import trivia questions</h1>
+    <p class="division-section-hint">
+        For <strong>@Model.DivisionName</strong>. The app shows one question a day, so each row needs its own
+        date; a day that already has a question is skipped.
+    </p>
+
+    @if (Model.Imported is int imported)
+    {
+        <div class="division-store-message ok" role="status">
+            Imported @imported @(imported == 1 ? "question" : "questions") into @Model.DivisionName.
+            @if (Model.Rows.Any(r => r.Status != "Imported"))
+            {
+                <span>The other rows below weren't imported.</span>
+            }
+        </div>
+        <a class="admin-button trivia-import-again" asp-action="ImportTrivia" asp-route-divisionId="@Model.DivisionId">
+            Import another file
+        </a>
+    }
+
+    @if (previewing)
+    {
+        <section class="trivia-import-card">
+            <h2>1. Choose the questions</h2>
+            <p class="division-section-hint">
+                The first row names the columns: <code>date</code>, <code>question</code>, <code>correct_answer</code>,
+                <code>wrong_answer_1</code>, <code>wrong_answer_2</code>, <code>wrong_answer_3</code>.
+                Dates like 2026-11-05 or 11/5/2026.
+                <a asp-action="TriviaImportTemplate">Download the template</a>
+            </p>
+
+            <form asp-action="PreviewTriviaImport" method="post" enctype="multipart/form-data" class="trivia-import-form">
+                <input type="hidden" name="divisionId" value="@Model.DivisionId" />
+
+                <label for="importFile">CSV file</label>
+                <input type="file" id="importFile" name="file" accept=".csv,text/csv" class="admin-input" />
+
+                <div class="trivia-import-or">or</div>
+
+                <label for="importSheet">Google Sheet link</label>
+                <input type="url" id="importSheet" name="sheetUrl" class="admin-input"
+                       placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off" />
+                <p class="division-modal-hint">
+                    Share the sheet as "Anyone with the link" (Viewer). The tab open in the link is the one imported.
+                </p>
+
+                <button type="submit" class="admin-button">Preview</button>
+            </form>
+        </section>
+    }
+
+    @if (Model.Error != null)
+    {
+        <div class="division-store-message error" role="alert">
+            @if (Model.Source != null)
+            {
+                <strong>@Model.Source:</strong>
+            }
+            @Model.Error
+        </div>
+    }
+
+    @if (Model.Rows.Count > 0)
+    {
+        <section class="trivia-import-card">
+            <h2>@(previewing ? "2. Check and import" : "Result")</h2>
+
+            <div class="trivia-import-counts">
+                @if (previewing)
+                {
+                    <span class="trivia-status status-ready">@Model.Count("Ready") ready</span>
+                }
+                else
+                {
+                    <span class="trivia-status status-imported">@Model.Count("Imported") imported</span>
+                }
+                <span class="trivia-status status-skipped">@Model.Count("Skipped") skipped</span>
+                <span class="trivia-status status-error">@Model.Count("Error") with errors</span>
+                @if (Model.Source != null)
+                {
+                    <span class="trivia-import-source">from @Model.Source</span>
+                }
+            </div>
+
+            @if (previewing)
+            {
+                var ready = Model.Ready;
+                <form asp-action="ImportTriviaRows" method="post" class="trivia-import-confirm"
+                      onsubmit="const b = this.querySelector('button'); b.disabled = true; b.textContent = 'Importing…';">
+                    <input type="hidden" name="divisionId" value="@Model.DivisionId" />
+                    <input type="hidden" name="rowsJson" value="@System.Text.Json.JsonSerializer.Serialize(ready)" />
+                    @if (ready.Count > 0)
+                    {
+                        <button type="submit" class="admin-button">
+                            Import @ready.Count @(ready.Count == 1 ? "question" : "questions")
+                        </button>
+                        <span class="division-modal-hint">Only the ready rows are added. Fix errors in the file and preview again to add those too.</span>
+                    }
+                    else
+                    {
+                        <span class="division-modal-hint">Nothing to import. Fix the rows marked Error and preview the file again.</span>
+                    }
+                </form>
+            }
+
+            <div class="trivia-import-table-wrap">
+                <table class="trivia-import-table">
+                    <thead>
+                        <tr>
+                            <th>Row</th>
+                            <th>Date</th>
+                            <th>Question</th>
+                            <th>Correct answer</th>
+                            <th>Wrong answers</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Rows)
+                        {
+                            <tr class="row-@r.Status.ToLowerInvariant()">
+                                <td>@r.Row</td>
+                                <td class="nowrap">@r.Date</td>
+                                <td>@r.Question</td>
+                                <td>@r.RealAnswer</td>
+                                <td>@r.Answer1<br />@r.Answer2<br />@r.Answer3</td>
+                                <td>
+                                    <span class="trivia-status status-@r.Status.ToLowerInvariant()">@r.Status</span>
+                                    @if (r.Note != null)
+                                    {
+                                        <div class="trivia-import-note">@r.Note</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

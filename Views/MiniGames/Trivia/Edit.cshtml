@@ -39,6 +39,8 @@
                 </div>
             </div>
 
+            @await Html.PartialAsync("~/Views/MiniGames/_FunFactField.cshtml", game.FunFact)
+
             <button type="submit" class="admin-button save-btn" disabled>
                 Save Changes
             </button>
@@ -55,7 +57,7 @@
         if (!form) return;
 
         const saveBtn = form.querySelector(".save-btn");
-        const inputs = form.querySelectorAll("input, textarea");
+        const inputs = form.querySelectorAll("input:not([data-optional]), textarea:not([data-optional])");
 
         function validateForm() {
             let valid = true;

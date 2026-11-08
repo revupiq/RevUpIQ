@@ -170,6 +170,26 @@
     <span></span>
 </div>
 
+            <div class="user-row profile-row">
+                <span>Demo Account</span>
+                <span class="row-value">
+                    @* Null: demo_accounts couldn't be read (e.g. its migration isn't applied yet) *@
+                    <label class="admin-toggle">
+                        <input type="checkbox"
+                               id="demoAccountToggle"
+                               data-user-id="@profile.Id"
+                               @(Model.IsDemoAccount == true ? "checked" : "")
+                               @(Model.IsDemoAccount == null ? "disabled" : "") />
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">
+                            @(Model.IsDemoAccount switch { true => "ON", false => "OFF", null => "UNAVAILABLE" })
+                        </span>
+                    </label>
+                </span>
+                <span class="profile-row-hint">(can reset today's games from Settings)</span>
+                <span></span>
+            </div>
+
 
             <div class="user-row profile-row" data-editable>
                 <span>Country</span>

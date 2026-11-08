@@ -202,3 +202,37 @@ document.addEventListener('change', function (e) {
     });
 
 });
+
+// Demo Account toggle: on lets the player reset today's games from the app's Settings
+document.addEventListener('change', function (e) {
+
+    const demoToggle = e.target.closest('#demoAccountToggle');
+    if (!demoToggle) return;
+
+    const userId = demoToggle.dataset.userId;
+    const isDemo = demoToggle.checked;
+
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    const label = demoToggle.closest('.admin-toggle')?.querySelector('.toggle-text');
+
+    demoToggle.disabled = true;
+
+    fetch('/Users/UpdateDemoAccount', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(token ? { 'RequestVerificationToken': token } : {})
+        },
+        body: new URLSearchParams({ userId, isDemo })
+    }).then(res => {
+        if (!res.ok) throw new Error('Demo account update failed');
+        if (label) label.textContent = isDemo ? 'ON' : 'OFF';
+    }).catch(() => {
+        demoToggle.checked = !isDemo;
+        alert('Failed to update Demo Account');
+    }).finally(() => {
+        demoToggle.disabled = false;
+    });
+
+});

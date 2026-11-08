@@ -39,6 +39,8 @@
 
             @await Html.PartialAsync("~/Views/MiniGames/Wordle/_CategoryField.cshtml", game.Category)
 
+            @await Html.PartialAsync("~/Views/MiniGames/_FunFactField.cshtml", game.FunFact)
+
             <button type="submit" class="admin-button save-btn" disabled>Save Changes</button>
         </form>
     }

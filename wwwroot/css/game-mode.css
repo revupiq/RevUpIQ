@@ -74,13 +74,20 @@ button.game-mode-item {
     font-weight: 600;
 }
 
-/* Link to the trivia import page, under the game buttons */
+/* Links to the Trivia, Photo Guess and RaceWord import pages, under the game buttons */
 .minigame-import-link {
     margin: -24px 0 24px;
     text-align: center;
     font-size: 14px;
+    color: var(--light-blue);
 }
 
 .minigame-import-link a {
     color: var(--light-blue);
+    white-space: nowrap;
+}
+
+.minigame-import-sep {
+    margin: 0 6px;
+    opacity: 0.6;
 }

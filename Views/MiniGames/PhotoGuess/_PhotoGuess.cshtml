@@ -16,22 +16,33 @@
             @Model.Question
         </div>
 
-        <!-- IMAGE (SQUARE) -->
-        <div style="
-            width: 320px;
-            height: 320px;
-            margin: 0 auto 24px;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 6px 22px rgba(0,0,0,.5);
-            background: rgba(0,0,0,.35);
-        ">
-            <img src="@Model.ImageUrl" style="
-                     width: 100%;
-                     height: 100%;
-                     object-fit: cover;
-                 " />
-        </div>
+        @if (string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            @* The app skips a question without an image, e.g. one imported without image_url *@
+            <div class="photo-unpublished-frame">
+                <strong>Unpublished — no image</strong>
+                <span>Players won't see this question until you add an image with Edit Mini Game.</span>
+            </div>
+        }
+        else
+        {
+            <!-- IMAGE (SQUARE) -->
+            <div style="
+                width: 320px;
+                height: 320px;
+                margin: 0 auto 24px;
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 6px 22px rgba(0,0,0,.5);
+                background: rgba(0,0,0,.35);
+            ">
+                <img src="@Model.ImageUrl" style="
+                         width: 100%;
+                         height: 100%;
+                         object-fit: cover;
+                     " />
+            </div>
+        }
 
         <div class="trivia-options">
             <button class="trivia-option correct">@Model.RealAnswer</button>
@@ -39,6 +50,14 @@
             <button class="trivia-option">@Model.Answer2</button>
             <button class="trivia-option">@Model.Answer3</button>
         </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.FunFact))
+        {
+            <div class="mini-game-fun-fact">
+                <span class="mini-game-fun-fact-label">Fun Fact</span>
+                <span class="mini-game-fun-fact-text">@Model.FunFact</span>
+            </div>
+        }
     }
 
 </div>

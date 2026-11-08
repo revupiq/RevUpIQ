@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RevUpIQ.Admin.Infrastructure;
 using RevUpIQ.Admin.Models.MiniGames;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,9 @@ namespace RevUpIQ.Admin.Controllers
 
         public IActionResult Index()
         {
+            // The dashboard's "new" badge counts suggestions from this visit on
+            LastSeenCookie.Mark(HttpContext, LastSeenCookie.UserSuggestions);
+
             return View("~/Views/Exrta/UsersSuggestion.cshtml");
         }
 

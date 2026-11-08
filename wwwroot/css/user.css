@@ -171,6 +171,14 @@ body {
     gap: 10px;
 }
 
+/* Explains a toggle on the profile panel (Demo Account) */
+.user-profile .user-row.profile-row .profile-row-hint {
+    white-space: normal;
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--light-blue);
+}
+
 .user-profile .user-row.profile-row .row-actions {
     display: flex;
     align-items: center;

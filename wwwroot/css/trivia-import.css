@@ -158,3 +158,40 @@
     color: var(--light-blue);
     font-size: 12px;
 }
+
+/* Photo Guess and RaceWord imports use the same page; these cover their extra columns */
+.trivia-status.status-warn {
+    background: rgba(245, 176, 65, 0.18);
+    color: #f5b041;
+}
+
+.trivia-import-note.warn {
+    color: #f5b041;
+}
+
+.trivia-import-none {
+    color: var(--dark-grey);
+}
+
+.trivia-import-table .trivia-import-fact {
+    max-width: 260px;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.trivia-import-table .trivia-import-word {
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.trivia-import-table .trivia-import-image {
+    white-space: nowrap;
+}
+
+.trivia-import-image img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}

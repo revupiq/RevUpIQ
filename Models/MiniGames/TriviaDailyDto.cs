@@ -27,4 +27,8 @@ public class TriviaDailyDto : BaseModel
 
     [Column("answer3")]
     public string Answer3 { get; set; } = string.Empty;
+
+    // Shown under the correct answer on the app's win and lose screens; null when there's none
+    [Column("fun_fact")]
+    public string? FunFact { get; set; }
 }

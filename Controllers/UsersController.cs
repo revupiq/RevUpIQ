@@ -376,6 +376,20 @@ namespace RevUpIQ.Admin.Controllers
             var vm = await LoadUserProfileAsync(id);
             if (vm == null) return Content(string.Empty);
 
+            try
+            {
+                var userId = vm.Profile.Id;
+                vm.IsDemoAccount = (await _supabase
+                        .From<DemoAccount>()
+                        .Where(d => d.User_Id == userId)
+                        .Get())
+                    .Models.Count > 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Demo account lookup failed for {vm.Profile.Id}: {ex.Message}");
+            }
+
             return PartialView("_UserProfile", vm);
         }
 
@@ -899,6 +913,31 @@ namespace RevUpIQ.Admin.Controllers
                 .Where(p => p.Id == userId)
                 .Set(p => p.Free_Account, isFree)
                 .Update();
+
+            return Ok();
+        }
+
+        // On adds the user to demo_accounts, so the app's Settings lets them reset today's
+        // games (replays don't count: nothing is saved to user_game_plays). Off removes the row.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateDemoAccount(Guid userId, bool isDemo)
+        {
+            if (userId == Guid.Empty)
+                return BadRequest();
+
+            try
+            {
+                if (isDemo)
+                    await _supabase.From<DemoAccount>().Upsert(new DemoAccount { User_Id = userId });
+                else
+                    await _supabase.From<DemoAccount>().Where(d => d.User_Id == userId).Delete();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"UpdateDemoAccount failed for {userId}: {ex.Message}");
+                return StatusCode(500);
+            }
 
             return Ok();
         }

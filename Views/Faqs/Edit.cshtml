@@ -1,0 +1,78 @@
+@using RevUpIQ.Admin.Controllers
+@using RevUpIQ.Admin.Models.Faqs
+@model FaqForm
+@{
+    var isNew = !Model.Id.HasValue;
+    ViewData["Title"] = isNew ? "New FAQ" : "Edit FAQ";
+}
+
+<link rel="stylesheet" href="~/css/faqs.css" asp-append-version="true" />
+
+<div class="faq-page">
+    <div class="faq-header">
+        <h2 class="faq-title">@ViewData["Title"]</h2>
+        <a asp-action="Index" asp-route-category="@Model.ReturnCategory" class="faq-btn">Back to list</a>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="faq-banner error faq-summary"></div>
+
+    <form asp-action="Save" method="post" class="faq-form" novalidate>
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="ReturnCategory" />
+
+        <div class="faq-field">
+            <label class="faq-label" asp-for="Category">Category</label>
+            <select asp-for="Category" class="faq-input faq-select">
+                @foreach (var c in Faq.Categories)
+                {
+                    <option value="@c">@c</option>
+                }
+            </select>
+            <span asp-validation-for="Category" class="faq-error"></span>
+        </div>
+
+        <div class="faq-field">
+            <label class="faq-label" asp-for="Question">Question</label>
+            <textarea asp-for="Question" class="faq-input faq-textarea faq-textarea-short" rows="2"
+                      maxlength="@FaqsController.MaxQuestionLength" data-counter="questionCount"
+                      placeholder="e.g. How are points calculated?"></textarea>
+            <span class="faq-hint"><span id="questionCount">0</span> / @FaqsController.MaxQuestionLength</span>
+            <span asp-validation-for="Question" class="faq-error"></span>
+        </div>
+
+        <div class="faq-field">
+            <label class="faq-label" asp-for="Answer">Answer</label>
+            <textarea asp-for="Answer" class="faq-input faq-textarea" rows="7"
+                      maxlength="@FaqsController.MaxAnswerLength" data-counter="answerCount"></textarea>
+            <span class="faq-hint"><span id="answerCount">0</span> / @FaqsController.MaxAnswerLength · line breaks are kept</span>
+            <span asp-validation-for="Answer" class="faq-error"></span>
+        </div>
+
+        <label class="faq-toggle">
+            <input asp-for="IsActive" type="checkbox" />
+            <span>Active &mdash; players see it on the app's FAQ page</span>
+        </label>
+
+        @if (isNew)
+        {
+            <span class="faq-hint">New questions go to the end of the list; move them from the list afterwards.</span>
+        }
+
+        <div class="faq-footer">
+            <a asp-action="Index" asp-route-category="@Model.ReturnCategory" class="faq-btn">Cancel</a>
+            <button type="submit" class="faq-btn faq-btn-primary">@(isNew ? "Add question" : "Save changes")</button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    // Live character counters for the question and the answer
+    document.querySelectorAll('.faq-form [data-counter]').forEach(function (input) {
+        const count = document.getElementById(input.dataset.counter);
+        const update = () => count.textContent = input.value.length;
+        input.addEventListener('input', update);
+        update();
+    });
+})();
+</script>

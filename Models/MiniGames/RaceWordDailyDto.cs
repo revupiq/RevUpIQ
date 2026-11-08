@@ -18,4 +18,8 @@ public class RaceWordDailyDto : BaseModel
 
     [Column("category")]
     public string? Category { get; set; }
+
+    // Shown under the correct answer on the app's win and lose screens; null when there's none
+    [Column("fun_fact")]
+    public string? FunFact { get; set; }
 }

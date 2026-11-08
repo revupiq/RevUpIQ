@@ -26,8 +26,10 @@
         justify-content:center;
         align-items:center;
         text-decoration:none;
+        position:relative;
 ">
         User Suggestion
+        <span class="admin-card-badge" data-new-count="suggestions" hidden></span>
     </a>
 
 
@@ -37,8 +39,10 @@
         justify-content:center;
         align-items:center;
         text-decoration:none;
+        position:relative;
    ">
         Sponsors Requests
+        <span class="admin-card-badge" data-new-count="sponsorRequests" hidden></span>
     </a>
     <a asp-controller="GameHowToVideos" asp-action="Index" class="admin-card-small" style="
         width:300px;
@@ -58,4 +62,31 @@
    ">
         App Settings
     </a>
+    <a asp-controller="Faqs" asp-action="Index" class="admin-card-small" style="
+        width:300px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        text-decoration:none;
+   ">
+        FAQs
+    </a>
 </div>
+
+<script>
+    // "New" badges: submissions since this browser last opened each page. A count that
+    // couldn't be loaded leaves its badge hidden.
+    fetch('/Home/NewSubmissionCounts', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(counts => {
+            if (!counts) return;
+            document.querySelectorAll('[data-new-count]').forEach(badge => {
+                const n = counts[badge.dataset.newCount];
+                if (typeof n !== 'number' || n <= 0) return;
+                badge.textContent = (n > 99 ? '99+' : n) + ' new';
+                badge.title = n + ' new since you last opened this page';
+                badge.hidden = false;
+            });
+        })
+        .catch(() => { });
+</script>

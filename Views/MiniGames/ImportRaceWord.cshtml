@@ -1,0 +1,177 @@
+@model RevUpIQ.Admin.Models.MiniGames.RaceWordImportViewModel
+
+<link rel="stylesheet" href="~/css/trivia-import.css" asp-append-version="true" />
+
+@{
+    ViewData["Title"] = "Import RaceWord";
+    var previewing = Model.Imported == null;
+}
+
+<div class="trivia-import">
+    <a class="trivia-import-back" asp-controller="Divisions" asp-action="Details" asp-route-id="@Model.DivisionId">
+        ← Back to @Model.DivisionName
+    </a>
+
+    <h1>Import RaceWord words</h1>
+    <p class="division-section-hint">
+        For <strong>@Model.DivisionName</strong>. The app shows one word a day, so each row needs its own
+        date; a day that already has a word is skipped.
+    </p>
+
+    @if (Model.Imported is int imported)
+    {
+        <div class="division-store-message ok" role="status">
+            Imported @imported @(imported == 1 ? "word" : "words") into @Model.DivisionName.
+            @if (Model.Rows.Any(r => r.Status != "Imported"))
+            {
+                <span>The other rows below weren't imported.</span>
+            }
+        </div>
+        <a class="admin-button trivia-import-again" asp-action="ImportRaceWord" asp-route-divisionId="@Model.DivisionId">
+            Import another file
+        </a>
+    }
+
+    @if (previewing)
+    {
+        <section class="trivia-import-card">
+            <h2>1. Choose the words</h2>
+            <p class="division-section-hint">
+                The first row names the columns: <code>date</code>, <code>word</code> (4 to 6 letters),
+                <code>category</code> (Driver, Track, Car Component, Racing Term or your own, up to 50 characters;
+                leave it blank for none), and optionally <code>fun_fact</code> (up to 180 characters, shown under the answer).
+                Dates like 2026-11-05 or 11/5/2026. A word that isn't in the dictionary is added to the custom
+                dictionary so players can guess it.
+                <a asp-action="RaceWordImportTemplate">Download the template</a>
+            </p>
+
+            <form asp-action="PreviewRaceWordImport" method="post" enctype="multipart/form-data" class="trivia-import-form"
+                  onsubmit="const b = this.querySelector('button'); b.disabled = true; b.textContent = 'Checking…';">
+                <input type="hidden" name="divisionId" value="@Model.DivisionId" />
+
+                <label for="importFile">CSV file</label>
+                <input type="file" id="importFile" name="file" accept=".csv,text/csv" class="admin-input" />
+
+                <div class="trivia-import-or">or</div>
+
+                <label for="importSheet">Google Sheet link</label>
+                <input type="url" id="importSheet" name="sheetUrl" class="admin-input"
+                       placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off" />
+                <p class="division-modal-hint">
+                    Share the sheet as "Anyone with the link" (Viewer). The tab open in the link is the one imported.
+                </p>
+
+                <button type="submit" class="admin-button">Preview</button>
+            </form>
+        </section>
+    }
+
+    @if (Model.Error != null)
+    {
+        <div class="division-store-message error" role="alert">
+            @if (Model.Source != null)
+            {
+                <strong>@Model.Source:</strong>
+            }
+            @Model.Error
+        </div>
+    }
+
+    @if (Model.Rows.Count > 0)
+    {
+        <section class="trivia-import-card">
+            <h2>@(previewing ? "2. Check and import" : "Result")</h2>
+
+            <div class="trivia-import-counts">
+                @if (previewing)
+                {
+                    <span class="trivia-status status-ready">@Model.Count("Ready") ready</span>
+                }
+                else
+                {
+                    <span class="trivia-status status-imported">@Model.Count("Imported") imported</span>
+                }
+                <span class="trivia-status status-skipped">@Model.Count("Skipped") skipped</span>
+                <span class="trivia-status status-error">@Model.Count("Error") with errors</span>
+                @if (Model.Source != null)
+                {
+                    <span class="trivia-import-source">from @Model.Source</span>
+                }
+            </div>
+
+            @if (previewing)
+            {
+                var ready = Model.Ready;
+                <form asp-action="ImportRaceWordRows" method="post" class="trivia-import-confirm"
+                      onsubmit="const b = this.querySelector('button'); b.disabled = true; b.textContent = 'Importing…';">
+                    <input type="hidden" name="divisionId" value="@Model.DivisionId" />
+                    <input type="hidden" name="rowsJson" value="@System.Text.Json.JsonSerializer.Serialize(ready)" />
+                    @if (ready.Count > 0)
+                    {
+                        <button type="submit" class="admin-button">
+                            Import @ready.Count @(ready.Count == 1 ? "word" : "words")
+                        </button>
+                        <span class="division-modal-hint">Only the ready rows are added. Fix errors in the file and preview again to add those too.</span>
+                    }
+                    else
+                    {
+                        <span class="division-modal-hint">Nothing to import. Fix the rows marked Error and preview the file again.</span>
+                    }
+                </form>
+            }
+
+            <div class="trivia-import-table-wrap">
+                <table class="trivia-import-table">
+                    <thead>
+                        <tr>
+                            <th>Row</th>
+                            <th>Date</th>
+                            <th>Word</th>
+                            <th>Category</th>
+                            <th>Fun fact</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Rows)
+                        {
+                            var isWarning = r.Status is "Ready" or "Imported" && r.Note != null;
+                            <tr class="row-@r.Status.ToLowerInvariant()">
+                                <td>@r.Row</td>
+                                <td class="nowrap">@r.Date</td>
+                                <td class="nowrap trivia-import-word">@r.Word</td>
+                                <td>
+                                    @if (r.Category.Length > 0)
+                                    {
+                                        @r.Category
+                                    }
+                                    else
+                                    {
+                                        <span class="trivia-import-none">None</span>
+                                    }
+                                </td>
+                                <td class="trivia-import-fact">
+                                    @if (r.FunFact.Length > 0)
+                                    {
+                                        @r.FunFact
+                                    }
+                                    else
+                                    {
+                                        <span class="trivia-import-none">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="trivia-status status-@r.Status.ToLowerInvariant()">@r.Status</span>
+                                    @if (r.Note != null)
+                                    {
+                                        <div class="trivia-import-note @(isWarning ? "warn" : "")">@r.Note</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

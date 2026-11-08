@@ -13,6 +13,7 @@
     var monthText = new DateTime(year, month, 1).ToString("MMMM yyyy");
 
     var flags = ViewData["DayFlags"] as Dictionary<int, bool> ?? new();
+    var noImageDays = ViewData["NoImageDays"] as HashSet<int> ?? new();
 }
 
 
@@ -45,6 +46,10 @@
                 @if (isToday)
                 {
                     <div class="calendar-today">TODAY</div>
+                }
+                @if (noImageDays.Contains(day))
+                {
+                    <div class="calendar-no-image" title="Unpublished — no image">NO IMAGE</div>
                 }
             </div>
         }

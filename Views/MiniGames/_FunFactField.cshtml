@@ -1,0 +1,43 @@
+@using RevUpIQ.Admin.Controllers
+@model string?
+
+@* Optional; the app shows it under the correct answer on the win and lose screens.
+   data-optional keeps it out of the forms' "every field filled" check. *@
+<div class="fun-fact-field">
+    <label class="fun-fact-label" for="funFactInput">Fun Fact (optional)</label>
+
+    <textarea id="funFactInput"
+              name="FunFact"
+              class="fun-fact-input"
+              rows="2"
+              maxlength="@MiniGamesController.MaxFunFactLength"
+              placeholder="Shown under the correct answer after the game"
+              data-optional>@Model</textarea>
+
+    <span class="fun-fact-count" id="funFactCount">0 / @MiniGamesController.MaxFunFactLength</span>
+</div>
+
+<style>
+    .fun-fact-field { width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 8px; }
+    .fun-fact-label { font-size: 12px; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; color: var(--light-blue); text-align: center; }
+    .fun-fact-input { width: 100%; box-sizing: border-box; background: var(--background); border: 1px solid var(--mid-dark-blue); border-radius: 14px; padding: 12px 14px; color: var(--white); font: inherit; font-size: 16px; resize: vertical; }
+    .fun-fact-input:focus { outline: none; border-color: var(--secondary); }
+    .fun-fact-count { align-self: flex-end; font-size: 12px; color: var(--light-blue); }
+    .fun-fact-count.at-limit { color: var(--yellow); font-weight: 700; }
+</style>
+
+<script>
+(function () {
+    const input = document.getElementById('funFactInput');
+    const count = document.getElementById('funFactCount');
+    const max = @MiniGamesController.MaxFunFactLength;
+
+    function update() {
+        count.textContent = input.value.length + ' / ' + max;
+        count.classList.toggle('at-limit', input.value.length >= max);
+    }
+
+    input.addEventListener('input', update);
+    update();
+})();
+</script>

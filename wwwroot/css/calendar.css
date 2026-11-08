@@ -65,6 +65,17 @@
     margin-top: 4px;
     font-weight: 600;
 }
+/* Photo Guess day whose question has no image yet (unpublished) */
+.calendar-no-image {
+    font-size: 9px;
+    margin-top: 4px;
+    padding: 1px 0;
+    border-radius: 4px;
+    background: var(--yellow);
+    color: var(--dark-blue);
+    font-weight: 800;
+}
+
 .calendar-disabled {
     background-color: #7e7e7e !important;
     opacity: 0.6;

@@ -1,0 +1,203 @@
+@model RevUpIQ.Admin.Models.MiniGames.PhotoGuessImportViewModel
+
+<link rel="stylesheet" href="~/css/trivia-import.css" asp-append-version="true" />
+
+@{
+    ViewData["Title"] = "Import Photo Guess";
+    var previewing = Model.Imported == null;
+    var withoutImage = Model.Rows.Count(r => r.Status is "Ready" or "Imported" && r.ImageLink.Length == 0);
+}
+
+<div class="trivia-import">
+    <a class="trivia-import-back" asp-controller="Divisions" asp-action="Details" asp-route-id="@Model.DivisionId">
+        ← Back to @Model.DivisionName
+    </a>
+
+    <h1>Import Photo Guess questions</h1>
+    <p class="division-section-hint">
+        For <strong>@Model.DivisionName</strong>. The app shows one question a day, so each row needs its own
+        date; a day that already has a question is skipped. A question without an image is imported unpublished:
+        players don't see it until you add the image on that day's Edit Mini Game page.
+    </p>
+
+    @if (Model.Imported is int imported)
+    {
+        <div class="division-store-message ok" role="status">
+            Imported @imported @(imported == 1 ? "question" : "questions") into @Model.DivisionName.
+            @if (Model.Rows.Any(r => r.Status != "Imported"))
+            {
+                <span>The other rows below weren't imported.</span>
+            }
+        </div>
+        <a class="admin-button trivia-import-again" asp-action="ImportPhotoGuess" asp-route-divisionId="@Model.DivisionId">
+            Import another file
+        </a>
+    }
+
+    @if (previewing)
+    {
+        <section class="trivia-import-card">
+            <h2>1. Choose the questions</h2>
+            <p class="division-section-hint">
+                The first row names the columns: <code>date</code>, <code>question</code>, <code>correct_answer</code>,
+                <code>wrong_answer_1</code>, <code>wrong_answer_2</code>, <code>wrong_answer_3</code>, and optionally
+                <code>fun_fact</code> (up to 180 characters, shown under the answer) and <code>image_url</code>.
+                Dates like 2026-11-05 or 11/5/2026.
+                <a asp-action="PhotoGuessImportTemplate">Download the template</a>
+            </p>
+            <p class="division-section-hint">
+                <code>image_url</code> is a Google Drive link to the image, shared as "Anyone with the link" (Viewer),
+                or a direct link to a JPEG, PNG, WebP or GIF of up to 10 MB. The images are copied into the panel's
+                storage when you import. Leave it blank to add the image later.
+            </p>
+
+            <form asp-action="PreviewPhotoGuessImport" method="post" enctype="multipart/form-data" class="trivia-import-form"
+                  onsubmit="const b = this.querySelector('button'); b.disabled = true; b.textContent = 'Checking…';">
+                <input type="hidden" name="divisionId" value="@Model.DivisionId" />
+
+                <label for="importFile">CSV file</label>
+                <input type="file" id="importFile" name="file" accept=".csv,text/csv" class="admin-input" />
+
+                <div class="trivia-import-or">or</div>
+
+                <label for="importSheet">Google Sheet link</label>
+                <input type="url" id="importSheet" name="sheetUrl" class="admin-input"
+                       placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off" />
+                <p class="division-modal-hint">
+                    Share the sheet as "Anyone with the link" (Viewer). The tab open in the link is the one imported.
+                </p>
+
+                <button type="submit" class="admin-button">Preview</button>
+            </form>
+        </section>
+    }
+
+    @if (Model.Error != null)
+    {
+        <div class="division-store-message error" role="alert">
+            @if (Model.Source != null)
+            {
+                <strong>@Model.Source:</strong>
+            }
+            @Model.Error
+        </div>
+    }
+
+    @if (Model.Rows.Count > 0)
+    {
+        <section class="trivia-import-card">
+            <h2>@(previewing ? "2. Check and import" : "Result")</h2>
+
+            <div class="trivia-import-counts">
+                @if (previewing)
+                {
+                    <span class="trivia-status status-ready">@Model.Count("Ready") ready</span>
+                }
+                else
+                {
+                    <span class="trivia-status status-imported">@Model.Count("Imported") imported</span>
+                }
+                @if (withoutImage > 0)
+                {
+                    <span class="trivia-status status-warn">@withoutImage without an image (unpublished)</span>
+                }
+                <span class="trivia-status status-skipped">@Model.Count("Skipped") skipped</span>
+                <span class="trivia-status status-error">@Model.Count("Error") with errors</span>
+                @if (Model.Source != null)
+                {
+                    <span class="trivia-import-source">from @Model.Source</span>
+                }
+            </div>
+
+            @if (previewing)
+            {
+                var ready = Model.Ready;
+                <form asp-action="ImportPhotoGuessRows" method="post" class="trivia-import-confirm"
+                      onsubmit="const b = this.querySelector('button'); b.disabled = true; b.textContent = 'Importing…';">
+                    <input type="hidden" name="divisionId" value="@Model.DivisionId" />
+                    <input type="hidden" name="rowsJson" value="@System.Text.Json.JsonSerializer.Serialize(ready)" />
+                    @if (ready.Count > 0)
+                    {
+                        <button type="submit" class="admin-button">
+                            Import @ready.Count @(ready.Count == 1 ? "question" : "questions")
+                        </button>
+                        <span class="division-modal-hint">
+                            Only the ready rows are added. Downloading the images can take a minute; a row whose image
+                            fails is shown as an error and the others still import.
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="division-modal-hint">Nothing to import. Fix the rows marked Error and preview the file again.</span>
+                    }
+                </form>
+            }
+
+            <div class="trivia-import-table-wrap">
+                <table class="trivia-import-table">
+                    <thead>
+                        <tr>
+                            <th>Row</th>
+                            <th>Date</th>
+                            <th>Image</th>
+                            <th>Question</th>
+                            <th>Correct answer</th>
+                            <th>Wrong answers</th>
+                            <th>Fun fact</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Rows)
+                        {
+                            var isLink = ImportImageClient.DownloadUrl(r.ImageLink) != null;
+                            var isWarning = r.Status is "Ready" or "Imported" && r.Note != null;
+                            <tr class="row-@r.Status.ToLowerInvariant()">
+                                <td>@r.Row</td>
+                                <td class="nowrap">@r.Date</td>
+                                <td class="trivia-import-image">
+                                    @if (r.StoredImageUrl != null)
+                                    {
+                                        <img src="@r.StoredImageUrl" alt="Imported image" />
+                                    }
+                                    else if (r.ImageLink.Length == 0)
+                                    {
+                                        <span class="trivia-import-none">No image</span>
+                                    }
+                                    else if (isLink)
+                                    {
+                                        <a href="@r.ImageLink" target="_blank" rel="noopener noreferrer">Image link</a>
+                                    }
+                                    else
+                                    {
+                                        @r.ImageLink
+                                    }
+                                </td>
+                                <td>@r.Question</td>
+                                <td>@r.RealAnswer</td>
+                                <td>@r.Answer1<br />@r.Answer2<br />@r.Answer3</td>
+                                <td class="trivia-import-fact">
+                                    @if (r.FunFact.Length > 0)
+                                    {
+                                        @r.FunFact
+                                    }
+                                    else
+                                    {
+                                        <span class="trivia-import-none">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="trivia-status status-@r.Status.ToLowerInvariant()">@r.Status</span>
+                                    @if (r.Note != null)
+                                    {
+                                        <div class="trivia-import-note @(isWarning ? "warn" : "")">@r.Note</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

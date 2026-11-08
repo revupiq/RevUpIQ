@@ -10,5 +10,8 @@ namespace RevUpIQ.Admin.Models.Users
         public List<UserGamePlay> GamePlays { get; set; } = new();
         public List<YourApp.Models.Support.Ticket> SupportTickets { get; set; } = new();
         public bool SupportTicketsLoadFailed { get; set; }
+
+        // Set by the profile panel only: true/false, or null if demo_accounts couldn't be read
+        public bool? IsDemoAccount { get; set; }
     }
 }

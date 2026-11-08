@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RevUpIQ.Admin.Infrastructure;
 using RevUpIQ.Admin.Models.Sponsors;
 
 namespace RevUpIQ.Admin.Controllers
@@ -21,6 +22,9 @@ namespace RevUpIQ.Admin.Controllers
                 .Get();
 
             var inquiries = response.Models;
+
+            // The dashboard's "new" badge counts requests from this visit on
+            LastSeenCookie.Mark(HttpContext, LastSeenCookie.SponsorRequests);
 
             return View("~/Views/Sponsor/SponsorsRequests.cshtml", inquiries);
         }

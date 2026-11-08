@@ -38,7 +38,8 @@
             <h2>1. Choose the questions</h2>
             <p class="division-section-hint">
                 The first row names the columns: <code>date</code>, <code>question</code>, <code>correct_answer</code>,
-                <code>wrong_answer_1</code>, <code>wrong_answer_2</code>, <code>wrong_answer_3</code>.
+                <code>wrong_answer_1</code>, <code>wrong_answer_2</code>, <code>wrong_answer_3</code>, and optionally
+                <code>fun_fact</code> (up to 180 characters, shown under the answer).
                 Dates like 2026-11-05 or 11/5/2026.
                 <a asp-action="TriviaImportTemplate">Download the template</a>
             </p>
@@ -126,6 +127,7 @@
                             <th>Question</th>
                             <th>Correct answer</th>
                             <th>Wrong answers</th>
+                            <th>Fun fact</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -138,6 +140,16 @@
                                 <td>@r.Question</td>
                                 <td>@r.RealAnswer</td>
                                 <td>@r.Answer1<br />@r.Answer2<br />@r.Answer3</td>
+                                <td class="trivia-import-fact">
+                                    @if (r.FunFact.Length > 0)
+                                    {
+                                        @r.FunFact
+                                    }
+                                    else
+                                    {
+                                        <span class="trivia-import-none">—</span>
+                                    }
+                                </td>
                                 <td>
                                     <span class="trivia-status status-@r.Status.ToLowerInvariant()">@r.Status</span>
                                     @if (r.Note != null)

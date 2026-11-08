@@ -23,6 +23,14 @@ else
         <button class="trivia-option">@Model.Answer2</button>
         <button class="trivia-option">@Model.Answer3</button>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.FunFact))
+    {
+        <div class="mini-game-fun-fact">
+            <span class="mini-game-fun-fact-label">Fun Fact</span>
+            <span class="mini-game-fun-fact-text">@Model.FunFact</span>
+        </div>
+    }
 }
 
 </div>

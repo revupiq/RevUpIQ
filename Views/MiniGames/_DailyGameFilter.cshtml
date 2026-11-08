@@ -41,9 +41,12 @@
 </div>
 
 <p class="minigame-import-link">
-    <a asp-controller="MiniGames" asp-action="ImportTrivia" asp-route-divisionId="@Model.Id">
-        Bulk import trivia questions from a CSV file or Google Sheet →
-    </a>
+    Bulk import from a CSV file or Google Sheet:
+    <a asp-controller="MiniGames" asp-action="ImportTrivia" asp-route-divisionId="@Model.Id">Trivia →</a>
+    <span class="minigame-import-sep">·</span>
+    <a asp-controller="MiniGames" asp-action="ImportPhotoGuess" asp-route-divisionId="@Model.Id">Photo Guess →</a>
+    <span class="minigame-import-sep">·</span>
+    <a asp-controller="MiniGames" asp-action="ImportRaceWord" asp-route-divisionId="@Model.Id">RaceWord →</a>
 </p>
 
 

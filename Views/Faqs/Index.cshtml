@@ -1,0 +1,113 @@
+@using RevUpIQ.Admin.Models.Faqs
+@model FaqIndexViewModel
+@{
+    ViewData["Title"] = "FAQs";
+    var shown = Model.Shown;
+    var activeCount = shown.Count(f => f.IsActive);
+}
+
+<link rel="stylesheet" href="~/css/faqs.css" asp-append-version="true" />
+
+<div class="faq-page">
+    <div class="faq-header">
+        <h2 class="faq-title">FAQs</h2>
+        <a asp-action="Create" asp-route-category="@Model.Category" class="faq-btn faq-btn-primary">+ New question</a>
+    </div>
+
+    <p class="faq-intro">
+        The app's FAQ page lists the <b>active</b> questions in this order, with a chip per category to
+        filter them. Changes show up in the app straight away. Drag a question, or use the arrows, to move it.
+    </p>
+
+    @if (TempData["Message"] is string flash)
+    {
+        <div class="faq-banner ok" role="status">@flash</div>
+    }
+    @if (TempData["Error"] is string flashError)
+    {
+        <div class="faq-banner error" role="alert">@flashError</div>
+    }
+    @if (Model.Error != null)
+    {
+        <div class="faq-banner error" role="alert">@Model.Error</div>
+    }
+
+    <nav class="faq-filters" aria-label="Category">
+        <a asp-action="Index" class="faq-filter @(Model.Category == null ? "selected" : "")">
+            All <span class="faq-filter-count">@Model.Faqs.Count</span>
+        </a>
+        @foreach (var c in Faq.Categories)
+        {
+            <a asp-action="Index" asp-route-category="@c" class="faq-filter @(Model.Category == c ? "selected" : "")">
+                @c <span class="faq-filter-count">@Model.Faqs.Count(f => f.Category == c)</span>
+            </a>
+        }
+    </nav>
+
+    @if (shown.Count == 0 && Model.Error == null)
+    {
+        <div class="faq-empty">
+            @(Model.Category == null ? "No questions yet." : $"No {Model.Category} questions yet.")
+            Add one to show it on the app's FAQ page.
+        </div>
+    }
+    else if (shown.Count > 0)
+    {
+        <p class="faq-summary">
+            @shown.Count @(shown.Count == 1 ? "question" : "questions"), @activeCount active
+            @if (Model.Category != null)
+            {
+                <span>· moving one changes its place among the @Model.Category questions only</span>
+            }
+        </p>
+    }
+
+    @* For the reorder script, which also sends the list's data-category *@
+    @Html.AntiForgeryToken()
+
+    <ol class="faq-list" id="faqList" data-category="@Model.Category">
+        @foreach (var (f, i) in shown.Select((f, i) => (f, i)))
+        {
+            <li class="faq-card @(f.IsActive ? "" : "inactive")" data-faq-id="@f.Id" draggable="true">
+                <div class="faq-card-top">
+                    <span class="faq-grip" aria-hidden="true" title="Drag to move">⠿</span>
+                    <span class="faq-order-badge">@(i + 1)</span>
+                    <span class="faq-chip faq-chip-category">@f.Category</span>
+                    <span class="faq-chip @(f.IsActive ? "active" : "inactive")">@(f.IsActive ? "Active" : "Inactive")</span>
+
+                    <span class="faq-sort-controls">
+                        <button type="button" class="faq-sort-button" data-dir="UP" title="Move up"
+                                aria-label="Move up" disabled="@(i == 0)">▲</button>
+                        <button type="button" class="faq-sort-button" data-dir="DOWN" title="Move down"
+                                aria-label="Move down" disabled="@(i == shown.Count - 1)">▼</button>
+                    </span>
+                </div>
+
+                <p class="faq-question">@f.Question</p>
+                <p class="faq-answer">@f.Answer</p>
+
+                <div class="faq-actions">
+                    <a asp-action="Edit" asp-route-id="@f.Id" asp-route-category="@Model.Category" class="faq-btn">Edit</a>
+
+                    <form asp-action="SetActive" method="post">
+                        <input type="hidden" name="id" value="@f.Id" />
+                        <input type="hidden" name="active" value="@(f.IsActive ? "false" : "true")" />
+                        <input type="hidden" name="category" value="@Model.Category" />
+                        <button type="submit" class="faq-btn">@(f.IsActive ? "Deactivate" : "Activate")</button>
+                    </form>
+
+                    <form asp-action="Delete" method="post"
+                          onsubmit="return confirm('Delete this question? This cannot be undone.');">
+                        <input type="hidden" name="id" value="@f.Id" />
+                        <input type="hidden" name="category" value="@Model.Category" />
+                        <button type="submit" class="faq-btn faq-btn-danger">Delete</button>
+                    </form>
+
+                    <span class="faq-updated">Updated @DisplayTime.Format(f.UpdatedAt)</span>
+                </div>
+            </li>
+        }
+    </ol>
+</div>
+
+<script src="~/js/faq-reorder.js" asp-append-version="true"></script>

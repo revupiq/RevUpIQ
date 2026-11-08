@@ -1,6 +1,7 @@
 ﻿@using RevUpIQ.Admin.Models.MiniGames
 @{
     var game = ViewData["GameData"] as PhotoGuessDailyDto;
+    var hasImage = !string.IsNullOrWhiteSpace(game?.ImageUrl);
 }
 
 <div class="trivia-game">
@@ -24,20 +25,31 @@ else
                   name="Question"
                   rows="3">@game.Question</textarea>
 
-        <!-- IMAGE -->
-        <div class="photo-upload">
+        <!-- IMAGE (without one, a full-width area to add it) -->
+        <div class="photo-upload"
+             style="@(hasImage ? "" : "width:100%; max-width:700px; display:flex; flex-direction:column; gap:12px;")">
+
+            @if (!hasImage)
+            {
+                @* e.g. imported from a CSV without an image_url; the app skips it until one is added *@
+                <div class="photo-unpublished" id="photoUnpublished" role="status">
+                    <strong>Unpublished — no image.</strong>
+                    Players won't see this question until you add one.
+                </div>
+            }
 
             <div id="photoImageFrame"
-                 data-has-image="@(string.IsNullOrEmpty(game.ImageUrl) ? "false" : "true")">
+                 class="@(hasImage ? "" : "photo-image-frame")"
+                 data-has-image="@(hasImage ? "true" : "false")">
 
                 <img id="photoPreview"
-                     src="@(string.IsNullOrEmpty(game.ImageUrl) ? "" : game.ImageUrl)"
+                     src="@(hasImage ? game.ImageUrl : "")"
                      alt="Preview"
-                     style="@(string.IsNullOrEmpty(game.ImageUrl) ? "display:none;" : "display:block;")" />
+                     style="@(hasImage ? "display:block;" : "display:none;")" />
 
                 <span class="photo-image-placeholder"
-                      style="@(string.IsNullOrEmpty(game.ImageUrl) ? "" : "display:none;")">
-                    Click image to change
+                      style="@(hasImage ? "display:none;" : "")">
+                    @(hasImage ? "Click image to change" : "Click here to add the image")
                 </span>
 
             </div>
@@ -86,6 +98,8 @@ else
 
         </div>
 
+        @await Html.PartialAsync("~/Views/MiniGames/_FunFactField.cshtml", game.FunFact)
+
         <button type="submit"
                 class="admin-button save-btn"
                 disabled>
@@ -104,26 +118,20 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!form) return;
 
     const saveBtn = form.querySelector(".save-btn");
-    const inputs = form.querySelectorAll("input:not([type='hidden']):not([type='file']), textarea");
+    const inputs = form.querySelectorAll("input:not([type='hidden']):not([type='file']), textarea:not([data-optional])");
     const imageInput = document.getElementById("imageInput");
     const frame = document.getElementById("photoImageFrame");
     const preview = document.getElementById("photoPreview");
     const placeholder = frame.querySelector(".photo-image-placeholder");
 
-    function hasExistingImage() {
-        return frame.dataset.hasImage === "true";
-    }
-
+    // The image isn't required to save: a question without one stays unpublished
+    // until an image is added
     function validateForm() {
         let isValid = true;
 
         inputs.forEach(function (el) {
             if (!el.value.trim()) isValid = false;
         });
-
-        const hasNewImage = imageInput.files && imageInput.files.length > 0;
-        const imageOk = hasNewImage || hasExistingImage();
-        if (!imageOk) isValid = false;
 
         saveBtn.disabled = !isValid;
         saveBtn.style.opacity = isValid ? "1" : "0.5";
@@ -147,6 +155,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 preview.style.display = "block";
                 placeholder.style.display = "none";
                 frame.dataset.hasImage = "true";
+
+                const unpublished = document.getElementById("photoUnpublished");
+                if (unpublished) unpublished.textContent = "Image chosen — the question is published when you save.";
+
                 validateForm();
             };
 

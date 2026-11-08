@@ -30,9 +30,9 @@
                 <input class="edit-option" type="text" name="Answer3" placeholder="Answer C" />
             </div>
 
-
-
         </div>
+
+        @await Html.PartialAsync("~/Views/MiniGames/_FunFactField.cshtml", (string?)null)
 
         <button type="submit" class="admin-button save-btn" disabled>
             Create Trivia Question
@@ -48,7 +48,7 @@
 
         const form = document.getElementById("triviaCreateForm");
         const saveBtn = form.querySelector(".save-btn");
-        const inputs = form.querySelectorAll("input, textarea");
+        const inputs = form.querySelectorAll("input:not([data-optional]), textarea:not([data-optional])");
 
         function validateForm() {
             let valid = true;

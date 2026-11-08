@@ -46,6 +46,8 @@
             
         </div>
 
+        @await Html.PartialAsync("~/Views/MiniGames/_FunFactField.cshtml", (string?)null)
+
         <button type="submit" class="admin-button save-btn" disabled>
             Create Photo Guess
         </button>
@@ -106,7 +108,7 @@
 
         const form = document.getElementById("photoGuessCreateForm");
         const saveBtn = form.querySelector(".save-btn");
-        const inputs = form.querySelectorAll('input:not([type="hidden"]):not([type="file"]), textarea');
+        const inputs = form.querySelectorAll('input:not([type="hidden"]):not([type="file"]), textarea:not([data-optional])');
 
         const imageInput = document.getElementById("imageInput");
         const frame = document.getElementById("photoImageFrame");

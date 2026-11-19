@@ -44,7 +44,12 @@ namespace RevUpIQ.Admin.Controllers
                 ? r + t + p
                 : null;
 
-            return Json(new { suggestions, sponsorRequests = sponsors.Result });
+            // Only for the sections this account can open
+            return Json(new
+            {
+                suggestions = User.CanAccess("suggestions") ? suggestions : null,
+                sponsorRequests = User.CanAccess("sponsor_requests") ? sponsors.Result : null
+            });
         }
 
         // A HEAD request with count=exact: only the number comes back, not the rows

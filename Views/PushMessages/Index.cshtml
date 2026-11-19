@@ -1,0 +1,94 @@
+@using RevUpIQ.Admin.Models.PushMessages
+@model PushMessageIndexViewModel
+@{
+    ViewData["Title"] = "Push Notifications";
+}
+
+<link rel="stylesheet" href="~/css/faqs.css" asp-append-version="true" />
+
+<div class="faq-page">
+    <div class="faq-header">
+        <h2 class="faq-title">Push Notifications</h2>
+        <a asp-action="Create" class="faq-btn faq-btn-primary">+ New text</a>
+    </div>
+
+    <p class="faq-intro">
+        The daily game reminder: once a day, players who still have games to play (and reminders on)
+        get one notification. The types below take turns from day to day, and within a type the
+        <b>active</b> texts take turns in the order shown. A type with no active texts is skipped;
+        if <b>Today's games</b> has none, the app's built-in texts are used. Changes apply from the next reminder.
+    </p>
+
+    <p class="faq-summary">
+        Placeholders are filled in for each player:
+        @foreach (var p in PushMessageTexts.Placeholders)
+        {
+            <span><b>{@p.Name}</b> @p.Meaning (e.g. "@p.Sample")@(p == PushMessageTexts.Placeholders.Last() ? "." : ";")</span>
+        }
+    </p>
+
+    @if (TempData["Message"] is string flash)
+    {
+        <div class="faq-banner ok" role="status">@flash</div>
+    }
+    @if (TempData["Error"] is string flashError)
+    {
+        <div class="faq-banner error" role="alert">@flashError</div>
+    }
+    @if (Model.Error != null)
+    {
+        <div class="faq-banner error" role="alert">@Model.Error</div>
+    }
+
+    @if (Model.Error == null)
+    {
+        foreach (var kind in PushMessageTexts.Kinds)
+        {
+            var texts = Model.Messages.Where(m => m.Kind == kind.Key).ToList();
+            var activeCount = texts.Count(m => m.IsActive);
+
+            <div class="faq-header" style="margin-top:28px;">
+                <h3 class="faq-title" style="font-size:20px;">@kind.Label</h3>
+                <a asp-action="Create" asp-route-kind="@kind.Key" class="faq-btn">+ Add</a>
+            </div>
+            <p class="faq-summary">
+                @kind.WhenSent Can use @string.Join(", ", kind.Placeholders.Select(p => "{" + p + "}")).
+                @texts.Count @(texts.Count == 1 ? "text" : "texts"), @activeCount active@(activeCount == 0 ? (kind.Key == "general" ? " — the built-in texts are used" : " — this type isn't sent") : "").
+            </p>
+
+            <ol class="faq-list">
+                @foreach (var m in texts)
+                {
+                    <li class="faq-card @(m.IsActive ? "" : "inactive")">
+                        <div class="faq-card-top">
+                            <span class="faq-chip faq-chip-category">@kind.Label</span>
+                            <span class="faq-chip @(m.IsActive ? "active" : "inactive")">@(m.IsActive ? "Active" : "Off")</span>
+                        </div>
+
+                        <p class="faq-question">@m.Title</p>
+                        <p class="faq-answer">@m.Body</p>
+                        <p class="faq-hint">Example: <b>@PushMessageTexts.Preview(m.Title)</b> — @PushMessageTexts.Preview(m.Body)</p>
+
+                        <div class="faq-actions">
+                            <a asp-action="Edit" asp-route-id="@m.Id" class="faq-btn">Edit</a>
+
+                            <form asp-action="SetActive" method="post">
+                                <input type="hidden" name="id" value="@m.Id" />
+                                <input type="hidden" name="active" value="@(m.IsActive ? "false" : "true")" />
+                                <button type="submit" class="faq-btn">@(m.IsActive ? "Turn off" : "Turn on")</button>
+                            </form>
+
+                            <form asp-action="Delete" method="post"
+                                  onsubmit="return confirm('Delete this text? This cannot be undone.');">
+                                <input type="hidden" name="id" value="@m.Id" />
+                                <button type="submit" class="faq-btn faq-btn-danger">Delete</button>
+                            </form>
+
+                            <span class="faq-updated">Updated @DisplayTime.Format(m.UpdatedAt)</span>
+                        </div>
+                    </li>
+                }
+            </ol>
+        }
+    }
+</div>

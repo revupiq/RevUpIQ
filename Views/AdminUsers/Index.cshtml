@@ -1,0 +1,82 @@
+@using RevUpIQ.Admin.Infrastructure
+@using RevUpIQ.Admin.Models.AdminUsers
+@model AdminUserIndexViewModel
+@{
+    ViewData["Title"] = "Admin Users";
+    var labels = AdminAccess.Sections.ToDictionary(s => s.Key, s => s.Label);
+}
+
+<link rel="stylesheet" href="~/css/faqs.css" asp-append-version="true" />
+
+<div class="faq-page">
+    <div class="faq-header">
+        <h2 class="faq-title">Admin Users</h2>
+        <a asp-action="Create" class="faq-btn faq-btn-primary">+ New account</a>
+    </div>
+
+    <p class="faq-intro">
+        Accounts that can sign in to this admin panel, each with its own username and password.
+        An account sees only the sections ticked for it; this page is only for you, the owner
+        (<b>@AdminSignIn.OwnerUsername</b> login). Changes apply within a minute, without the account signing out.
+    </p>
+
+    @if (TempData["Message"] is string flash)
+    {
+        <div class="faq-banner ok" role="status">@flash</div>
+    }
+    @if (TempData["Error"] is string flashError)
+    {
+        <div class="faq-banner error" role="alert">@flashError</div>
+    }
+    @if (Model.Error != null)
+    {
+        <div class="faq-banner error" role="alert">@Model.Error</div>
+    }
+
+    @if (Model.Users.Count == 0 && Model.Error == null)
+    {
+        <div class="faq-empty">No other accounts yet. Add one to give someone access to parts of the panel.</div>
+    }
+
+    <ol class="faq-list">
+        @foreach (var u in Model.Users)
+        {
+            var sections = AdminSignIn.KnownSections(u.Sections).ToList();
+            <li class="faq-card @(u.IsActive ? "" : "inactive")">
+                <div class="faq-card-top">
+                    <span class="faq-chip faq-chip-category">@u.Username</span>
+                    <span class="faq-chip @(u.IsActive ? "active" : "inactive")">@(u.IsActive ? "Active" : "Turned off")</span>
+                </div>
+
+                <p class="faq-answer">
+                    @if (sections.Count == AdminAccess.Sections.Length)
+                    {
+                        <span>All sections</span>
+                    }
+                    else
+                    {
+                        @string.Join(" · ", sections.Select(s => labels[s]))
+                    }
+                </p>
+
+                <div class="faq-actions">
+                    <a asp-action="Edit" asp-route-id="@u.Id" class="faq-btn">Edit</a>
+
+                    <form asp-action="SetActive" method="post">
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <input type="hidden" name="active" value="@(u.IsActive ? "false" : "true")" />
+                        <button type="submit" class="faq-btn">@(u.IsActive ? "Turn off" : "Turn on")</button>
+                    </form>
+
+                    <form asp-action="Delete" method="post"
+                          onsubmit="return confirm('Delete the account @u.Username? This cannot be undone.');">
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <button type="submit" class="faq-btn faq-btn-danger">Delete</button>
+                    </form>
+
+                    <span class="faq-updated">Last sign-in @DisplayTime.Format(u.LastLoginAt, "never")</span>
+                </div>
+            </li>
+        }
+    </ol>
+</div>

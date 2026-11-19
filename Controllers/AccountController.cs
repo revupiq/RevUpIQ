@@ -2,30 +2,56 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RevUpIQ.Admin.Infrastructure;
 using RevUpIQ.Admin.Models;
-using System.Security.Claims;
 
 public class AccountController : Controller
 {
+    private readonly Supabase.Client _supabase;
+
+    public AccountController(Supabase.Client supabase)
+    {
+        _supabase = supabase;
+    }
+
     // The only pages reachable without signing in (see the fallback policy in Program.cs)
     [HttpGet]
     [AllowAnonymous]
     public IActionResult Login() => View();
 
+    // The owner's built-in login, or an account from the Admin Users page
     [HttpPost]
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
-        if (model.Username == "admin" && model.Password == "Admin123")
+        var username = (model.Username ?? "").Trim();
+        var password = model.Password ?? "";
+
+        if (AdminSignIn.IsOwnerLogin(username, password))
         {
-            var claims = new List<Claim> { new Claim(ClaimTypes.Name, model.Username) };
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, AdminSignIn.OwnerPrincipal());
             return RedirectToAction("Index", "Home");
         }
 
-        ModelState.AddModelError("", "Invalid credentials");
+        try
+        {
+            var account = await AdminSignIn.FindAccountAsync(_supabase, username, password);
+            if (account != null)
+            {
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, AdminSignIn.PrincipalFor(account));
+                return RedirectToAction("Index", "Home");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Admin sign-in lookup failed: {ex.Message}");
+            ModelState.AddModelError("", "Signing in failed. Please try again.");
+            return View(model);
+        }
+
+        // Slows down password guessing a little
+        await Task.Delay(500);
+        ModelState.AddModelError("", "Invalid username or password");
         return View(model);
     }
 

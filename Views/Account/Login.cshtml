@@ -13,10 +13,10 @@
             Admin Login
         </h3>
 
-        @if (!ViewData.ModelState.IsValid)
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).Distinct())
         {
             <span style="color:var(--red); font-size:13px; text-align:center;">
-                Invalid username or password
+                @error
             </span>
         }
 

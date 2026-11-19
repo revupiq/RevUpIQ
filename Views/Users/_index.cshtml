@@ -1,3 +1,6 @@
+@* Dashboard cards; each shows only for accounts that can open its section (AdminAccess) *@
+@if (User.CanAccess("leaderboard") || User.CanAccess("users") || User.CanAccess("leagues") || User.CanAccess("support"))
+{
 <h1 style="text-align:center; margin-top:20px;">Users</h1>
 
 <div class="admin-page-center" style="
@@ -8,6 +11,8 @@
         margin-top:40px;
      ">
 
+    @if (User.CanAccess("leaderboard"))
+    {
     <a href="/Leaderboard" class="admin-card-small" style="
     width:300px;
     display:flex;
@@ -17,7 +22,10 @@
 ">
         Leaderboard
     </a>
+    }
 
+    @if (User.CanAccess("users"))
+    {
     <a asp-controller="Users" asp-action="UsersList" class="admin-card-small" style="
         width:300px;
         display:flex;
@@ -27,7 +35,10 @@
    ">
         Users List
     </a>
+    }
 
+    @if (User.CanAccess("leagues"))
+    {
     <a asp-controller="Leagues" asp-action="Index" class="admin-card-small" style="
         width:300px;
         display:flex;
@@ -37,6 +48,9 @@
    ">
         Leagues
     </a>
+    }
+    @if (User.CanAccess("support"))
+    {
     <a asp-controller="Support" asp-action="Index" class="admin-card-small" style="
     width:300px;
     display:flex;
@@ -45,4 +59,6 @@
     text-decoration:none;">
         Support
     </a>
+    }
 </div>
+}

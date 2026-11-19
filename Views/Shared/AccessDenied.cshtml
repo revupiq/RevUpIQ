@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "No access";
+}
+
+<link rel="stylesheet" href="~/css/faqs.css" asp-append-version="true" />
+
+<div class="faq-page">
+    <div class="faq-header">
+        <h2 class="faq-title">You don't have access to this page</h2>
+    </div>
+    <p class="faq-intro">
+        Your account, <b>@User.Identity?.Name</b>, can't open this section of the admin panel.
+        Ask the owner to add it on the Admin Users page.
+    </p>
+    <div class="faq-footer" style="justify-content:flex-start;">
+        <a href="@Url.Action("Index", "Home")" class="faq-btn faq-btn-primary">Back to the dashboard</a>
+    </div>
+</div>

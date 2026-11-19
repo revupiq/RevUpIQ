@@ -1,0 +1,93 @@
+@using RevUpIQ.Admin.Models.PushMessages
+@model PushMessageForm
+@{
+    var isNew = !Model.Id.HasValue;
+    ViewData["Title"] = isNew ? "New push notification text" : "Edit push notification text";
+    var samples = PushMessageTexts.Placeholders.ToDictionary(p => p.Name, p => p.Sample);
+    var allowed = PushMessageTexts.Kinds.ToDictionary(k => k.Key, k => k.Placeholders);
+}
+
+<link rel="stylesheet" href="~/css/faqs.css" asp-append-version="true" />
+
+<div class="faq-page">
+    <div class="faq-header">
+        <h2 class="faq-title">@ViewData["Title"]</h2>
+        <a asp-action="Index" class="faq-btn">Back to list</a>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="faq-banner error faq-summary"></div>
+
+    <form asp-action="Save" method="post" class="faq-form" novalidate>
+        <input type="hidden" asp-for="Id" />
+
+        <div class="faq-field">
+            <label class="faq-label" asp-for="Kind">When it's sent</label>
+            <select asp-for="Kind" class="faq-input faq-select" id="kind">
+                @foreach (var k in PushMessageTexts.Kinds)
+                {
+                    <option value="@k.Key">@k.Label — @k.WhenSent</option>
+                }
+            </select>
+            <span class="faq-hint">Placeholders you can use: <b id="allowed"></b></span>
+            <span asp-validation-for="Kind" class="faq-error"></span>
+        </div>
+
+        <div class="faq-field">
+            <label class="faq-label" asp-for="Title">Title</label>
+            <input asp-for="Title" class="faq-input" maxlength="@PushMessageTexts.MaxTitleLength" data-counter="titleCount"
+                   placeholder="e.g. Today's games are ready 🏁" />
+            <span class="faq-hint"><span id="titleCount">0</span> / @PushMessageTexts.MaxTitleLength · shown in bold</span>
+            <span asp-validation-for="Title" class="faq-error"></span>
+        </div>
+
+        <div class="faq-field">
+            <label class="faq-label" asp-for="Body">Message</label>
+            <textarea asp-for="Body" class="faq-input faq-textarea faq-textarea-short" rows="3"
+                      maxlength="@PushMessageTexts.MaxBodyLength" data-counter="bodyCount"
+                      placeholder="e.g. {games_left} waiting in {division}. Take your shot before the day ends."></textarea>
+            <span class="faq-hint"><span id="bodyCount">0</span> / @PushMessageTexts.MaxBodyLength · one line</span>
+            <span asp-validation-for="Body" class="faq-error"></span>
+        </div>
+
+        <div class="faq-field">
+            <span class="faq-label">Example</span>
+            <div class="faq-card" style="margin:0;">
+                <p class="faq-question" id="previewTitle"></p>
+                <p class="faq-answer" id="previewBody"></p>
+            </div>
+            <span class="faq-hint">With sample values; each player gets their own division, games left and so on.</span>
+        </div>
+
+        <label class="faq-toggle">
+            <input asp-for="IsActive" type="checkbox" />
+            <span>Active &mdash; used in the daily reminders</span>
+        </label>
+
+        <div class="faq-footer">
+            <a asp-action="Index" class="faq-btn">Cancel</a>
+            <button type="submit" class="faq-btn faq-btn-primary">@(isNew ? "Add text" : "Save changes")</button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    const samples = @Json.Serialize(samples);
+    const allowed = @Json.Serialize(allowed);
+    const kind = document.getElementById('kind');
+    const title = document.querySelector('[data-counter="titleCount"]');
+    const body = document.querySelector('[data-counter="bodyCount"]');
+    const fill = text => text.replace(/\{([^{}]*)\}/g, (all, name) => samples[name.toLowerCase()] ?? all);
+
+    function update() {
+        document.getElementById('allowed').textContent = (allowed[kind.value] || []).map(p => '{' + p + '}').join(', ');
+        document.getElementById('titleCount').textContent = title.value.length;
+        document.getElementById('bodyCount').textContent = body.value.length;
+        document.getElementById('previewTitle').textContent = fill(title.value) || 'Title';
+        document.getElementById('previewBody').textContent = fill(body.value) || 'Message';
+    }
+    [kind, title, body].forEach(el => el.addEventListener('input', update));
+    kind.addEventListener('change', update);
+    update();
+})();
+</script>

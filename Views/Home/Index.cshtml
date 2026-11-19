@@ -1,20 +1,30 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    var anySection = AdminAccess.SectionsOf(User).Any();
 }
 
+@* Each block shows only the sections this account can open (AdminAccess) *@
+@if (!anySection)
+{
+    <p style="text-align:center; margin-top:40px;">
+        Your account has no sections yet. Ask the owner to add some on the Admin Users page.
+    </p>
+}
 
+@if (User.CanAccess("divisions"))
+{
 <div id="divisions"></div>
 
-
 <div class="full-width-divider"></div>
-
-@await Html.PartialAsync("~/Views/Users/_Index.cshtml")
 
 <script>
 fetch('/Divisions/Index')
   .then(r => r.text())
   .then(html => document.getElementById('divisions').innerHTML = html);
 </script>
+}
+
+@await Html.PartialAsync("~/Views/Users/_Index.cshtml")
 
 <div class="full-width-divider"></div>
 

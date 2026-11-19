@@ -1,0 +1,76 @@
+@using RevUpIQ.Admin.Infrastructure
+@using RevUpIQ.Admin.Models.AdminUsers
+@model AdminUserForm
+@{
+    var isNew = !Model.Id.HasValue;
+    ViewData["Title"] = isNew ? "New admin account" : "Edit admin account";
+}
+
+<link rel="stylesheet" href="~/css/faqs.css" asp-append-version="true" />
+
+<div class="faq-page">
+    <div class="faq-header">
+        <h2 class="faq-title">@ViewData["Title"]</h2>
+        <a asp-action="Index" class="faq-btn">Back to list</a>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="faq-banner error faq-summary"></div>
+
+    <form asp-action="Save" method="post" class="faq-form" novalidate autocomplete="off">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="faq-field">
+            <label class="faq-label" asp-for="Username">Username</label>
+            <input asp-for="Username" class="faq-input" maxlength="40" autocomplete="off"
+                   placeholder="e.g. clint.support" />
+            <span class="faq-hint">3 to 40 letters, digits, dots, dashes or underscores. Not case-sensitive when signing in.</span>
+            <span asp-validation-for="Username" class="faq-error"></span>
+        </div>
+
+        <div class="faq-field">
+            <label class="faq-label" asp-for="Password">@(isNew ? "Password" : "New password")</label>
+            <input asp-for="Password" type="password" class="faq-input" maxlength="@AdminSignIn.MaxPasswordLength"
+                   autocomplete="new-password" />
+            <span class="faq-hint">
+                At least @AdminSignIn.MinPasswordLength characters.@(isNew ? "" : " Leave empty to keep the current password.")
+                Share it with the person directly; it can't be shown again.
+            </span>
+            <span asp-validation-for="Password" class="faq-error"></span>
+        </div>
+
+        <div class="faq-field">
+            <span class="faq-label">Sections this account can open</span>
+            <span class="faq-hint">
+                The dashboard shows only these. Any other page answers "You don't have access".
+                <a href="#" id="selectAll" style="color:var(--white);">Select all</a> ·
+                <a href="#" id="selectNone" style="color:var(--white);">None</a>
+            </span>
+            @foreach (var s in AdminAccess.Sections)
+            {
+                <label class="faq-toggle">
+                    <input type="checkbox" name="Sections" value="@s.Key" checked="@Model.Sections.Contains(s.Key)" />
+                    <span><b>@s.Label</b> &mdash; @s.Description</span>
+                </label>
+            }
+            <span asp-validation-for="Sections" class="faq-error"></span>
+        </div>
+
+        <label class="faq-toggle">
+            <input asp-for="IsActive" type="checkbox" />
+            <span>Active &mdash; the account can sign in</span>
+        </label>
+
+        <div class="faq-footer">
+            <a asp-action="Index" class="faq-btn">Cancel</a>
+            <button type="submit" class="faq-btn faq-btn-primary">@(isNew ? "Add account" : "Save changes")</button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    const boxes = () => document.querySelectorAll('input[name="Sections"]');
+    document.getElementById('selectAll').addEventListener('click', e => { e.preventDefault(); boxes().forEach(b => b.checked = true); });
+    document.getElementById('selectNone').addEventListener('click', e => { e.preventDefault(); boxes().forEach(b => b.checked = false); });
+})();
+</script>

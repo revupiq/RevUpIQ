@@ -20,6 +20,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return Task.CompletedTask;
         };
+
+        // Accounts from the Admin Users page: turned off or changed sections take effect
+        // within a minute (see AdminSignIn)
+        o.Events.OnValidatePrincipal = AdminSignIn.ValidateAsync;
     });
 
 // Every page and action needs a signed-in admin unless it is marked [AllowAnonymous]
@@ -30,7 +34,8 @@ builder.Services.AddAuthorization(o =>
         .Build();
 });
 
-builder.Services.AddControllersWithViews();
+// Each account may only open the sections it was given (see AdminAccess)
+builder.Services.AddControllersWithViews(o => o.Filters.Add<AdminAccessFilter>());
 
 var url = ApiClientFactory.BaseUrl;
 var key = ApiClientFactory.ServiceRole;

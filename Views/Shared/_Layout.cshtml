@@ -50,6 +50,15 @@
             </span>
         </div>
     </a>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px;
+                    padding:6px 16px; font-size:13px; color:var(--white); background-color:var(--dark-blue);
+                    border-top:1px solid rgba(255,255,255,.08);">
+            <span>Signed in as <b>@User.Identity.Name</b>@(User.IsOwner() ? " (owner)" : "")</span>
+            <a href="@Url.Action("Logout", "Account")" style="color:var(--white);">Log out</a>
+        </div>
+    }
 
 
 

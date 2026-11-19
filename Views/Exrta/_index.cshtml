@@ -1,4 +1,8 @@
+@* Dashboard cards; each shows only for accounts that can open its section (AdminAccess) *@
+@if (User.IsOwner() || new[] { "sponsor_bar", "notification_bar", "suggestions", "sponsor_requests", "how_to_play", "app_settings", "faqs", "push" }.Any(User.CanAccess))
+{
 <h1 style="text-align:center; margin-top:20px;">Extra</h1>
+}
 
 <div class="admin-page-center" style="
         display:grid;
@@ -8,18 +12,26 @@
         margin-top:40px;
      ">
 
+    @if (User.CanAccess("sponsor_bar"))
+    {
     <a href="/SponsorBar" class="admin-card-small"
         style="width:300px; display:flex; justify-content:center; align-items:center; text-decoration:none;">
         Sponsor Bar
     </a>
+    }
 
+    @if (User.CanAccess("notification_bar"))
+    {
     <a asp-controller="NotificationBar" asp-action="Index" class="admin-card-small"
         style="width:300px; display:flex; justify-content:center; align-items:center; text-decoration:none;">
         Notification Bar
     </a>
+    }
 
 
 
+    @if (User.CanAccess("suggestions"))
+    {
     <a asp-controller="UsersSuggestion" asp-action="Index" class="admin-card-small" style="
         width:300px;
         display:flex;
@@ -31,8 +43,11 @@
         User Suggestion
         <span class="admin-card-badge" data-new-count="suggestions" hidden></span>
     </a>
+    }
 
 
+    @if (User.CanAccess("sponsor_requests"))
+    {
     <a asp-controller="SponsorsRequests" asp-action="Index" class="admin-card-small" style="
         width:300px;
         display:flex;
@@ -44,6 +59,9 @@
         Sponsors Requests
         <span class="admin-card-badge" data-new-count="sponsorRequests" hidden></span>
     </a>
+    }
+    @if (User.CanAccess("how_to_play"))
+    {
     <a asp-controller="GameHowToVideos" asp-action="Index" class="admin-card-small" style="
         width:300px;
         display:flex;
@@ -53,6 +71,9 @@
    ">
         How To Play
     </a>
+    }
+    @if (User.CanAccess("app_settings"))
+    {
     <a asp-controller="DefaultCover" asp-action="Index" class="admin-card-small" style="
         width:300px;
         display:flex;
@@ -62,6 +83,9 @@
    ">
         App Settings
     </a>
+    }
+    @if (User.CanAccess("faqs"))
+    {
     <a asp-controller="Faqs" asp-action="Index" class="admin-card-small" style="
         width:300px;
         display:flex;
@@ -71,6 +95,31 @@
    ">
         FAQs
     </a>
+    }
+    @if (User.CanAccess("push"))
+    {
+    <a asp-controller="PushMessages" asp-action="Index" class="admin-card-small" style="
+        width:300px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        text-decoration:none;
+   ">
+        Push Notifications
+    </a>
+    }
+    @if (User.IsOwner())
+    {
+    <a asp-controller="AdminUsers" asp-action="Index" class="admin-card-small" style="
+        width:300px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        text-decoration:none;
+   ">
+        Admin Users
+    </a>
+    }
 </div>
 
 <script>

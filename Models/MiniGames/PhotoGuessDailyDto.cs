@@ -36,4 +36,8 @@ public class PhotoGuessDailyDto : BaseModel
     // Shown under the correct answer on the app's win and lose screens; null when there's none
     [Column("fun_fact")]
     public string? FunFact { get; set; }
+
+    // Shown in small type under the photo in the app; null shows no line
+    [Column("photo_credit")]
+    public string? PhotoCredit { get; set; }
 }

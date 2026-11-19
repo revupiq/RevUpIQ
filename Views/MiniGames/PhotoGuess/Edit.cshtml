@@ -39,7 +39,7 @@ else
             }
 
             <div id="photoImageFrame"
-                 class="@(hasImage ? "" : "photo-image-frame")"
+                 class="photo-frame-3x2 @(hasImage ? "" : "photo-image-frame")"
                  data-has-image="@(hasImage ? "true" : "false")">
 
                 <img id="photoPreview"
@@ -54,6 +54,9 @@ else
 
             </div>
 
+            <div class="photo-credit-line" id="photoCreditPreview"></div>
+            <div class="photo-frame-note">Shown like this in the app: a 3:2 frame. 3:2 photos fit whole; others are trimmed at the edges.</div>
+
             <input type="file"
                    id="imageInput"
                    name="ImageFile"
@@ -61,6 +64,8 @@ else
                    style="display:none;" />
 
         </div>
+
+        @await Html.PartialAsync("~/Views/MiniGames/PhotoGuess/_PhotoCreditField.cshtml", game.PhotoCredit)
 
         <div class="trivia-options">
 
@@ -118,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!form) return;
 
     const saveBtn = form.querySelector(".save-btn");
-    const inputs = form.querySelectorAll("input:not([type='hidden']):not([type='file']), textarea:not([data-optional])");
+    const inputs = form.querySelectorAll("input:not([type='hidden']):not([type='file']):not([data-optional]), textarea:not([data-optional])");
     const imageInput = document.getElementById("imageInput");
     const frame = document.getElementById("photoImageFrame");
     const preview = document.getElementById("photoPreview");

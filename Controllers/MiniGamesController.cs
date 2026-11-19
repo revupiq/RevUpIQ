@@ -31,6 +31,19 @@ namespace RevUpIQ.Admin.Controllers
 
         private static string FunFactTooLong => $"The fun fact must be {MaxFunFactLength} characters or fewer.";
 
+        // Photo Guess: who took the photo, shown in small type under it in the app
+        public const int MaxPhotoCreditLength = 100;
+
+        // One line, trimmed; empty becomes null so no credit line shows
+        private static bool TryNormalizePhotoCredit(string? raw, out string? credit)
+        {
+            var oneLine = string.Join(" ", (raw ?? "").Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)).Trim();
+            credit = oneLine.Length == 0 ? null : oneLine;
+            return credit == null || credit.Length <= MaxPhotoCreditLength;
+        }
+
+        private static string PhotoCreditTooLong => $"The photo credit must be {MaxPhotoCreditLength} characters or fewer.";
+
         public IActionResult DailyGameFilter(int id)
         {
             var model = new DailyGameFilter(
@@ -338,6 +351,7 @@ namespace RevUpIQ.Admin.Controllers
         {
             ["imageurl"] = "image", ["image"] = "image", ["imagelink"] = "image",
             ["photo"] = "image", ["photourl"] = "image", ["photolink"] = "image",
+            ["photocredit"] = "credit", ["credit"] = "credit", ["imagecredit"] = "credit", ["photoby"] = "credit",
         };
 
         private static readonly Dictionary<string, string> RaceWordImportColumns = new()
@@ -505,6 +519,7 @@ namespace RevUpIQ.Admin.Controllers
                         Answer2 = cell("wrong2"),
                         Answer3 = cell("wrong3"),
                         ImageLink = cell("image"),
+                        PhotoCredit = cell("credit"),
                     });
                 if (vm.Error == null)
                 {
@@ -581,6 +596,7 @@ namespace RevUpIQ.Admin.Controllers
                     Answer2 = r.Answer2,
                     Answer3 = r.Answer3,
                     FunFact = NullIfEmpty(r.FunFact),
+                    PhotoCredit = NullIfEmpty(r.PhotoCredit),
                     ImageUrl = r.StoredImageUrl,
                 }).ToList());
 
@@ -597,9 +613,9 @@ namespace RevUpIQ.Admin.Controllers
         {
             var day = DisplayTime.Today.AddDays(1);
             var csv =
-                "date,question,correct_answer,wrong_answer_1,wrong_answer_2,wrong_answer_3,fun_fact,image_url\r\n" +
-                $"{day:yyyy-MM-dd},Who is this driver?,The correct answer,A wrong answer,Another wrong answer,A third wrong answer,\"Optional: a fun fact shown under the answer, up to 180 characters\",https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing\r\n" +
-                $"{day.AddDays(1):yyyy-MM-dd},\"No image yet: this one stays unpublished until you add it\",Correct,Wrong,Wrong too,Also wrong,,\r\n";
+                "date,question,correct_answer,wrong_answer_1,wrong_answer_2,wrong_answer_3,fun_fact,image_url,photo_credit\r\n" +
+                $"{day:yyyy-MM-dd},Who is this driver?,The correct answer,A wrong answer,Another wrong answer,A third wrong answer,\"Optional: a fun fact shown under the answer, up to 180 characters\",https://drive.google.com/file/d/YOUR_FILE_ID/view?usp=sharing,Optional: Photo: Jane Smith / DirtOnDirt.com\r\n" +
+                $"{day.AddDays(1):yyyy-MM-dd},\"No image yet: this one stays unpublished until you add it\",Correct,Wrong,Wrong too,Also wrong,,,\r\n";
             return File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", "photo-guess-import-template.csv");
         }
 
@@ -620,10 +636,14 @@ namespace RevUpIQ.Admin.Controllers
                 r.Answer3 = r.Answer3.Trim();
                 r.ImageLink = r.ImageLink.Trim();
                 r.StoredImageUrl = null;
+                var creditOk = TryNormalizePhotoCredit(r.PhotoCredit, out var credit);
+                r.PhotoCredit = credit ?? "";
 
                 var error = QuestionError(r.Question, r.RealAnswer, r.Answer1, r.Answer2, r.Answer3);
                 if (error == null && r.ImageLink.Length > 0 && ImportImageClient.DownloadUrl(r.ImageLink) == null)
                     error = "The image_url must be a Google Drive link or a direct link to an image (https://…).";
+                if (error == null && !creditOk)
+                    error = $"The photo credit is {r.PhotoCredit.Length} characters; the limit is {MaxPhotoCreditLength}.";
 
                 CheckImportRow(r, error, today, dates, taken);
                 if (r.Status == "Ready" && r.ImageLink.Length == 0)
@@ -1008,6 +1028,8 @@ namespace RevUpIQ.Admin.Controllers
                 return BadRequest("Image is required.");
             if (!TryNormalizeFunFact(model.FunFact, out var funFact))
                 return BadRequest(FunFactTooLong);
+            if (!TryNormalizePhotoCredit(model.PhotoCredit, out var photoCredit))
+                return BadRequest(PhotoCreditTooLong);
 
             var gameDate = DateTime.Parse(Date).Date;
 
@@ -1034,6 +1056,7 @@ namespace RevUpIQ.Admin.Controllers
                 Answer2 = model.Answer2,
                 Answer3 = model.Answer3,
                 FunFact = funFact,
+                PhotoCredit = photoCredit,
                 ImageUrl = imageUrl
             };
 
@@ -1047,6 +1070,8 @@ namespace RevUpIQ.Admin.Controllers
         {
             if (!TryNormalizeFunFact(model.FunFact, out var funFact))
                 return BadRequest(FunFactTooLong);
+            if (!TryNormalizePhotoCredit(model.PhotoCredit, out var photoCredit))
+                return BadRequest(PhotoCreditTooLong);
 
             var existing = await _supabase
                 .From<PhotoGuessDailyDto>()
@@ -1062,6 +1087,7 @@ namespace RevUpIQ.Admin.Controllers
             existing.Answer2 = model.Answer2;
             existing.Answer3 = model.Answer3;
             existing.FunFact = funFact;
+            existing.PhotoCredit = photoCredit;
 
             // A question without an image (e.g. from a bulk import) is published once one is added here
             if (ImageFile != null && ImageFile.Length > 0)

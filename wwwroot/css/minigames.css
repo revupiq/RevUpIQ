@@ -289,3 +289,50 @@
     text-transform: uppercase;
     color: var(--light-blue);
 }
+
+/* Photo Guess: the app shows the photo in a 3:2 frame, cropped to fill it (most camera
+   photos are 3:2, so they show whole). The admin previews it the same way. */
+.photo-frame-3x2 {
+    width: 100%;
+    max-width: 700px;
+    aspect-ratio: 3 / 2;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-frame-3x2.photo-image-frame {
+    height: auto;
+}
+
+.photo-frame-3x2 #photoPreview,
+.photo-frame-3x2 .photo-frame-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 18px;
+}
+
+.photo-frame-note {
+    font-size: 12px;
+    color: var(--light-blue);
+    text-align: center;
+}
+
+/* The credit line under the photo, as in the app */
+.photo-credit-line {
+    width: 100%;
+    max-width: 700px;
+    min-height: 16px;
+    font-size: 12px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: right;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

@@ -14,13 +14,17 @@
         <div class="photo-upload">
             <div class="option-label">IMAGE</div>
 
-            <div class="photo-image-frame" id="photoImageFrame">
+            <div class="photo-image-frame photo-frame-3x2" id="photoImageFrame">
                 <span class="photo-image-placeholder">Click here to upload or change image</span>
                 <img id="photoPreview" alt="Preview" />
             </div>
+            <div class="photo-credit-line" id="photoCreditPreview"></div>
+            <div class="photo-frame-note">Shown like this in the app: a 3:2 frame. 3:2 photos fit whole; others are trimmed at the edges.</div>
 
             <input type="file" id="imageInput" name="ImageFile" accept="image/*" />
         </div>
+
+        @await Html.PartialAsync("~/Views/MiniGames/PhotoGuess/_PhotoCreditField.cshtml", (string?)null)
 
         <div class="trivia-options">
 
@@ -69,7 +73,7 @@
     .photo-image-frame {
         width: 100%;
         max-width: 700px;
-        aspect-ratio: 16 / 9;
+        aspect-ratio: 3 / 2;
         border-radius: 18px;
         background: transparent;
         border: none;
@@ -108,7 +112,7 @@
 
         const form = document.getElementById("photoGuessCreateForm");
         const saveBtn = form.querySelector(".save-btn");
-        const inputs = form.querySelectorAll('input:not([type="hidden"]):not([type="file"]), textarea:not([data-optional])');
+        const inputs = form.querySelectorAll('input:not([type="hidden"]):not([type="file"]):not([data-optional]), textarea:not([data-optional])');
 
         const imageInput = document.getElementById("imageInput");
         const frame = document.getElementById("photoImageFrame");

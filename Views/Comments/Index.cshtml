@@ -1,0 +1,173 @@
+@using RevUpIQ.Admin.Controllers
+@using RevUpIQ.Admin.Models.Comments
+@model CommentsIndexViewModel
+@{
+    ViewData["Title"] = "Racing Memories";
+}
+
+<link rel="stylesheet" href="~/css/faqs.css" asp-append-version="true" />
+
+<div class="faq-page">
+    <div class="faq-header">
+        <h2 class="faq-title">Racing Memories &amp; Stories</h2>
+    </div>
+
+    <p class="faq-intro">
+        Players' comments under the Fun Fact on the You Win / You Lose screen, kept with each question
+        (and in History). Players see a question's comments only after finishing that game. They can report
+        a comment, and <b>three reports hide it</b> until you review it here: <b>Restore</b> shows it again and
+        clears its reports, <b>Delete</b> removes it with its replies. Players can also block each other.
+    </p>
+
+    @if (TempData["Message"] is string flash)
+    {
+        <div class="faq-banner ok" role="status">@flash</div>
+    }
+    @if (TempData["Error"] is string flashError)
+    {
+        <div class="faq-banner error" role="alert">@flashError</div>
+    }
+    @if (Model.Error != null)
+    {
+        <div class="faq-banner error" role="alert">@Model.Error</div>
+    }
+
+    <nav class="faq-filters" aria-label="Show">
+        <a asp-action="Index" asp-route-filter="reported" class="faq-filter @(Model.Filter == "reported" ? "selected" : "")">
+            Reported <span class="faq-filter-count">@Model.ReportedCount</span>
+        </a>
+        <a asp-action="Index" asp-route-filter="hidden" class="faq-filter @(Model.Filter == "hidden" ? "selected" : "")">
+            Hidden <span class="faq-filter-count">@Model.HiddenCount</span>
+        </a>
+        <a asp-action="Index" asp-route-filter="all" class="faq-filter @(Model.Filter == "all" ? "selected" : "")">
+            Newest 100
+        </a>
+    </nav>
+
+    @if (Model.Rows.Count == 0 && Model.Error == null)
+    {
+        <div class="faq-empty">
+            @(Model.Filter switch
+            {
+                "reported" => "No reported comments. Nothing to review.",
+                "hidden" => "No hidden comments.",
+                _ => "No comments yet.",
+            })
+        </div>
+    }
+
+    <ol class="faq-list">
+        @foreach (var row in Model.Rows)
+        {
+            var c = row.Comment;
+            <li class="faq-card @(c.IsHidden ? "inactive" : "")">
+                <div class="faq-card-top">
+                    <span class="faq-chip faq-chip-category">@row.Game</span>
+                    @if (!string.IsNullOrEmpty(row.Division))
+                    {
+                        <span class="faq-chip faq-chip-category">@row.Division</span>
+                    }
+                    <span class="faq-chip @(c.IsHidden ? "inactive" : "active")">@(c.IsHidden ? "Hidden" : "Shown")</span>
+                    @if (c.ReportCount > 0)
+                    {
+                        <span class="faq-chip inactive">@c.ReportCount @(c.ReportCount == 1 ? "report" : "reports")</span>
+                    }
+                    @if (c.ParentId != null)
+                    {
+                        <span class="faq-chip faq-chip-category">Reply</span>
+                    }
+                </div>
+
+                <p class="faq-question">@row.Author</p>
+                <p class="faq-answer">@c.Body</p>
+                <p class="faq-hint">
+                    On @(row.GameDate?.ToString("MMM d, yyyy") ?? "?"): @row.Question
+                    · @c.LikeCount @(c.LikeCount == 1 ? "like" : "likes")
+                    @if (c.ParentId == null)
+                    {
+                        <span>· @c.ReplyCount @(c.ReplyCount == 1 ? "reply" : "replies")</span>
+                    }
+                </p>
+                @if (row.Reasons.Count > 0)
+                {
+                    <p class="faq-hint">Reported as: @string.Join(" · ", row.Reasons)</p>
+                }
+
+                <div class="faq-actions">
+                    <form asp-action="SetHidden" method="post">
+                        <input type="hidden" name="id" value="@c.Id" />
+                        <input type="hidden" name="hidden" value="@(c.IsHidden ? "false" : "true")" />
+                        <input type="hidden" name="filter" value="@Model.Filter" />
+                        <button type="submit" class="faq-btn">@(c.IsHidden ? "Restore" : "Hide")</button>
+                    </form>
+                    @if (!c.IsHidden && c.ReportCount > 0)
+                    {
+                        <form asp-action="SetHidden" method="post">
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <input type="hidden" name="hidden" value="false" />
+                            <input type="hidden" name="filter" value="@Model.Filter" />
+                            <button type="submit" class="faq-btn">Keep &amp; clear reports</button>
+                        </form>
+                    }
+                    <form asp-action="Delete" method="post"
+                          onsubmit="return confirm('Delete this comment@(c.ReplyCount > 0 && c.ParentId == null ? " and its replies" : "")? This cannot be undone.');">
+                        <input type="hidden" name="id" value="@c.Id" />
+                        <input type="hidden" name="filter" value="@Model.Filter" />
+                        <button type="submit" class="faq-btn faq-btn-danger">Delete</button>
+                    </form>
+                    <span class="faq-updated">Posted @DisplayTime.Format(c.CreatedAt)</span>
+                </div>
+            </li>
+        }
+    </ol>
+
+    <div class="faq-header" style="margin-top:36px;">
+        <h3 class="faq-title" style="font-size:20px;">Blocked words</h3>
+    </div>
+    <form asp-action="SaveBlockedWords" method="post" class="faq-form">
+        <input type="hidden" name="filter" value="@Model.Filter" />
+        <div class="faq-field">
+            <textarea name="words" class="faq-input faq-textarea" rows="8">@Model.BlockedWords</textarea>
+            <span class="faq-hint">
+                One word or phrase per line. A new comment containing one as a whole word is refused
+                ("Please keep it clean"); a word inside a longer word isn't matched, so add variants
+                (e.g. both "cheat" and "cheater"). Comments already posted aren't changed.
+            </span>
+        </div>
+        <div class="faq-footer">
+            <button type="submit" class="faq-btn faq-btn-primary">Save blocked words</button>
+        </div>
+    </form>
+
+    <div class="faq-header" style="margin-top:36px;">
+        <h3 class="faq-title" style="font-size:20px;">"Presented by" sponsor</h3>
+    </div>
+    <form asp-action="SaveSponsor" method="post" enctype="multipart/form-data" class="faq-form">
+        <input type="hidden" name="filter" value="@Model.Filter" />
+        @if (Model.SponsorLogoUrl != null)
+        {
+            <div class="faq-field">
+                <span class="faq-label">Current logo</span>
+                <img src="@Model.SponsorLogoUrl" alt="Sponsor logo" style="max-height:60px; max-width:220px; background:#000b19; padding:6px; border-radius:8px;" />
+            </div>
+        }
+        <div class="faq-field">
+            <label class="faq-label" for="sponsorLogo">@(Model.SponsorLogoUrl == null ? "Logo" : "New logo (optional)")</label>
+            <input id="sponsorLogo" type="file" name="logo" accept="image/png,image/jpeg,image/webp" class="faq-input" />
+            <span class="faq-hint">Shown small at the top right of the section, under "PRESENTED BY". A wide logo on a transparent background works best.</span>
+        </div>
+        <div class="faq-field">
+            <label class="faq-label" for="sponsorLink">Link (optional)</label>
+            <input id="sponsorLink" type="url" name="linkUrl" value="@Model.SponsorLinkUrl" class="faq-input" placeholder="https://www.example.com" />
+            <span class="faq-hint">Opens when a player taps the logo.</span>
+        </div>
+        <div class="faq-footer">
+            @if (Model.SponsorLogoUrl != null)
+            {
+                <button type="submit" name="remove" value="true" class="faq-btn faq-btn-danger"
+                        onclick="return confirm('Remove the sponsor from the section?');">Remove sponsor</button>
+            }
+            <button type="submit" class="faq-btn faq-btn-primary">Save sponsor</button>
+        </div>
+    </form>
+</div>

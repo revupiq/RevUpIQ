@@ -33,6 +33,7 @@ namespace RevUpIQ.Admin.Infrastructure
             new("app_settings", "App Settings", "Default cover and app settings", new[] { "DefaultCover" }),
             new("faqs", "FAQs", "The app's FAQ page", new[] { "Faqs" }),
             new("push", "Push Notifications", "The daily reminder texts", new[] { "PushMessages" }),
+            new("comments", "Racing Memories", "Players' comments under the Fun Fact: reports, hiding, blocked words, sponsor", new[] { "Comments" }),
         };
 
         // Open to every signed-in account

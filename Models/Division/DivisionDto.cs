@@ -24,6 +24,12 @@ namespace RevUpIQ.Admin.Models.Division
         [Column("is_active")]
         public bool IsActive { get; set; } = true;
 
+        // While inactive, shown on the app's subscription page as "Coming Soon" instead
+        // of hidden (supabase/migrations/202611200001_division_coming_soon.sql). Only
+        // SetComingSoon writes it, so saving other fields never resets it.
+        [Column("coming_soon", ignoreOnInsert: true, ignoreOnUpdate: true)]
+        public bool ComingSoon { get; set; }
+
         // Store subscription IDs the app buys for this division. On Google Play it is one
         // subscription; the plan sold is its "yearly-plan" base plan.
         [Column("google_product_id")]

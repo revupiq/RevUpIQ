@@ -51,7 +51,7 @@ namespace RevUpIQ.Admin.Controllers
         private async Task<List<DivisionDto>> LoadDivisions()
         {
             var result = await _supabase.From<DivisionDto>().Get();
-            return result.Models.OrderBy(d => d.SortIndex).ThenBy(d => d.Id).ToList();
+            return result.Models.Where(d => !d.IsPass).OrderBy(d => d.SortIndex).ThenBy(d => d.Id).ToList();
         }
 
         private async Task<SponsorBarEntry?> FindEntry(int year, int week, long? divisionId)

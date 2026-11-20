@@ -9,12 +9,25 @@
 
     <div class="division-details-body">
 
+        @if (Model!.IsPass)
+        {
+            @* The All Divisions Pass: no games, never activated or deleted *@
+            <p class="division-section-hint">
+                <strong>All Divisions Pass.</strong> One subscription, sold first on the app's subscription page,
+                that unlocks every active division (including ones activated later). Players never see it as a
+                division. Its store IDs below must match the App Store and Google Play products; its Purchase
+                Page Icon is the picture on its card.
+            </p>
+        }
+        else
+        {
         <p class="division-section-hint">
-            Status: <strong>@(Model!.IsActive ? "Active" : Model.ComingSoon ? "Inactive, shown as Coming Soon" : "Inactive")</strong>.
+            Status: <strong>@(Model.IsActive ? "Active" : Model.ComingSoon ? "Inactive, shown as Coming Soon" : "Inactive")</strong>.
             Deactivating preserves the division and its data. You can reactivate it at any time.
         </p>
+        }
 
-        @if (!Model.IsActive)
+        @if (!Model.IsActive && !Model.IsPass)
         {
             @* Players can't open or buy it either way; Coming Soon only lists it on the
                subscription page. Reactivating shows the normal price and Subscribe. *@

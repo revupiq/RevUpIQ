@@ -30,6 +30,12 @@ namespace RevUpIQ.Admin.Models.Division
         [Column("coming_soon", ignoreOnInsert: true, ignoreOnUpdate: true)]
         public bool ComingSoon { get; set; }
 
+        // The All Divisions Pass (the app repo's 202611200003_all_divisions_pass.sql): a
+        // hidden row whose store products unlock every active division. It is never
+        // activated, deleted or ordered like a division; only its icons and store IDs change.
+        [Column("is_pass", ignoreOnInsert: true, ignoreOnUpdate: true)]
+        public bool IsPass { get; set; }
+
         // Store subscription IDs the app buys for this division. On Google Play it is one
         // subscription; the plan sold is its "yearly-plan" base plan.
         [Column("google_product_id")]

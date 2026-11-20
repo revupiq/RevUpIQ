@@ -10,6 +10,8 @@
         <h1 class="division-details-title">@Model?.Name</h1>
 
         <div class="division-details-actions">
+            @if (!Model!.IsPass)
+            {
             <form asp-controller="Divisions" asp-action="SetActive" method="post">
                 <input type="hidden" name="id" value="@Model?.Id" />
                 <input type="hidden" name="isActive" value="@(Model!.IsActive ? "false" : "true")" />
@@ -31,18 +33,30 @@
                     Delete Division
                 </button>
             </form>
+            }
+            else
+            {
+            <button id="openEdit" type="button" class="admin-button">
+                Rename
+            </button>
+            }
         </div>
     </div>
 </div>
 
 @* Daily games sit right under the title so the game buttons are visible without scrolling;
    the division's icons, store IDs and background follow below *@
+@if (!Model.IsPass)
+{
 <div id="daily-game-filter-container">[waiting]</div>
 
 <div class="full-width-divider"></div>
+}
 
 @await Html.PartialAsync("_EditDivisionModal", Model)
 
+@if (!Model.IsPass)
+{
 <script>
     fetch('/MiniGames/DailyGameFilter?id=@Model.Id')
         .then(r => {
@@ -53,5 +67,6 @@
             document.getElementById("daily-game-filter-container").innerHTML = html;
         });
 </script>
+}
 
 

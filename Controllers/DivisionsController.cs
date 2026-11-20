@@ -117,8 +117,12 @@ namespace RevUpIQ.Admin.Controllers
                 .Where(d => d.Id == id)
                 .Get();
 
-            if (result.Models.FirstOrDefault() == null)
+            var division = result.Models.FirstOrDefault();
+            if (division == null)
                 return NotFound();
+            // Players would see the pass as a division with no games
+            if (division.IsPass)
+                return BadRequest("The All Divisions Pass is never activated; it unlocks the active divisions.");
 
             await _supabase.From<DivisionDto>()
                 .Where(d => d.Id == id)
@@ -141,8 +145,11 @@ namespace RevUpIQ.Admin.Controllers
                 .Where(d => d.Id == id)
                 .Get();
 
-            if (result.Models.FirstOrDefault() == null)
+            var division = result.Models.FirstOrDefault();
+            if (division == null)
                 return NotFound();
+            if (division.IsPass)
+                return BadRequest("The All Divisions Pass isn't a division that's coming soon.");
 
             await _supabase.From<DivisionDto>()
                 .Where(d => d.Id == id)
@@ -155,6 +162,10 @@ namespace RevUpIQ.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
+            // Deleting the pass would end every pass holder's access
+            var existing = (await _supabase.From<DivisionDto>().Where(d => d.Id == id).Get()).Models.FirstOrDefault();
+            if (existing?.IsPass == true)
+                return BadRequest("The All Divisions Pass can't be deleted: pass holders would lose their divisions.");
 
             var division = new DivisionDto { Id = id };
             await _supabase.From<DivisionDto>().Delete(division);
@@ -190,7 +201,8 @@ namespace RevUpIQ.Admin.Controllers
             if (id <= 0)
                 return BadRequest("Invalid division id.");
 
-            var all = (await _supabase.From<DivisionDto>().Get()).Models;
+            // The pass isn't ordered with the divisions
+            var all = (await _supabase.From<DivisionDto>().Get()).Models.Where(d => !d.IsPass).ToList();
             var division = all.FirstOrDefault(d => d.Id == id);
             if (division == null)
                 return NotFound();
@@ -266,7 +278,8 @@ namespace RevUpIQ.Admin.Controllers
             if (ids == null || ids.Count == 0 || ids.Distinct().Count() != ids.Count)
                 return BadRequest(new { error = "Invalid order." });
 
-            var all = (await _supabase.From<DivisionDto>().Get()).Models;
+            // The pass isn't ordered with the divisions
+            var all = (await _supabase.From<DivisionDto>().Get()).Models.Where(d => !d.IsPass).ToList();
 
             // Must be the complete set, so a stale page can't drop or duplicate a division
             if (all.Count != ids.Count || !all.Select(d => d.Id).ToHashSet().SetEquals(ids))

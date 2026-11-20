@@ -22,7 +22,8 @@ namespace RevUpIQ.Admin.Controllers
         public async Task<IActionResult> IndexAsync()
         {
             var result = await _supabase.From<DivisionDto>().Get();
-            var divisions = result.Models.ToList();
+            // The All Divisions Pass has no leaderboard
+            var divisions = result.Models.Where(d => !d.IsPass).ToList();
             ViewData["LeaderboardToday"] = GameToday().ToString("yyyy-MM-dd");
             return View("Index", divisions);
         }

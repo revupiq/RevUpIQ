@@ -4,7 +4,9 @@
 
 @{
     // Same order players see in the app: lowest sort_index first
-    var ordered = Model.OrderBy(x => x.SortIndex).ThenBy(x => x.Id).ToList();
+    // The All Divisions Pass is shown apart: it isn't a division players play
+    var pass = Model.FirstOrDefault(x => x.IsPass);
+    var ordered = Model.Where(x => !x.IsPass).OrderBy(x => x.SortIndex).ThenBy(x => x.Id).ToList();
     var hasTies = ordered.GroupBy(x => x.SortIndex).Any(g => g.Count() > 1);
     var position = 0;
 }
@@ -85,3 +87,21 @@
 
     </div>
 </div>
+
+@if (pass != null)
+{
+    <p class="division-order-help" style="margin-top:18px;">
+        Sold first on the subscription page: one subscription that unlocks every active division.
+    </p>
+    <div class="admin-page-center">
+        <a asp-controller="Divisions" asp-action="Details" asp-route-id="@pass.Id"
+           class="admin-card-small" draggable="false"
+           style="width:300px; display:flex; justify-content:center; align-items:center; gap:10px; text-decoration:none;">
+            @if (!string.IsNullOrWhiteSpace(pass.PurchaseIconUrl))
+            {
+                <img src="@pass.PurchaseIconUrl" class="division-logo" />
+            }
+            <span class="division-name">@pass.Name</span>
+        </a>
+    </div>
+}

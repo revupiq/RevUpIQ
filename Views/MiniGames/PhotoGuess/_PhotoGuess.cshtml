@@ -26,21 +26,26 @@
         }
         else
         {
-            <!-- IMAGE (SQUARE) -->
-            <div style="
-                width: 320px;
-                height: 320px;
-                margin: 0 auto 24px;
-                border-radius: 16px;
-                overflow: hidden;
-                box-shadow: 0 6px 22px rgba(0,0,0,.5);
-                background: rgba(0,0,0,.35);
-            ">
-                <img src="@Model.ImageUrl" style="
-                         width: 100%;
-                         height: 100%;
-                         object-fit: cover;
-                     " />
+            <!-- IMAGE (3:2, cropped to fill like the app) and its credit -->
+            <div style="width: 420px; max-width: 100%; margin: 0 auto 24px;">
+                <div style="
+                    width: 100%;
+                    aspect-ratio: 3 / 2;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    box-shadow: 0 6px 22px rgba(0,0,0,.5);
+                    background: rgba(0,0,0,.35);
+                ">
+                    <img src="@Model.ImageUrl" style="
+                             width: 100%;
+                             height: 100%;
+                             object-fit: cover;
+                         " />
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.PhotoCredit))
+                {
+                    <div class="photo-credit-line" style="margin-top: 4px;">@Model.PhotoCredit</div>
+                }
             </div>
         }
 

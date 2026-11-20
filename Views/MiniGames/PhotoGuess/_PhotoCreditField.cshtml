@@ -1,0 +1,37 @@
+@using RevUpIQ.Admin.Controllers
+@model string?
+
+@* Optional; the app shows it in small type under the photo. data-optional keeps it out
+   of the forms' "every field filled" check. Uses the Fun Fact field's styles. *@
+<div class="fun-fact-field">
+    <label class="fun-fact-label" for="photoCreditInput">Photo Credit (optional)</label>
+
+    <input id="photoCreditInput"
+           name="PhotoCredit"
+           type="text"
+           class="fun-fact-input"
+           maxlength="@MiniGamesController.MaxPhotoCreditLength"
+           placeholder="e.g. Photo: Jane Smith / DirtOnDirt.com"
+           value="@Model"
+           data-optional />
+
+    <span class="fun-fact-count" id="photoCreditCount">0 / @MiniGamesController.MaxPhotoCreditLength · shown under the photo</span>
+</div>
+
+<script>
+(function () {
+    const input = document.getElementById('photoCreditInput');
+    const count = document.getElementById('photoCreditCount');
+    const credit = document.getElementById('photoCreditPreview');
+    const max = @MiniGamesController.MaxPhotoCreditLength;
+
+    function update() {
+        count.textContent = input.value.length + ' / ' + max + ' · shown under the photo';
+        count.classList.toggle('at-limit', input.value.length >= max);
+        if (credit) credit.textContent = input.value.trim();
+    }
+
+    input.addEventListener('input', update);
+    update();
+})();
+</script>

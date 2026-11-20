@@ -15,6 +15,9 @@ namespace RevUpIQ.Admin.Models.MiniGames
         // that stays unpublished until the admin adds the image
         public string ImageLink { get; set; } = "";
 
+        // The photo_credit cell; optional, shown under the photo in the app
+        public string PhotoCredit { get; set; } = "";
+
         // The copy saved in the photoguess bucket while importing; never read from the form
         [JsonIgnore]
         public string? StoredImageUrl { get; set; }

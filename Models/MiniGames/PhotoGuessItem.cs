@@ -9,5 +9,6 @@
         public string Answer2 { get; set; } = string.Empty ;
         public string Answer3 { get; set; } = string.Empty ;
         public string? FunFact { get; set; }      // optional; empty saves null
+        public string? PhotoCredit { get; set; }  // optional; empty saves null
     }
 }

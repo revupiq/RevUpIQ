@@ -10,9 +10,27 @@
     <div class="division-details-body">
 
         <p class="division-section-hint">
-            Status: <strong>@(Model!.IsActive ? "Active" : "Inactive")</strong>.
+            Status: <strong>@(Model!.IsActive ? "Active" : Model.ComingSoon ? "Inactive, shown as Coming Soon" : "Inactive")</strong>.
             Deactivating preserves the division and its data. You can reactivate it at any time.
         </p>
+
+        @if (!Model.IsActive)
+        {
+            @* Players can't open or buy it either way; Coming Soon only lists it on the
+               subscription page. Reactivating shows the normal price and Subscribe. *@
+            <form asp-controller="Divisions" asp-action="SetComingSoon" method="post" class="division-coming-soon">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="comingSoon" value="@(Model.ComingSoon ? "false" : "true")" />
+                <p class="division-section-hint">
+                    @(Model.ComingSoon
+                        ? "The app's subscription page lists this division with a Coming Soon tag instead of its price and Subscribe button."
+                        : "Hidden from the app. You can list it on the subscription page with a Coming Soon tag instead of its price.")
+                </p>
+                <button type="submit" class="admin-button">
+                    @(Model.ComingSoon ? "Hide from the subscription page" : "Show as Coming Soon")
+                </button>
+            </form>
+        }
 
         <div class="division-main">
 

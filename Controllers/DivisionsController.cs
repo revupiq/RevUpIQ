@@ -128,6 +128,30 @@ namespace RevUpIQ.Admin.Controllers
             return RedirectToAction("Details", new { id });
         }
 
+        // An inactive division shows on the app's subscription page as "Coming Soon"
+        // (true) or not at all (false). An active division shows normally either way.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetComingSoon(int id, bool comingSoon)
+        {
+            if (id <= 0)
+                return BadRequest("Invalid division id.");
+
+            var result = await _supabase.From<DivisionDto>()
+                .Where(d => d.Id == id)
+                .Get();
+
+            if (result.Models.FirstOrDefault() == null)
+                return NotFound();
+
+            await _supabase.From<DivisionDto>()
+                .Where(d => d.Id == id)
+                .Set(d => d.ComingSoon, comingSoon)
+                .Update();
+
+            return RedirectToAction("Details", new { id });
+        }
+
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

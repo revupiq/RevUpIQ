@@ -67,7 +67,7 @@
                 </span>
                 @if (!d.IsActive)
                 {
-                    <span class="division-status">Inactive</span>
+                    <span class="division-status">@(d.ComingSoon ? "Coming Soon" : "Inactive")</span>
                 }
             </div>
 

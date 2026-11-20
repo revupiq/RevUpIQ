@@ -1,3 +1,4 @@
+@using RevUpIQ.Admin.Controllers
 @using RevUpIQ.Admin.Models.MiniGames
 @model PhotoGuessDailyDto
 
@@ -44,7 +45,7 @@
                 </div>
                 @if (!string.IsNullOrWhiteSpace(Model.PhotoCredit))
                 {
-                    <div class="photo-credit-line" style="margin-top: 4px;">@Model.PhotoCredit</div>
+                    <div class="photo-credit-line" style="margin-top: 4px;">@MiniGamesController.CourtesyLine(Model.PhotoCredit)</div>
                 }
             </div>
         }

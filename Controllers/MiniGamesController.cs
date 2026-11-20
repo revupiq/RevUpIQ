@@ -31,7 +31,7 @@ namespace RevUpIQ.Admin.Controllers
 
         private static string FunFactTooLong => $"The fun fact must be {MaxFunFactLength} characters or fewer.";
 
-        // Photo Guess: who took the photo, shown in small type under it in the app
+        // Photo Guess: who took the photo, shown under it in the app as "Photo Courtesy Of <name>"
         public const int MaxPhotoCreditLength = 100;
 
         // One line, trimmed; empty becomes null so no credit line shows
@@ -43,6 +43,18 @@ namespace RevUpIQ.Admin.Controllers
         }
 
         private static string PhotoCreditTooLong => $"The photo credit must be {MaxPhotoCreditLength} characters or fewer.";
+
+        private static readonly System.Text.RegularExpressions.Regex TypedCreditPrefix = new(
+            @"^(?:photo\s+courtesy\s+of|courtesy\s+of|photo\s+by\b|photo\s*credit\s*:|photo\s*:|credit\s*:)\s*",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // The app's line under the photo: "Photo Courtesy Of Jane Smith". A "Photo:" or
+        // "Photo by" typed before the name isn't repeated (same rule as the app).
+        public static string CourtesyLine(string photographer)
+        {
+            var name = TypedCreditPrefix.Replace(photographer.Trim(), "", 1).Trim();
+            return "Photo Courtesy Of " + (name.Length == 0 ? photographer.Trim() : name);
+        }
 
         public IActionResult DailyGameFilter(int id)
         {

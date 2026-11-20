@@ -1,21 +1,21 @@
 @using RevUpIQ.Admin.Controllers
 @model string?
 
-@* Optional; the app shows it in small type under the photo. data-optional keeps it out
+@* Optional; the app shows "Photo Courtesy Of <name>" under the photo. data-optional keeps it out
    of the forms' "every field filled" check. Uses the Fun Fact field's styles. *@
 <div class="fun-fact-field">
-    <label class="fun-fact-label" for="photoCreditInput">Photo Credit (optional)</label>
+    <label class="fun-fact-label" for="photoCreditInput">Photographer (optional)</label>
 
     <input id="photoCreditInput"
            name="PhotoCredit"
            type="text"
            class="fun-fact-input"
            maxlength="@MiniGamesController.MaxPhotoCreditLength"
-           placeholder="e.g. Photo: Jane Smith / DirtOnDirt.com"
+           placeholder="e.g. Jane Smith"
            value="@Model"
            data-optional />
 
-    <span class="fun-fact-count" id="photoCreditCount">0 / @MiniGamesController.MaxPhotoCreditLength · shown under the photo</span>
+    <span class="fun-fact-count" id="photoCreditCount">0 / @MiniGamesController.MaxPhotoCreditLength · shown as “Photo Courtesy Of …” under the photo</span>
 </div>
 
 <script>
@@ -25,10 +25,17 @@
     const credit = document.getElementById('photoCreditPreview');
     const max = @MiniGamesController.MaxPhotoCreditLength;
 
+    // Same as the app: "Photo Courtesy Of Jane Smith", without repeating a typed "Photo:"
+    function courtesyLine(photographer) {
+        if (!photographer) return '';
+        const name = photographer.replace(/^(?:photo\s+courtesy\s+of|courtesy\s+of|photo\s+by\b|photo\s*credit\s*:|photo\s*:|credit\s*:)\s*/i, '').trim();
+        return 'Photo Courtesy Of ' + (name || photographer);
+    }
+
     function update() {
-        count.textContent = input.value.length + ' / ' + max + ' · shown under the photo';
+        count.textContent = input.value.length + ' / ' + max + ' · shown as “Photo Courtesy Of …” under the photo';
         count.classList.toggle('at-limit', input.value.length >= max);
-        if (credit) credit.textContent = input.value.trim();
+        if (credit) credit.textContent = courtesyLine(input.value.trim());
     }
 
     input.addEventListener('input', update);

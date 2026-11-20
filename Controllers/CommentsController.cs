@@ -34,13 +34,20 @@ namespace RevUpIQ.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(string? filter)
         {
-            var vm = new CommentsIndexViewModel
-            {
-                Filter = CommentsIndexViewModel.Filters.Contains(filter) ? filter! : "reported"
-            };
+            var vm = new CommentsIndexViewModel();
+            var chosen = CommentsIndexViewModel.Filters.Contains(filter) ? filter : null;
+            vm.Filter = chosen ?? "reported";
 
             try
             {
+                vm.ReportedCount = await _supabase.From<GameComment>()
+                    .Filter("report_count", Operator.GreaterThan, 0).Count(CountType.Exact);
+                vm.HiddenCount = await _supabase.From<GameComment>()
+                    .Where(c => c.IsHidden).Count(CountType.Exact);
+                vm.AllCount = await _supabase.From<GameComment>().Count(CountType.Exact);
+                // With nothing to review, open on every comment instead of an empty list
+                vm.Filter = chosen ?? (vm.ReportedCount > 0 ? "reported" : "all");
+
                 var query = _supabase.From<GameComment>();
                 var comments = vm.Filter switch
                 {
@@ -54,10 +61,6 @@ namespace RevUpIQ.Admin.Controllers
                     _ => (await query.Order("created_at", Ordering.Descending).Limit(100).Get()).Models,
                 };
 
-                vm.ReportedCount = await _supabase.From<GameComment>()
-                    .Filter("report_count", Operator.GreaterThan, 0).Count(CountType.Exact);
-                vm.HiddenCount = await _supabase.From<GameComment>()
-                    .Where(c => c.IsHidden).Count(CountType.Exact);
                 vm.Rows = await DescribeAsync(comments);
 
                 var words = (await _supabase.From<CommentBlockedWord>().Order("word", Ordering.Ascending).Get()).Models;

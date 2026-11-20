@@ -96,6 +96,7 @@ namespace RevUpIQ.Admin.Models.Comments
         public List<CommentRow> Rows { get; set; } = new();
         public int ReportedCount { get; set; }
         public int HiddenCount { get; set; }
+        public int AllCount { get; set; }
         public string BlockedWords { get; set; } = "";       // one per line
         public string? SponsorLogoUrl { get; set; }
         public string? SponsorLinkUrl { get; set; }

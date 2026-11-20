@@ -40,7 +40,7 @@
             Hidden <span class="faq-filter-count">@Model.HiddenCount</span>
         </a>
         <a asp-action="Index" asp-route-filter="all" class="faq-filter @(Model.Filter == "all" ? "selected" : "")">
-            Newest 100
+            All comments <span class="faq-filter-count">@Model.AllCount</span>
         </a>
     </nav>
 
@@ -54,6 +54,10 @@
                 _ => "No comments yet.",
             })
         </div>
+    }
+    else if (Model.Filter == "all" && Model.AllCount > Model.Rows.Count)
+    {
+        <p class="faq-intro">Showing the newest @Model.Rows.Count of @Model.AllCount comments.</p>
     }
 
     <ol class="faq-list">

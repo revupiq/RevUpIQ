@@ -44,11 +44,28 @@ namespace RevUpIQ.Admin.Controllers
                 ? r + t + p
                 : null;
 
+            // Comments waiting for review (Racing Memories); null if the table isn't there yet
+            int? reportedComments = null;
+            if (User.CanAccess("comments"))
+            {
+                try
+                {
+                    reportedComments = await _supabase.From<RevUpIQ.Admin.Models.Comments.GameComment>()
+                        .Filter("report_count", Operator.GreaterThan, 0)
+                        .Count(CountType.Exact);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Reported comments count failed: {ex.Message}");
+                }
+            }
+
             // Only for the sections this account can open
             return Json(new
             {
                 suggestions = User.CanAccess("suggestions") ? suggestions : null,
-                sponsorRequests = User.CanAccess("sponsor_requests") ? sponsors.Result : null
+                sponsorRequests = User.CanAccess("sponsor_requests") ? sponsors.Result : null,
+                reportedComments
             });
         }
 

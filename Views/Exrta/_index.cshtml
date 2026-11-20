@@ -1,5 +1,5 @@
 @* Dashboard cards; each shows only for accounts that can open its section (AdminAccess) *@
-@if (User.IsOwner() || new[] { "sponsor_bar", "notification_bar", "suggestions", "sponsor_requests", "how_to_play", "app_settings", "faqs", "push" }.Any(User.CanAccess))
+@if (User.IsOwner() || new[] { "sponsor_bar", "notification_bar", "suggestions", "sponsor_requests", "how_to_play", "app_settings", "faqs", "push", "comments" }.Any(User.CanAccess))
 {
 <h1 style="text-align:center; margin-top:20px;">Extra</h1>
 }
@@ -108,6 +108,20 @@
         Push Notifications
     </a>
     }
+    @if (User.CanAccess("comments"))
+    {
+    <a asp-controller="Comments" asp-action="Index" class="admin-card-small" style="
+        width:300px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        text-decoration:none;
+        position:relative;
+   ">
+        Racing Memories
+        <span class="admin-card-badge" data-new-count="reportedComments" hidden></span>
+    </a>
+    }
     @if (User.IsOwner())
     {
     <a asp-controller="AdminUsers" asp-action="Index" class="admin-card-small" style="
@@ -132,8 +146,9 @@
             document.querySelectorAll('[data-new-count]').forEach(badge => {
                 const n = counts[badge.dataset.newCount];
                 if (typeof n !== 'number' || n <= 0) return;
-                badge.textContent = (n > 99 ? '99+' : n) + ' new';
-                badge.title = n + ' new since you last opened this page';
+                const reported = badge.dataset.newCount === 'reportedComments';
+                badge.textContent = (n > 99 ? '99+' : n) + (reported ? ' reported' : ' new');
+                badge.title = reported ? n + ' reported comments to review' : n + ' new since you last opened this page';
                 badge.hidden = false;
             });
         })

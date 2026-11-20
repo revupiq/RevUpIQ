@@ -52,3 +52,11 @@ status filters. Execute access is restricted to `service_role`.
 Run `supabase db query --linked --file supabase/tests/admin_support_search.sql`
 to verify username, subject, and message searches, status filters, no-match
 results, and permissions against existing tickets without changing them.
+
+# Admin accounts linked to players
+
+Apply `migrations/202611200002_admin_users_player.sql` before deploying the admin
+version with the "Player account" picker on the Admin Users form. It adds an
+optional `admin_users.user_id` (one admin account per player; deleting the player
+only removes the link). Until it's applied, saving an account fails with a note
+to apply it.

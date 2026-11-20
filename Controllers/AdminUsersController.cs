@@ -1,6 +1,8 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using RevUpIQ.Admin.Infrastructure;
 using RevUpIQ.Admin.Models.AdminUsers;
+using RevUpIQ.Admin.Models.Users;
 using static Supabase.Postgrest.Constants;
 
 namespace RevUpIQ.Admin.Controllers
@@ -12,6 +14,11 @@ namespace RevUpIQ.Admin.Controllers
     {
         private const string MissingTable =
             "The admin_users table does not exist yet. Apply supabase/migrations/202611190001_admin_users.sql first.";
+
+        private const string MissingPlayerColumn =
+            "Linking a player needs supabase/migrations/202611200002_admin_users_player.sql applied first.";
+
+        private const int MaxPlayerResults = 10;
 
         private readonly Supabase.Client _supabase;
 
@@ -27,6 +34,8 @@ namespace RevUpIQ.Admin.Controllers
             try
             {
                 vm.Users = (await _supabase.From<AdminUser>().Order("username", Ordering.Ascending).Get()).Models;
+                vm.Players = (await DescribePlayersAsync(vm.Users.Where(u => u.UserId.HasValue).Select(u => u.UserId!.Value)))
+                    .ToDictionary(p => p.Id, p => p.Label);
             }
             catch (Exception ex)
             {
@@ -49,9 +58,10 @@ namespace RevUpIQ.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(new AdminUserForm
+            return await ShowFormAsync(new AdminUserForm
             {
                 Id = user.Id,
+                UserId = user.UserId,
                 Username = user.Username,
                 Sections = AdminSignIn.KnownSections(user.Sections).ToList(),
                 IsActive = user.IsActive
@@ -84,7 +94,7 @@ namespace RevUpIQ.Admin.Controllers
 
             form.Password = null; // never sent back to the page
             if (!ModelState.IsValid)
-                return View("Edit", form);
+                return await ShowFormAsync(form);
 
             try
             {
@@ -92,7 +102,19 @@ namespace RevUpIQ.Admin.Controllers
                 if (sameName != null && sameName.Id != form.Id)
                 {
                     ModelState.AddModelError(nameof(form.Username), "Another account already has this name.");
-                    return View("Edit", form);
+                    return await ShowFormAsync(form);
+                }
+
+                if (form.UserId is Guid playerId)
+                {
+                    var taken = (await _supabase.From<AdminUser>()
+                        .Filter("user_id", Operator.Equals, playerId.ToString()).Get()).Models.FirstOrDefault();
+                    if (taken != null && taken.Id != form.Id)
+                        ModelState.AddModelError(nameof(form.UserId), $"This player already has an admin account: {taken.Username}.");
+                    else if ((await DescribePlayersAsync(new[] { playerId })).Count == 0)
+                        ModelState.AddModelError(nameof(form.UserId), "That player's app account no longer exists. Choose another or remove it.");
+                    if (!ModelState.IsValid)
+                        return await ShowFormAsync(form);
                 }
 
                 if (form.Id is long id)
@@ -108,6 +130,7 @@ namespace RevUpIQ.Admin.Controllers
                         .Set(u => u.Username, username)
                         .Set(u => u.Sections, sections)
                         .Set(u => u.IsActive, form.IsActive)
+                        .Set(u => u.UserId!, form.UserId)
                         .Set(u => u.UpdatedAt, DateTime.UtcNow);
                     if (password.Length > 0)
                         update = update.Set(u => u.PasswordHash, AdminSignIn.HashPassword(password));
@@ -121,15 +144,18 @@ namespace RevUpIQ.Admin.Controllers
                         Username = username,
                         PasswordHash = AdminSignIn.HashPassword(password),
                         Sections = sections,
-                        IsActive = form.IsActive
+                        IsActive = form.IsActive,
+                        UserId = form.UserId
                     });
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Admin user save failed: {ex.Message}");
-                ModelState.AddModelError("", ex.Message.Contains("PGRST205") ? MissingTable : "Saving failed. Please try again.");
-                return View("Edit", form);
+                ModelState.AddModelError("", ex.Message.Contains("PGRST205") ? MissingTable
+                    : ex.Message.Contains("user_id") ? MissingPlayerColumn
+                    : "Saving failed. Please try again.");
+                return await ShowFormAsync(form);
             }
 
             TempData["Message"] = isNew ? $"Account {username} added." : $"Account {username} updated.";
@@ -174,6 +200,82 @@ namespace RevUpIQ.Admin.Controllers
                 TempData["Error"] = "Could not delete the account. Please try again.";
             }
             return RedirectToAction(nameof(Index));
+        }
+
+        // Players whose username, email or phone contains the text, for the form's picker
+        [HttpGet]
+        public async Task<IActionResult> Players(string? q)
+        {
+            var text = (q ?? "").Trim();
+            if (text.Length < 2) return Json(Array.Empty<PlayerOption>());
+
+            var ids = new List<Guid>();
+            try
+            {
+                var byName = await _supabase.From<Profile>().Select("id,username")
+                    .Filter("username", Operator.ILike, $"%{text}%")
+                    .Limit(MaxPlayerResults).Get();
+                ids.AddRange(byName.Models.Select(p => p.Id));
+            }
+            catch (Exception ex) { Console.WriteLine($"Player search by username failed: {ex.Message}"); }
+            try
+            {
+                var byContact = await _supabase.Rpc<List<Dictionary<string, Guid>>>("search_auth_users", new { search_text = text });
+                if (byContact != null) ids.AddRange(byContact.Select(x => x["user_id"]));
+            }
+            catch (Exception ex) { Console.WriteLine($"Player search by email or phone failed: {ex.Message}"); }
+
+            return Json(await DescribePlayersAsync(ids.Distinct().Take(MaxPlayerResults)));
+        }
+
+        private async Task<IActionResult> ShowFormAsync(AdminUserForm form)
+        {
+            form.PlayerLabel = form.UserId is Guid id
+                ? (await DescribePlayersAsync(new[] { id })).FirstOrDefault()?.Label ?? "(player's account deleted)"
+                : null;
+            return View("Edit", form);
+        }
+
+        // "username · email or phone" for each player that still exists
+        private async Task<List<PlayerOption>> DescribePlayersAsync(IEnumerable<Guid> ids)
+        {
+            var list = ids.Distinct().ToList();
+            if (list.Count == 0) return new();
+
+            var names = new Dictionary<Guid, string?>();
+            try
+            {
+                names = (await _supabase.From<Profile>().Select("id,username")
+                        .Filter("id", Operator.In, list).Get())
+                    .Models.ToDictionary(p => p.Id, p => p.Username);
+            }
+            catch (Exception ex) { Console.WriteLine($"Player names failed: {ex.Message}"); }
+
+            using var http = new HttpClient { BaseAddress = new Uri(ApiClientFactory.BaseUrl) };
+            http.DefaultRequestHeaders.Add("apikey", ApiClientFactory.ServiceRole);
+            http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ApiClientFactory.ServiceRole);
+            var json = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            var players = new List<PlayerOption>();
+            foreach (var id in list)
+            {
+                AuthUser? account = null;
+                try
+                {
+                    var res = await http.GetAsync($"auth/v1/admin/users/{id}");
+                    if (res.IsSuccessStatusCode)
+                        account = JsonSerializer.Deserialize<AuthUser>(await res.Content.ReadAsStringAsync(), json);
+                }
+                catch (Exception ex) { Console.WriteLine($"Player lookup failed: {ex.Message}"); }
+                if (account == null && !names.ContainsKey(id)) continue;
+
+                var username = names.GetValueOrDefault(id);
+                var contact = !string.IsNullOrWhiteSpace(account?.Email) ? account!.Email : account?.Phone;
+                var label = string.Join(" · ", new[] { username, contact }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                players.Add(new PlayerOption(id, label.Length > 0 ? label : id.ToString(), username));
+            }
+            return players;
         }
 
         private async Task<AdminUser?> FindAsync(long id) =>

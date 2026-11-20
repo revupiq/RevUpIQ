@@ -20,6 +20,23 @@
         <input type="hidden" asp-for="Id" />
 
         <div class="faq-field">
+            <label class="faq-label" for="playerSearch">Player account (optional)</label>
+            <input type="hidden" asp-for="UserId" id="playerId" />
+            <div id="playerChosen" class="player-chosen" hidden="@(Model.UserId == null)">
+                <span id="playerLabel">@Model.PlayerLabel</span>
+                <a href="#" id="playerRemove">Remove</a>
+            </div>
+            <input id="playerSearch" class="faq-input" autocomplete="off" hidden="@(Model.UserId != null)"
+                   placeholder="Search players by username, email or phone" />
+            <div id="playerResults" class="player-results" hidden></div>
+            <span class="faq-hint">
+                To give someone who already plays access, pick their app account. They still sign in
+                here with the username and password below.
+            </span>
+            <span asp-validation-for="UserId" class="faq-error"></span>
+        </div>
+
+        <div class="faq-field">
             <label class="faq-label" asp-for="Username">Username</label>
             <input asp-for="Username" class="faq-input" maxlength="40" autocomplete="off"
                    placeholder="e.g. clint.support" />
@@ -67,8 +84,74 @@
     </form>
 </div>
 
+<style>
+    .player-chosen { display: flex; gap: 12px; align-items: center; padding: 10px 12px;
+        border: 1px solid rgba(255,255,255,.25); border-radius: 10px; font-weight: 600; }
+    .player-chosen[hidden], .player-results[hidden], #playerSearch[hidden] { display: none; }
+    .player-chosen a { color: var(--white); font-weight: 400; margin-left: auto; }
+    .player-results { display: flex; flex-direction: column; margin-top: 4px;
+        border: 1px solid rgba(255,255,255,.2); border-radius: 10px; overflow: hidden; }
+    .player-results button, .player-results div { text-align: left; padding: 9px 12px; color: var(--white);
+        background: transparent; border: 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .player-results button:hover, .player-results button:focus { background: rgba(255,255,255,.1); }
+</style>
+
 <script>
 (function () {
+    const search = document.getElementById('playerSearch');
+    const results = document.getElementById('playerResults');
+    const chosen = document.getElementById('playerChosen');
+    const idInput = document.getElementById('playerId');
+    const label = document.getElementById('playerLabel');
+    const username = document.getElementById('Username');
+    let timer, latest = 0;
+
+    function note(text) {
+        results.replaceChildren(Object.assign(document.createElement('div'), { textContent: text }));
+        results.hidden = false;
+    }
+
+    function choose(p) {
+        idInput.value = p.id;
+        label.textContent = p.label;
+        chosen.hidden = false;
+        search.hidden = true;
+        results.hidden = true;
+        // Suggest their app username as the login name, keeping only allowed characters
+        const suggested = (p.username || '').replace(/[^A-Za-z0-9._-]/g, '').slice(0, 40);
+        if (!username.value.trim() && suggested.length >= 3) username.value = suggested;
+    }
+
+    search.addEventListener('input', () => {
+        clearTimeout(timer);
+        const q = search.value.trim();
+        if (q.length < 2) { results.hidden = true; return; }
+        timer = setTimeout(async () => {
+            const mine = ++latest;
+            note('Searching…');
+            try {
+                const res = await fetch('@Url.Action("Players")?q=' + encodeURIComponent(q));
+                const players = await res.json();
+                if (mine !== latest) return;
+                if (!players.length) return note('No players found.');
+                results.replaceChildren(...players.map(p => {
+                    const b = Object.assign(document.createElement('button'), { type: 'button', textContent: p.label });
+                    b.addEventListener('click', () => choose(p));
+                    return b;
+                }));
+            } catch { if (mine === latest) note('Search failed. Please try again.'); }
+        }, 300);
+    });
+
+    document.getElementById('playerRemove').addEventListener('click', e => {
+        e.preventDefault();
+        idInput.value = '';
+        chosen.hidden = true;
+        search.hidden = false;
+        search.value = '';
+        search.focus();
+    });
+
     const boxes = () => document.querySelectorAll('input[name="Sections"]');
     document.getElementById('selectAll').addEventListener('click', e => { e.preventDefault(); boxes().forEach(b => b.checked = true); });
     document.getElementById('selectNone').addEventListener('click', e => { e.preventDefault(); boxes().forEach(b => b.checked = false); });

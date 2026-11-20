@@ -16,6 +16,7 @@
 
     <p class="faq-intro">
         Accounts that can sign in to this admin panel, each with its own username and password.
+        An account can belong to a player who already has an app account.
         An account sees only the sections ticked for it; this page is only for you, the owner
         (<b>@AdminSignIn.OwnerUsername</b> login). Changes apply within a minute, without the account signing out.
     </p>
@@ -47,6 +48,11 @@
                     <span class="faq-chip faq-chip-category">@u.Username</span>
                     <span class="faq-chip @(u.IsActive ? "active" : "inactive")">@(u.IsActive ? "Active" : "Turned off")</span>
                 </div>
+
+                @if (u.UserId is Guid playerId)
+                {
+                    <p class="faq-answer">Player: @(Model.Players.GetValueOrDefault(playerId) ?? "(app account deleted)")</p>
+                }
 
                 <p class="faq-answer">
                     @if (sections.Count == AdminAccess.Sections.Length)
